@@ -1,0 +1,99 @@
+package stats
+
+import (
+	"fmt"
+	"strings"
+	"time"
+
+	"zakirullin/dumpbot/internal/db"
+	"zakirullin/dumpbot/internal/fs"
+	"zakirullin/dumpbot/internal/sched"
+)
+
+var now = func() time.Time {
+	return time.Now()
+}
+
+func TodayReport(fsys *fs.FS, db *db.DB, userID int64) (string, error) {
+	files, err := DoneToday(fsys, db, userID)
+	if err != nil {
+		return "", fmt.Errorf("stats.TodayReport: %w", err)
+	}
+
+	var list = ""
+	for _, file := range files {
+		ico := icon(file)
+		list += fmt.Sprintf("%s <b>%s</b>", ico, fs.Title(file))
+	}
+	//
+	//	if (preg_match('/-read-_.*/', $task)) {
+	//	$list .=
+	//	} elseif (preg_match('/-watch-_.*/', $task)) {
+	//	$list .= '📺 <b>' . preg_replace('/-.*?-_/', '', $this->toTitle($task)) . "</b>\n";
+	//	} elseif (preg_match('/-shop-_.*/', $task)) {
+	//	$list .= '🛒 <b>' . preg_replace('/-.*?-_/', '', $this->toTitle($task)) . "</b>\n";
+	//	} elseif (preg_match('/-.*?-_.*/', $task)) {
+	//	$list .= '☑️ <b>' . preg_replace('/-.*?-_/', '', $this->toTitle($task)) . "</b>\n";
+	//	} else {
+	//	$list .= '✅ <b>' . $this->toTitle($task) . "</b>\n";
+	//	}
+	//}
+
+	return list, nil
+}
+
+func icon(filename string) string {
+	if strings.HasPrefix("-read-", filename) {
+		return "📚"
+	}
+
+	if strings.HasPrefix("-watch-", filename) {
+		return "📺"
+	}
+
+	if strings.HasPrefix("-shop-", filename) {
+		return "🛒"
+	}
+
+	if fs.IsChecklistItem(filename) {
+		return "☑️"
+	}
+
+	return "✅"
+}
+
+func DoneToday(fsys *fs.FS, db *db.DB, userID int64) ([]string, error) {
+	return doneToday(fsys, db, userID, false)
+}
+
+func DoneTodayScheduled(fsys *fs.FS, db *db.DB, userID int64) ([]string, error) {
+	return doneToday(fsys, db, userID, true)
+}
+
+func doneToday(fsys *fs.FS, db *db.DB, userID int64, withScheduled bool) ([]string, error) {
+	files, err := fsys.FilesAndDirs(fs.DirBin)
+	if err != nil {
+		return nil, fmt.Errorf("stats.DoneTasks: %w", err)
+	}
+
+	var todayFiles []fs.File
+	for _, task := range files {
+		if task.Ctime > sched.BeginningOfTheDay(now()).Unix() {
+			todayFiles = append(todayFiles, task)
+		}
+	}
+
+	sch, err := db.Schedule(userID)
+	if err != nil {
+		return nil, fmt.Errorf("stats.DoneTasks: %w", err)
+	}
+
+	var todayFiltered []string
+	for _, todayFile := range todayFiles {
+		if _, scheduled := sch[todayFile.Name]; scheduled == withScheduled {
+			todayFiltered = append(todayFiltered, todayFile.Title)
+		}
+	}
+
+	return todayFiltered, nil
+}

@@ -1,0 +1,1120 @@
+package internal
+
+import (
+	"errors"
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+
+	"zakirullin/dumpbot/internal/db"
+	"zakirullin/dumpbot/internal/fs"
+	"zakirullin/dumpbot/internal/sched"
+	"zakirullin/dumpbot/internal/stats"
+	"zakirullin/dumpbot/pkg/str"
+	"zakirullin/dumpbot/pkg/tg"
+)
+
+const (
+	maxTitleLength = 100
+)
+
+var now = func() time.Time {
+	return time.Now()
+}
+
+// TGInterface provides a simple interface to telegram API
+type TGInterface interface {
+	Send(userID int64, text string, kb *tg.Keyboard, markup string) (int, error)
+	Edit(userID int64, msgID int, text string, kb *tg.Keyboard, markup string) error
+	Del(userID int64, msgID int) error
+	AnswerCallbackQuery(queryID string, text string) error
+}
+
+// UpdInterface represents incoming user updates
+type UpdInterface interface {
+	MsgText() string
+	UserID() int64
+	Cmd() *tg.Cmd
+	MsgEntities() []tgbotapi.MessageEntity
+	IsCallbackQuery() bool
+	IsForwarded() bool
+	CallbackQueryID() string
+}
+
+// Bot provides commands that can be invoked by a user so to query
+// server files and database. A user can also send all sort of things
+// to bot (texts, photos) - in that case we'd save everything.
+type Bot struct {
+	userID int64
+	tg     TGInterface
+	fs     *fs.FS
+	db     *db.DB
+}
+
+func NewBot(userID int64, tg TGInterface, fs *fs.FS, db *db.DB) *Bot {
+	return &Bot{userID, tg, fs, db}
+}
+
+// Reply to incoming text message or command (inline queries aren't supported yet)
+func (b *Bot) Reply(u UpdInterface) error {
+	if !u.IsCallbackQuery() {
+		b.delAllKeyboards()
+	}
+
+	cmd, err := b.cmd(u)
+	if err != nil {
+		return fmt.Errorf("b.Reply: can't get cmd: %w", err)
+	}
+	if cmd != nil {
+		handler, ok := b.handlers()[cmd.Name]
+		if !ok {
+			return errors.New(fmt.Sprintf("b.Reply: no such command %s", cmd.Name))
+		}
+
+		err = handler(cmd.Params)
+		if err == nil && u.IsCallbackQuery() {
+			// We can tolerate an error here, that won't affect UX
+			_ = b.tg.AnswerCallbackQuery(u.CallbackQueryID(), "")
+		}
+
+		return err
+	}
+
+	if u.IsForwarded() {
+		return b.saveForward(u)
+	}
+
+	return b.save(u)
+}
+
+// Commands and their handlers.
+// Every handler accepts []string params
+func (b *Bot) handlers() map[string]func([]string) error {
+	return map[string]func([]string) error{
+		// Direct user commands
+		"start":      b.showStart,
+		"today":      b.showToday,
+		"later":      b.showLater,
+		"notes":      b.showNotes,
+		"docs":       b.showDocs,
+		"checklists": b.showChecklists,
+		"postpone":   b.showPostpone,
+		"rename":     b.showRename,
+		"stats":      b.showStats,
+		// Button's commands (callbacks)
+		"list":          b.showList,
+		"rename_file":   b.showRenameFile,
+		"task":          b.showTask,
+		"doc":           b.showDoc,
+		"checklist":     b.showChecklist,
+		"to_day":        b.showChooseDay,
+		"to_note":       b.showToNote,
+		"to_doc":        b.showToDoc,
+		"to_checklist":  b.showToChecklist,
+		"mv":            b.move,
+		"mv_to_new_dir": b.moveToNewDir,
+		"mv_to_doc":     b.moveToDoc,
+		"mv_to_new_doc": b.moveToNewDoc,
+		"mv_to_chk":     b.moveToChecklist,
+		"mv_to_new_chk": b.moveToNewChecklist,
+		"sc":            b.schedule,
+		"c":             b.complete,
+		"p":             b.postpone,
+	}
+}
+
+func (b *Bot) cmd(u UpdInterface) (*tg.Cmd, error) {
+	cmd := u.Cmd()
+	if cmd != nil {
+		return cmd, nil
+	}
+
+	// Mostly used for renaming things
+	cmd, err := b.db.InputExpectation(b.userID)
+	if err != nil {
+		return nil, fmt.Errorf("b.Reply: %w", err)
+	}
+	if cmd != nil {
+		err = b.db.DelInputExpectation(b.userID)
+		if err != nil {
+			return nil, fmt.Errorf("b.getCmd: %w", err)
+		}
+
+		for i, param := range cmd.Params {
+			if param == "%s" {
+				cmd.Params[i] = u.MsgText()
+			}
+		}
+
+		return cmd, nil
+	}
+
+	return nil, nil
+}
+
+func (b *Bot) cmdsOnlyNotes() map[string]func([]string) error {
+	return map[string]func([]string) error{
+		"start": b.showStart,
+	}
+}
+
+func (b *Bot) allowedTextCmds() []string {
+	return []string{
+		"start",
+		"today",
+		"later",
+		"notes",
+		"postpone",
+		"docs",
+		"rename",
+		"checklists",
+		"stats",
+		//"help",
+		//"err",
+		//"b",
+		//"m",
+		//"u",
+		//"o",
+	}
+}
+
+func (b *Bot) save(u UpdInterface) error {
+	msg := str.EntitiesToMarkdown(u.MsgText(), u.MsgEntities())
+	msg = strings.TrimSpace(str.NormNewLines(msg))
+
+	title, content, err := b.extractTitleAndContent(msg)
+	if err != nil {
+		return fmt.Errorf("b.save: %w", err)
+	}
+
+	filename := fs.Filename(title)
+	err = b.createOrAdd(fs.DirToday, filename, content)
+	if err != nil {
+		return fmt.Errorf("b.save: %w", err)
+	}
+
+	return b.showMove([]string{fs.Hash(filename)})
+}
+
+func (b *Bot) saveForward(u UpdInterface) error {
+	msg := str.EntitiesToMarkdown(u.MsgText(), u.MsgEntities())
+	msg = strings.TrimSpace(str.NormNewLines(msg))
+
+	title, content, err := b.extractTitleAndContent(msg)
+	if err != nil {
+		return fmt.Errorf("b.save: %w", err)
+	}
+	filename := fs.Filename(title)
+
+	// When a user forwards message + title we receive 2 updates from TG.
+	// First we receive title, then the message itself. We must add our
+	// forwarded message to previously saved task (by title).
+	// We do sleep here because previous file might not be saved.
+	// We may consider locks here, but the updates can come out of order
+	time.Sleep(300 * time.Millisecond)
+	files, err := b.fs.FilesAndDirs(fs.DirToday)
+	if err != nil {
+		return fmt.Errorf("b.saveForward: %w", err)
+	}
+
+	files = fs.SortByCtime(fs.OnlyFiles(files))
+	if len(files) > 0 {
+		file := files[len(files)-1]
+		fileWasCreatedRecently := (now().Unix() - file.Ctime) <= 2
+		if fileWasCreatedRecently {
+			filename = file.Name
+			content = msg
+		}
+	}
+
+	err = b.createOrAdd(fs.DirToday, filename, content)
+	if err != nil {
+		return fmt.Errorf("b.save: %w", err)
+	}
+
+	return b.showMove([]string{fs.Hash(filename)})
+}
+
+func (b *Bot) createOrAdd(dir, filename, content string) error {
+	exists, err := b.fs.Exists(dir, filename)
+	if err != nil {
+		return fmt.Errorf("b.createOrAdd can't check file existence: %w", err)
+	}
+
+	if exists {
+		existingContent, err := b.fs.Content(dir, filename)
+		if err != nil {
+			return fmt.Errorf("b.createOrAdd can't get content: %w", err)
+		}
+
+		content = fmt.Sprintf("%s\n%s", strings.TrimSpace(existingContent), content)
+	}
+
+	if err := b.fs.Put(fs.DirToday, filename, content); err != nil {
+		return fmt.Errorf("b.createOrAdd: can't put: %w", err)
+	}
+
+	return nil
+}
+
+func (b *Bot) extractTitleAndContent(msg string) (string, string, error) {
+	if len(msg) == 0 {
+		return "", "", fmt.Errorf("b.extractTitleAndContent: empty msg")
+	}
+
+	parts := strings.SplitN(msg, "\n", 2)
+
+	title := str.Ucfirst(strings.TrimSpace(parts[0]))
+	content := ""
+	if len(parts) > 1 {
+		content = strings.TrimSpace(parts[1])
+	}
+	if len(title) > maxTitleLength {
+		if len(content) == 0 {
+			content = title
+		} else {
+			content = fmt.Sprintf("%s\n\n%s", title, content)
+		}
+		title = str.Substr(title, 0, 100)
+	}
+
+	return title, content, nil
+}
+
+func (b *Bot) tr(str string, args ...any) string {
+	return fmt.Sprintf(str, args...)
+}
+
+// Replace last message + keyboard with the new ones
+// Or show the new one (in case of photo)
+func (b *Bot) show(text string, kb *tg.Keyboard, markup string) error {
+	mid, err := b.db.LastKeyboardMsgID(b.userID)
+	if err != nil {
+		return fmt.Errorf("b.show: can't get last mid: %w", err)
+	}
+
+	if mid == nil {
+		b.delAllKeyboards()
+
+		mid, err := b.tg.Send(b.userID, text, kb, markup)
+		if err != nil {
+			return fmt.Errorf("b.show: can't send: %w", err)
+		}
+
+		err = b.db.SetLastKeyboardMsgID(b.userID, mid)
+		if err != nil {
+			return fmt.Errorf("b.show: can't set last mid: %w", err)
+		}
+
+		return nil
+	}
+
+	return b.tg.Edit(b.userID, *mid, text, kb, markup)
+}
+
+func (b *Bot) showMove(params []string) error {
+	filenameHash := params[0]
+
+	kb := tg.NewKeyboard([]tg.Row{
+		tg.NewRow(
+			tg.NewBtn(b.tr("For tmrw"), tg.NewCmd("sc", []string{filenameHash, str.I64(sched.Tomorrow()), ""})),
+			tg.NewBtn(b.tr("For later"), tg.NewCmd("mv", []string{fs.DirToday, filenameHash, "later"})),
+			tg.NewBtn(b.tr("For a day"), tg.NewCmd("to_day", []string{filenameHash})),
+		),
+		tg.NewRow(
+			tg.NewBtn(b.tr("To Note"), tg.NewCmd("to_note", []string{filenameHash})),
+			tg.NewBtn(b.tr("To Checklist"), tg.NewCmd("to_checklist", []string{filenameHash})),
+			tg.NewBtn(b.tr("To Doc"), tg.NewCmd("to_doc", []string{filenameHash})),
+		),
+	})
+
+	b.delAllKeyboards()
+
+	err := b.show(b.tr("Task added for <b>today</b>!"), kb, tg.MarkupHTML)
+	if err != nil {
+		return fmt.Errorf("b.showMove: %w", err)
+	}
+
+	return nil
+}
+
+// TODO separate today and later list
+func (b *Bot) showList(params []string) error {
+	dir := fs.DirToday
+	if len(params) > 0 {
+		dir = params[0]
+	}
+	otherDir := fs.DirLater
+	if dir == fs.DirLater {
+		otherDir = fs.DirToday
+	}
+
+	files, err := b.fs.FilesAndDirs(dir)
+	if err != nil {
+		return fmt.Errorf("list: can't get files in %s dir: %w", dir, err)
+	}
+
+	var kb tg.Keyboard
+	for _, file := range files {
+		var btn tg.Btn
+		if file.IsMultiline {
+			cmd := tg.NewCmd("task", []string{dir, fs.Hash(file.Name)})
+			btn = tg.NewBtn(str.Emoji("👀", file.Title), cmd)
+		} else {
+			cmd := tg.NewCmd("c", []string{dir, fs.Hash(file.Name)})
+			btn = tg.NewBtn(file.Title, cmd)
+		}
+
+		kb.AddRow(btn)
+	}
+
+	kb.AddRow(tg.NewBtn(otherDir, tg.NewCmd(otherDir, []string{otherDir})))
+
+	msg, err := b.todayLabel()
+	if err != nil {
+		// TODO fix
+		msg = b.tr("Tasks for today:")
+		return err
+	}
+	if dir == fs.DirLater {
+		msg = b.tr("⏳ Your tasks for later:")
+	}
+
+	err = b.show(msg, &kb, tg.MarkupHTML)
+	if err != nil {
+		return fmt.Errorf("b.showList: %w", err)
+	}
+
+	return nil
+}
+
+func (b *Bot) showNotes(params []string) error {
+	dirs, err := b.fs.FilesAndDirs("")
+	if err != nil {
+		return fmt.Errorf("b.showNotes: can't get dirs: %w", err)
+	}
+	dirs = fs.OnlyNotes(fs.OnlyDirs(dirs))
+
+	var kb tg.Keyboard
+	for _, dir := range dirs {
+		cmd := tg.NewCmd("c", []string{dir.Name, fs.Hash(dir.Name)})
+		btn := tg.NewBtn(dir.Title, cmd)
+
+		kb.AddRow(btn)
+	}
+
+	kb.AddRow(tg.NewBtn(fs.DirToday, tg.NewCmd(fs.DirToday, nil)))
+
+	err = b.show("notes:", &kb, tg.MarkupHTML)
+	if err != nil {
+		return fmt.Errorf("b.showNotes: %w", err)
+	}
+
+	return nil
+}
+
+func (b *Bot) showDocs(params []string) error {
+	files, err := b.fs.FilesAndDirs("")
+	if err != nil {
+		return fmt.Errorf("b.showDocs: can't get dirs: %w", err)
+	}
+	files = fs.OnlyFiles(files)
+
+	var kb tg.Keyboard
+	for _, file := range files {
+		cmd := tg.NewCmd("doc", []string{fs.Hash(file.Name)})
+		btn := tg.NewBtn(file.Title, cmd)
+
+		kb.AddRow(btn)
+	}
+
+	kb.AddRow(tg.NewBtn(b.tr("Back to docs"), tg.NewCmd("docs", nil)))
+
+	err = b.show(b.tr("📝 Your docs:"), &kb, tg.MarkupHTML)
+	if err != nil {
+		return fmt.Errorf("b.showDocs: %w", err)
+	}
+
+	return nil
+}
+
+func (b *Bot) showChecklists(params []string) error {
+	checklists, err := b.fs.FilesAndDirs("")
+	if err != nil {
+		return fmt.Errorf("b.showDocs: can't get dirs: %w", err)
+	}
+	checklists = fs.OnlyChecklists(checklists)
+
+	var kb tg.Keyboard
+	for _, checklist := range checklists {
+		cmd := tg.NewCmd("checklist", []string{fs.Hash(checklist.Name)})
+		btn := tg.NewBtn(checklist.Title, cmd)
+
+		kb.AddRow(btn)
+	}
+	kb.AddRow(tg.NewBtn(b.tr("🏠 Today"), tg.NewCmd("today", nil)))
+
+	err = b.show(b.tr("☑️ Checklists"), &kb, tg.MarkupHTML)
+	if err != nil {
+		return fmt.Errorf("b.showChecklists: %w", err)
+	}
+
+	return nil
+}
+
+func (b *Bot) showPostpone(params []string) error {
+	files, err := b.fs.FilesAndDirs(fs.DirToday)
+	if err != nil {
+		return fmt.Errorf("b.showPostpone: can't get files in '%s' dir: %w", fs.DirToday, err)
+	}
+
+	var kb tg.Keyboard
+	for _, file := range files {
+		cmd := tg.NewCmd("p", []string{fs.Hash(file.Name)})
+		kb.AddRow(tg.NewBtn(file.Title, cmd))
+	}
+
+	kb.AddRow(tg.NewRow(
+		tg.NewBtn(b.tr("Rename"), tg.NewCmd("rename", []string{})),
+		tg.NewBtn(b.tr("OK"), tg.NewCmd("today", []string{})),
+	))
+
+	err = b.show(b.tr("🦥 Select a task to showPostpone:"), &kb, tg.MarkupHTML)
+	if err != nil {
+		return fmt.Errorf("b.showPostpone: %w", err)
+	}
+
+	return nil
+}
+
+func (b *Bot) postpone(params []string) error {
+	// TODO Remove input expectations if dir is not list
+	filenameHash := params[0]
+
+	filename, err := b.fs.Unhash(fs.DirToday, filenameHash)
+	if err != nil {
+		return fmt.Errorf("b.postpone: can't unhash old filename %s in %s: %w", fs.DirToday, filenameHash, err)
+	}
+
+	// TODO touch
+	// TODO multiline
+	err = b.fs.Rename(fs.DirToday, filename, fs.DirLater, filename)
+	if err != nil {
+		return fmt.Errorf("b.postpone: can't move: %w", err)
+	}
+
+	return b.showPostpone(nil)
+}
+
+func (b *Bot) showRename(params []string) error {
+	dir := fs.DirToday
+	if len(params) > 0 {
+		dir = params[0]
+	}
+	otherDir := fs.DirLater
+	if dir == fs.DirLater {
+		otherDir = fs.DirToday
+	}
+
+	files, err := b.fs.FilesAndDirs(dir)
+	if err != nil {
+		return fmt.Errorf("b.rename: can't get files in %s dir: %w", dir, err)
+	}
+
+	var kb tg.Keyboard
+	for _, file := range files {
+		var btn tg.Btn
+		cmd := tg.NewCmd("rename_file", []string{dir, fs.Hash(file.Name)})
+		btn = tg.NewBtn(str.Emoji("👀", file.Title), cmd)
+
+		kb.AddRow(btn)
+	}
+
+	kb.AddRow(tg.NewBtn(otherDir, tg.NewCmd(otherDir, []string{otherDir})))
+
+	msg, err := b.todayLabel()
+	if err != nil {
+		// TODO fix
+		msg = b.tr("Tasks for today:")
+		return err
+	}
+
+	err = b.show(msg, &kb, tg.MarkupHTML)
+	if err != nil {
+		return fmt.Errorf("b.showRename: %w", err)
+	}
+
+	return nil
+}
+
+func (b *Bot) showRenameFile(params []string) error {
+	dir := params[0]
+	filenameHash := params[1]
+
+	filename, err := b.fs.Unhash(dir, filenameHash)
+	if err != nil {
+		return fmt.Errorf("b.task: can't unhash filename %s in %s: %w", filenameHash, dir, err)
+	}
+
+	content, err := b.fs.Content(dir, filename)
+	if err != nil {
+		return fmt.Errorf("b.task: can't get content for %s: %w", filename, err)
+	}
+
+	kb := tg.NewKeyboard([]tg.Row{
+		tg.NewRow(tg.NewBtn("back", tg.NewCmd(dir, []string{dir}))),
+	})
+
+	err = b.db.SetInputExpectation(b.userID, tg.NewCmd("mv", []string{dir, filename, dir, "%s"}))
+	if err != nil {
+		return fmt.Errorf("b.showRenameFile: can't set input expectation: %w", err)
+	}
+
+	err = b.show(fmt.Sprintf("%s\n%s", fs.Title(filename), content), kb, tg.MarkupHTML)
+	if err != nil {
+		return fmt.Errorf("b.showRenameFile: %w", err)
+	}
+
+	return nil
+}
+
+func (b *Bot) showStats(params []string) error {
+	report, err := stats.TodayReport(b.fs, b.db, b.userID)
+	if err != nil {
+		return fmt.Errorf("b.showStats: %w", err)
+	}
+
+	err = b.show(report, nil, tg.MarkupHTML)
+	if err != nil {
+		return fmt.Errorf("b.showStats: %w", err)
+	}
+
+	return nil
+}
+
+func (b *Bot) showTask(params []string) error {
+	dir := params[0]
+	filenameHash := params[1]
+
+	filename, err := b.fs.Unhash(dir, filenameHash)
+	if err != nil {
+		return fmt.Errorf("b.task: can't unhash filename %s in %s: %w", filenameHash, dir, err)
+	}
+
+	content, err := b.fs.Content(dir, filename)
+	if err != nil {
+		return fmt.Errorf("b.task: can't get content for %s: %w", filename, err)
+	}
+
+	kb := tg.NewKeyboard([]tg.Row{
+		tg.NewRow(tg.NewBtn("back", tg.NewCmd(dir, []string{dir}))),
+	})
+
+	err = b.show(fmt.Sprintf("%s\n%s", fs.Title(filename), content), kb, tg.MarkupHTML)
+	if err != nil {
+		return fmt.Errorf("b.showTask: %w", err)
+	}
+
+	return nil
+}
+
+func (b *Bot) showDoc(params []string) error {
+	filenameHash := params[0]
+
+	filename, err := b.fs.Unhash("", filenameHash)
+	if err != nil {
+		return fmt.Errorf("b.showDoc: can't unhash filename %s: %w", filenameHash, err)
+	}
+
+	content, err := b.fs.Content("", filename)
+	if err != nil {
+		return fmt.Errorf("b.showDoc: can't get content for %s: %w", filename, err)
+	}
+
+	kb := tg.NewKeyboard([]tg.Row{
+		tg.NewRow(tg.NewBtn("back", tg.NewCmd("docs", nil))),
+	})
+
+	err = b.show(fmt.Sprintf("%s\n%s", fs.Title(filename), content), kb, tg.MarkupHTML)
+	if err != nil {
+		return fmt.Errorf("b.showDoc: %w", err)
+	}
+
+	return nil
+}
+
+func (b *Bot) showChecklist(params []string) error {
+	checklistHash := params[0]
+
+	checklist, err := b.fs.Unhash("", checklistHash)
+	if err != nil {
+		return fmt.Errorf("b.showChecklist: can't unhash checklist %s: %w", checklistHash, err)
+	}
+
+	items, err := b.fs.FilesAndDirs(checklist)
+	if err != nil {
+		return fmt.Errorf("b.showChecklist: can't get items for %s: %w", checklist, err)
+	}
+
+	kb := tg.NewKeyboard(nil)
+	for _, item := range items {
+		kb.AddRow(tg.NewBtn(item.Title, tg.NewCmd("c", []string{})))
+	}
+	kb.AddRow(tg.NewRow(tg.NewBtn("back", tg.NewCmd("docs", nil))))
+
+	err = b.show(fs.Title(checklist), kb, tg.MarkupHTML)
+	if err != nil {
+		return fmt.Errorf("b.showChecklist: %w", err)
+	}
+
+	return nil
+}
+
+func (b *Bot) showToday(params []string) error {
+	return b.showList([]string{fs.DirToday})
+}
+
+func (b *Bot) showLater(params []string) error {
+	return b.showList([]string{fs.DirLater})
+}
+
+func (b *Bot) showStart(params []string) error {
+	_, err := b.tg.Send(b.userID, "Welcome!", nil, tg.MarkupHTML)
+	if err != nil {
+		return fmt.Errorf("start: can't send: %w", err)
+	}
+
+	return nil
+}
+
+func (b *Bot) move(params []string) error {
+	// TODO Remove input expectations if dir is not list
+	oldDirHash := params[0]
+	oldFilenameHash := params[1]
+	newDirHash := params[2]
+
+	oldDir, err := b.fs.Unhash("", oldDirHash)
+	if err != nil {
+		return fmt.Errorf("b.move: can't unhash old dir '%s': %w", oldDirHash, err)
+	}
+
+	filename, err := b.fs.Unhash(oldDir, oldFilenameHash)
+	if err != nil {
+		return fmt.Errorf("b.move:can't unhash old filename %s in %s: %w", oldDir, oldFilenameHash, err)
+	}
+	newFilename := filename
+	if len(params) > 3 {
+		newFilename = params[3]
+	}
+
+	newDir, err := b.fs.Unhash("", newDirHash)
+	if err != nil {
+		return fmt.Errorf("b.move: can't unhash new dir %s: %w", newDir, err)
+	}
+
+	// TODO touch
+	// TODO multiline
+	err = b.fs.Rename(oldDir, filename, newDir, newFilename)
+	if err != nil {
+		return fmt.Errorf("b.move: can't move: %w", err)
+	}
+
+	return b.showList(nil)
+}
+
+func (b *Bot) moveToNewDir(params []string) error {
+	filenameHash := params[0]
+	dir := params[1]
+
+	err := b.fs.MakeDir(dir)
+	if err != nil {
+		return fmt.Errorf("b.moveToNewDir: can't create dir: %w", err)
+	}
+
+	return b.move([]string{fs.DirInbox, filenameHash, dir})
+}
+
+func (b *Bot) moveToDoc(params []string) error {
+	// TODO Remove input expectations if dir is not list
+	filenameHash := params[0]
+	docHash := params[1]
+
+	filename, err := b.fs.Unhash(fs.DirToday, filenameHash)
+	if err != nil {
+		return fmt.Errorf("b.moveToDoc: can't unhash filename '%s': %w", filenameHash, err)
+	}
+
+	doc, err := b.fs.Unhash("", docHash)
+	if err != nil {
+		return fmt.Errorf("b.moveToDoc: can't unhash doc '%s' in today: %w", filenameHash, err)
+	}
+
+	fileContent, err := b.fs.RestoreText(fs.DirToday, filename)
+	if err != nil {
+		return fmt.Errorf("b.MoveToDoc: can't restore file content of '%s': %w", filename, err)
+	}
+
+	// We can tolerate this
+	_ = b.fs.Del(fs.DirToday, filename)
+
+	docContent, err := b.fs.Content("", doc)
+	if err != nil {
+		return fmt.Errorf("b.MoveToDoc: can't get doc content of '%s': %w", doc, err)
+	}
+	docContent = strings.TrimSpace(docContent)
+	if len(docContent) > 0 {
+		docContent += "\n"
+	}
+	docContent += fileContent
+
+	err = b.fs.Put("", doc, docContent)
+	if err != nil {
+		return fmt.Errorf("b.moveTo: can't save file: %w", err)
+	}
+
+	return b.showToday(nil)
+}
+
+func (b *Bot) moveToChecklist(params []string) error {
+	filenameHash := params[0]
+	checklistHash := params[1]
+
+	filename, err := b.fs.Unhash(fs.DirToday, filenameHash)
+	if err != nil {
+		return fmt.Errorf("b.moveToChecklist: can't unhash filename '%s': %w", filenameHash, err)
+	}
+
+	checklist, err := b.fs.Unhash("", checklistHash)
+	if err != nil {
+		return fmt.Errorf("b.moveToChecklist: can't unhash checklist '%s' in today: %w", filenameHash, err)
+	}
+
+	isMultiline, err := b.fs.IsMultiline(fs.DirToday, filename)
+	if err != nil {
+		return fmt.Errorf("b.moveToChecklist: %w", err)
+	}
+
+	if isMultiline && shouldSplitChecklist(checklist) {
+		text, err := b.fs.RestoreText(fs.DirToday, filename)
+		if err != nil {
+			return fmt.Errorf("b.moveToChecklist: %w", err)
+		}
+
+		text = strings.TrimSpace(str.NormNewLines(text))
+		lines := strings.Split(text, "\n")
+		for _, line := range lines {
+			err = b.fs.Put(checklist, fs.Filename(line), "")
+			if err != nil {
+				return fmt.Errorf("b.moveToChecklist: %w", err)
+			}
+		}
+	} else {
+		err = b.fs.Rename(fs.DirToday, filename, checklist, filename)
+		if err != nil {
+			return fmt.Errorf("b.moveToChecklist: %w", err)
+		}
+	}
+
+	// We can tolerate this
+	_ = b.fs.Del(fs.DirToday, filename)
+
+	return b.showToday(nil)
+}
+
+func (b *Bot) moveToNewDoc(params []string) error {
+	filenameHash := params[0]
+	doc := params[1]
+
+	err := b.fs.Put("", str.Ucfirst(doc), "")
+	if err != nil {
+		return fmt.Errorf("b.moveToDoc: can't create empty doc: %w", err)
+	}
+
+	return b.moveToDoc([]string{filenameHash, fs.Hash(doc)})
+}
+
+func (b *Bot) moveToNewChecklist(params []string) error {
+	filenameHash := params[0]
+	doc := params[1]
+
+	err := b.fs.Put("", str.Ucfirst(doc), "")
+	if err != nil {
+		return fmt.Errorf("b.moveToDoc: can't create empty doc: %w", err)
+	}
+
+	return b.moveToDoc([]string{filenameHash, fs.Hash(doc)})
+}
+
+func (b *Bot) complete(params []string) error {
+	dir := params[0]
+	filenameHash := params[1]
+
+	filename, err := b.fs.Unhash(dir, filenameHash)
+	if err != nil {
+		return fmt.Errorf("b.complete: can't unhash filename %s: %w", filename, err)
+	}
+
+	// TODO touch
+	// TODO multiline
+	err = b.fs.Rename(dir, filename, fs.DirBin, filename)
+	if err != nil {
+		return fmt.Errorf("b.complete: can't complete %s: %w", filename, err)
+	}
+
+	err = b.showList(nil)
+	if err != nil {
+		return fmt.Errorf("b.copmlete: %w", err)
+	}
+
+	return nil
+}
+
+func (b *Bot) schedule(params []string) error {
+	filenameHash := params[0]
+	timeStr := params[1]
+	cron := params[2]
+
+	scheduleTime, err := strconv.ParseInt(timeStr, 10, 64)
+	if err != nil {
+		return fmt.Errorf("b.schedule: can't parse timestamp: %w", err)
+	}
+
+	filename, err := b.fs.Unhash(fs.DirToday, filenameHash)
+	if err != nil {
+		return fmt.Errorf("b.schedule: can't unhash filename %s in list: %s", filenameHash, err)
+	}
+
+	err = b.db.AddToSchedule(b.userID, filename, scheduleTime, cron)
+	if err != nil {
+		return fmt.Errorf("b.schedule: can't save schedule for %s: %w", filename, err)
+	}
+
+	err = b.fs.Rename(fs.DirToday, filename, fs.DirLater, filename)
+	if err != nil {
+		return fmt.Errorf("b.schedule: can't rename file %s: %w", filename, err)
+	}
+
+	return b.showList(nil)
+}
+
+func (b *Bot) delAllKeyboards() {
+	var msgIDs []int
+	mid, _ := b.db.LastKeyboardMsgID(b.userID)
+	if mid != nil {
+		_ = b.db.DelLastKeyboardMsgID(b.userID)
+		msgIDs = append(msgIDs, *mid)
+	}
+
+	// No worries if we fail - it will be cleaned up by the worker
+	//b.redis.Del(b.key(redisReplaceWithDefaultKeyboardMsgID))
+	for _, msgID := range msgIDs {
+		// If we fail to del - user would get a bunch
+		// of keyboards in one chat, which is messy but not critical
+		b.tg.Del(b.userID, msgID)
+	}
+}
+
+// User-namespaced redis key
+func (b *Bot) key(key string) string {
+	return fmt.Sprintf("%s:%d", key, b.userID)
+}
+
+func (b *Bot) showChooseDay(params []string) error {
+	filenameHash := params[0]
+
+	kb, err := b.forADayKeyboard(filenameHash)
+	if err != nil {
+		return fmt.Errorf("forADay: can't get keyboard: %w", err)
+	}
+
+	err = b.show("choose your destiny", kb, tg.MarkupHTML)
+	if err != nil {
+		return fmt.Errorf("b.showChooseDay: %w", err)
+	}
+
+	return nil
+}
+
+func (b *Bot) forADayKeyboard(filenameHash string) (*tg.Keyboard, error) {
+	newBtn := func(name, cron string) tg.Btn {
+		return tg.NewBtn(name, tg.NewCmd("sc", []string{filenameHash, str.I64(sched.Next(cron)), ""}))
+	}
+
+	kb := tg.NewKeyboard([]tg.Row{
+		tg.NewRow(tg.NewBtn("Repeat the task", tg.NewCmd("ss", nil))),
+		tg.NewRow(
+			newBtn("Mn", "0 0 * * 1"),
+			newBtn("Tu", "0 0 * * 2"),
+			newBtn("Wd", "0 0 * * 3"),
+			newBtn("Th", "0 0 * * 4"),
+		),
+		tg.NewRow(
+			newBtn("Fr", "0 0 * * 5"),
+			newBtn("St", "0 0 * * 6"),
+			newBtn("Sn", "0 0 * * 0"),
+		),
+	})
+
+	for _, iAndj := range [][]int{{1, 7}, {9, 16}, {17, 24}, {25, 31}} {
+		row := tg.NewRow()
+		for i := iAndj[0]; i <= iAndj[1]; i++ {
+			cron := fmt.Sprintf("0 0 %d * *", i)
+			row.AddBtn(newBtn(str.I64(int64(i)), cron))
+		}
+		kb.AddRow(row)
+	}
+
+	return kb, nil
+}
+
+func (b *Bot) showToNote(params []string) error {
+	filenameHash := params[0]
+
+	filename, err := b.fs.Unhash(fs.DirToday, filenameHash)
+	if err != nil {
+		return fmt.Errorf("b.showToNote: %w", err)
+	}
+
+	err = b.fs.Rename(fs.DirToday, filename, fs.DirInbox, filename)
+	if err != nil {
+		return fmt.Errorf("b.showToNote: can't rename %s: %w", filename, err)
+	}
+
+	kb, err := b.toNoteKeyboard(filenameHash)
+	if err != nil {
+		return fmt.Errorf("b.showToNote: can't get keyboard: %w", err)
+	}
+
+	err = b.db.SetInputExpectation(b.userID, tg.NewCmd("mv_to_new_dir", []string{filenameHash, "%s"}))
+	if err != nil {
+		return fmt.Errorf("b.showToNote: %w", err)
+	}
+
+	err = b.show("choose your destiny", kb, tg.MarkupHTML)
+	if err != nil {
+		return fmt.Errorf("b.showToNote: %w", err)
+	}
+
+	return nil
+}
+
+func (b *Bot) showToDoc(params []string) error {
+	filenameHash := params[0]
+
+	kb, err := b.toDocKeyboard(filenameHash)
+	if err != nil {
+		return fmt.Errorf("b.toNote: can't get keyboard: %w", err)
+	}
+
+	err = b.db.SetInputExpectation(b.userID, tg.NewCmd("mv_to_new_doc", []string{filenameHash, "%s"}))
+	if err != nil {
+		return fmt.Errorf("b.showToDoc: can't set input expectation: %w", err)
+	}
+
+	err = b.show(b.tr("📝 Choose a doc or name a new one:"), kb, tg.MarkupHTML)
+	if err != nil {
+		return fmt.Errorf("b.showToDoc: %w", err)
+	}
+
+	return nil
+}
+
+func (b *Bot) showToChecklist(params []string) error {
+	filenameHash := params[0]
+
+	kb, err := b.toChecklistKeyboard(filenameHash)
+	if err != nil {
+		return fmt.Errorf("b.showToChecklist: can't get keyboard: %w", err)
+	}
+
+	err = b.db.SetInputExpectation(b.userID, tg.NewCmd("mv_to_new_chk", []string{filenameHash, "%s"}))
+	if err != nil {
+		return fmt.Errorf("b.showToChecklist: %w", err)
+	}
+
+	err = b.show("choose your checklist", kb, tg.MarkupHTML)
+	if err != nil {
+		return fmt.Errorf("b.ShowToChecklist: %w", err)
+	}
+
+	return nil
+}
+
+func (b *Bot) toDocKeyboard(filenameHash string) (*tg.Keyboard, error) {
+	files, err := b.fs.FilesAndDirs("")
+	if err != nil {
+		return nil, fmt.Errorf("b.toNoteKeyboard: can't get files: %w", err)
+	}
+	files = fs.OnlyFiles(files)
+	if len(files) == 0 {
+		return nil, nil
+	}
+
+	newBtn := func(title, docHash string) tg.Btn {
+		return tg.NewBtn(title, tg.NewCmd("mv_to_doc", []string{filenameHash, docHash}))
+	}
+	kb := tg.NewKeyboard(nil)
+	for _, file := range files {
+		kb.AddRow(newBtn(file.Title, file.Hash))
+	}
+
+	return kb, nil
+}
+
+func (b *Bot) toNoteKeyboard(filenameHash string) (*tg.Keyboard, error) {
+	newBtn := func(dir string) tg.Btn {
+		return tg.NewBtn(dir, tg.NewCmd("mv", []string{fs.DirInbox, filenameHash, dir}))
+	}
+
+	dirs, err := b.fs.FilesAndDirs("")
+	if err != nil {
+		return nil, fmt.Errorf("b.toNoteKeyboard: can't get dirs: %w", err)
+	}
+	dirs = fs.OnlyNotes(fs.OnlyDirs(dirs))
+
+	kb := tg.NewKeyboard(nil)
+	for _, dir := range dirs {
+		kb.AddRow(newBtn(dir.Name))
+	}
+
+	return kb, nil
+}
+
+func (b *Bot) toChecklistKeyboard(filenameHash string) (*tg.Keyboard, error) {
+	newBtn := func(dir, title string) tg.Btn {
+		return tg.NewBtn(title, tg.NewCmd("mv_to_chk", []string{filenameHash, dir}))
+	}
+
+	dirs, err := b.fs.FilesAndDirs("")
+	if err != nil {
+		return nil, fmt.Errorf("b.toNoteKeyboard: can't get dirs: %w", err)
+	}
+	// TODO handle case with zero folders (inline_keyboard is null), for all similar cases
+	dirs = fs.OnlyChecklists(fs.OnlyDirs(dirs))
+
+	kb := tg.NewKeyboard(nil)
+	for _, dir := range dirs {
+		kb.AddRow(newBtn(dir.Name, dir.Title))
+	}
+
+	return kb, nil
+}
+
+func (b *Bot) todayLabel() (string, error) {
+	tasks, err := b.fs.FilesAndDirs("today")
+	if err != nil {
+		return "", fmt.Errorf("b.todayLabel: can't get today label: %w", err)
+	}
+	todo := len(tasks)
+
+	// TODO add short labels
+	label := "🌴 You don't have any tasks!"
+	if todo > 0 {
+		label = b.tr("<b>%d</b> left", todo)
+	}
+
+	return label, nil
+}

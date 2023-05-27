@@ -1,0 +1,40 @@
+package tg
+
+import (
+	"encoding/json"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
+
+func TestMarshalCmdJSON(t *testing.T) {
+	r := require.New(t)
+
+	cmd := NewCmd("test", []string{"1"})
+	js, err := json.Marshal(cmd)
+
+	r.Nil(err)
+	r.Equal(`{"n":"test","p":["1"]}`, string(js))
+}
+
+func TestUnmarshalCmdJSON(t *testing.T) {
+	r := require.New(t)
+
+	var cmd Cmd
+	js := `{"n":"test","p":["1"]}`
+	err := json.Unmarshal([]byte(js), &cmd)
+
+	r.Nil(err)
+	r.Equal("cmd", cmd.Type)
+}
+
+func TestRowAddBtn(t *testing.T) {
+	r := require.New(t)
+
+	row := NewRow()
+	row.AddBtn(NewBtn("test", NewCmd("cmd", nil)))
+	row.AddBtn(NewBtn("test2", NewCmd("cmd2", nil)))
+
+	expectedBtns := []Btn{NewBtn("test", NewCmd("cmd", nil)), NewBtn("test2", NewCmd("cmd2", nil))}
+	r.Equal(expectedBtns, row.Btns)
+}

@@ -1,0 +1,147 @@
+package main
+
+import (
+	"fmt"
+	"os"
+	"time"
+
+	"github.com/alicebob/miniredis/v2"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/spf13/afero"
+	"golang.org/x/exp/slog"
+
+	"zakirullin/dumpbot/internal"
+	"zakirullin/dumpbot/internal/db"
+	"zakirullin/dumpbot/internal/fs"
+	"zakirullin/dumpbot/internal/sched"
+	"zakirullin/dumpbot/pkg/tg"
+)
+
+func main() {
+	log := slog.New(slog.NewTextHandler(os.Stderr))
+	slog.SetDefault(log)
+
+	api, err := tgbotapi.NewBotAPI("5876425866:AAHoNGRY1BHBS7tURCJqaidKCCBn0Za9amM")
+	if err != nil {
+		panic(fmt.Sprintf("Can't create TG api: %s\n", err))
+	}
+	telegram := tg.NewTG(api)
+
+	redis, err := miniredis.Run()
+	if err != nil {
+		panic(fmt.Sprintf("Can't create Redis: %s\n", err))
+	}
+	defer redis.Close()
+
+	// Workers
+	ticker := time.NewTicker(5 * time.Second)
+	quit := make(chan struct{})
+	defer func(quit chan struct{}) {
+		close(quit)
+	}(quit)
+
+	go func(redis *miniredis.Miniredis, tg *tg.TG) {
+		for {
+			select {
+			case <-ticker.C:
+				moveDueTasksForToday(redis, tg)
+			case <-quit:
+				ticker.Stop()
+				return
+			}
+		}
+	}(redis, telegram)
+
+	// Service
+	config := tgbotapi.NewUpdate(0)
+	config.Timeout = 60
+	updates := api.GetUpdatesChan(config)
+	for upd := range updates {
+		go func(upd tgbotapi.Update) {
+			defer func() {
+				err := recover()
+				if err != nil {
+					fmt.Printf("Bot's panic: %s\n", err)
+				}
+			}()
+
+			u := tg.NewUpd(upd)
+			userID := u.UserID()
+			fsys, err := fs.NewFS(userID, afero.NewOsFs())
+			if err != nil {
+				fmt.Printf("Bot's error: can't create FS: %s\n", err)
+				return
+			}
+			bot := internal.NewBot(userID, telegram, fsys, db.NewDB(redis))
+			if err := bot.Reply(u); err != nil {
+				fmt.Printf("Bot's error: %s\n", err)
+			}
+		}(upd)
+	}
+}
+
+func moveDueTasksForToday(redis *miniredis.Miniredis, tg *tg.TG) {
+	ids, err := fs.AllUserIDs()
+	if err != nil {
+		fmt.Printf("moveDueTasksForToday: %s\n", err)
+	}
+
+	for _, id := range ids {
+		database := db.NewDB(redis)
+		sch, err := database.Schedule(id)
+		if err != nil {
+			fmt.Printf("moveDueTasksForToday: can't get sch: %s", err)
+			return
+		}
+
+		fsys, err := fs.NewFS(id, afero.NewOsFs())
+		if err != nil {
+			fmt.Printf("moveDueTasksForToday: can't create FS: %s", err)
+			return
+		}
+		for filename, cron := range sch {
+			if time.Now().Unix() >= cron.RunAt {
+				err = moveTaskForToday(filename, fsys)
+				if err != nil {
+					slog.Error(fmt.Sprintf("moveDueTasksForToday: can't move: %s", err))
+				}
+
+				if len(cron.Cron) != 0 {
+					err = database.AddToSchedule(id, filename, sched.Next(cron.Cron), cron.Cron)
+					if err != nil {
+						fmt.Printf("err")
+					}
+
+					continue
+				}
+
+				err = database.DelFromSchedule(id, filename)
+				if err != nil {
+					fmt.Printf("err")
+				}
+			}
+		}
+	}
+}
+
+func moveTaskForToday(filename string, fsys *fs.FS) error {
+	dirsToLookFor := []string{fs.DirLater, fs.DirBin}
+	for _, dir := range dirsToLookFor {
+		filenames, err := fsys.FilesAndDirs(dir)
+		fmt.Printf("%v\n", filenames)
+		if err != nil {
+			return fmt.Errorf("moveTaskForToday: %w", err)
+		}
+
+		for _, f := range filenames {
+			if f.Name == filename {
+				err = fsys.Rename(dir, filename, fs.DirToday, filename)
+				if err != nil {
+					return fmt.Errorf("moveTaskForToday: can't rename: %w", err)
+				}
+			}
+		}
+	}
+
+	return nil
+}
