@@ -348,32 +348,31 @@ func Hash(filename string) string {
 	return hex.EncodeToString(hash[:])[:11]
 }
 
+// SearchNotes performs search among all user notes
+// Allowed query formats:
+// "directory" - return all notes from directories prefixed by this directory
+// "directory note_name" - search for this note_name in all matching directories
+// "note_name" - search for this note_name across all directories
+// "" - return all the notes
 func (fs FS) SearchNotes(query string) ([]File, error) {
-	query = strings.TrimSpace(query)
-	if len(query) == 0 {
-		return nil, nil
-	}
-	query = strings.ToLower(query)
-
+	query = strings.ToLower(strings.TrimSpace(query))
 	// Check for directory traversal attack
 	if strings.Contains(query, "/") {
 		return nil, nil
 	}
 
-	// Query maybe be either:
-	// - directory, we return all notes from directories prefixed by this directory
-	// - directory note_name, we search for this note_name in all matching directories
-	// - note_name, we search for this note_name across all directories
 	var supposedDir, search string
-	isExists, err := fs.Exists("", query)
+	exists, err := fs.Exists("", query)
 	if err != nil {
-		return nil, fmt.Errorf("b.replyToIlineQuery: %w", err)
+		return nil, fmt.Errorf("fs.SearchNotes: %w", err)
 	}
-	if !isExists {
+	if exists {
+		supposedDir = query
+	} else {
 		parts := strings.SplitN(query, " ", 2)
 		supposedDir = parts[0]
 		if len(parts) > 1 {
-			search = parts[1]
+			search = strings.TrimSpace(parts[1])
 		}
 	}
 
@@ -410,8 +409,8 @@ func (fs FS) SearchNotes(query string) ([]File, error) {
 	var matchedNotes []File
 	for _, note := range notes {
 		isWildcard := len(search) == 0
-		isSubstring := strings.Contains(strings.ToLower(note.Name), query)
-		isSimilar := str.Similar(strings.ToLower(note.Name), query) > minSearchSimilarity
+		isSubstring := strings.Contains(strings.ToLower(note.Title), search)
+		isSimilar := str.Similar(strings.ToLower(note.Title), search) > minSearchSimilarity
 		if isWildcard || isSubstring || isSimilar {
 			matchedNotes = append(matchedNotes, note)
 		}
@@ -534,15 +533,6 @@ func SortByCtime(entries []File) []File {
 	return entries
 }
 
-// TODO fix empty dir
-func (fs FS) path(dir, filename string) string {
-	if len(dir) == 0 {
-		return fmt.Sprintf("%s/%s", fs.rootPath, filename)
-	}
-
-	return fmt.Sprintf("%s/%s/%s", fs.rootPath, dir, filename)
-}
-
 // Touch updates an existing file's access and modification times.
 // If there's no such file it creates an empty file.
 func (fs FS) Touch(dir, filename string) error {
@@ -562,4 +552,13 @@ func (fs FS) Touch(dir, filename string) error {
 		return fmt.Errorf("fs.Touch: can't create empty file: %w", err)
 	}
 	return nil
+}
+
+// TODO fix empty dir
+func (fs FS) path(dir, filename string) string {
+	if len(dir) == 0 {
+		return fmt.Sprintf("%s/%s", fs.rootPath, filename)
+	}
+
+	return fmt.Sprintf("%s/%s/%s", fs.rootPath, dir, filename)
 }

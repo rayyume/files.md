@@ -297,5 +297,105 @@ func TestFS_TouchExisting(t *testing.T) {
 	content, err := fs.Content("today", "a.md")
 	r.Nil(err)
 	r.Equal("A", content)
+}
 
+func TestFS_GetAllNotesInMatchingDir(t *testing.T) {
+	r := require.New(t)
+	fs, _ := NewFS(-1, afero.NewMemMapFs())
+	err := fs.Touch("brain", "a.md")
+	r.Nil(err)
+	err = fs.Touch("today", "b.md")
+	r.Nil(err)
+	err = fs.Touch("non-matching-dir", "c.md")
+	r.Nil(err)
+
+	notes, err := fs.SearchNotes("BRAIN")
+	r.Nil(err)
+	r.Len(notes, 1)
+	r.Equal("a.md", notes[0].Name)
+}
+
+func TestFS_GetAllMatchingNotesInMatchingDir(t *testing.T) {
+	r := require.New(t)
+	fs, _ := NewFS(-1, afero.NewMemMapFs())
+	err := fs.Touch("brain", "a.md")
+
+	r.Nil(err)
+	err = fs.Touch("brain", "b.md")
+	r.Nil(err)
+	err = fs.Touch("today", "c.md")
+	r.Nil(err)
+
+	notes, err := fs.SearchNotes("BRAIN A")
+	r.Nil(err)
+	r.Len(notes, 1)
+	r.Equal("a.md", notes[0].Name)
+}
+
+func TestFS_GetAllNotesInAllMatchingDirs(t *testing.T) {
+	r := require.New(t)
+	fs, _ := NewFS(-1, afero.NewMemMapFs())
+	err := fs.Touch("brain", "a.md")
+	r.Nil(err)
+	err = fs.Touch("brain", "b.md")
+	r.Nil(err)
+	err = fs.Touch("today", "c.md")
+	r.Nil(err)
+
+	notes, err := fs.SearchNotes("brain")
+	r.Nil(err)
+	r.Len(notes, 2)
+
+	var noteFilenames []string
+	for _, note := range notes {
+		noteFilenames = append(noteFilenames, note.Name)
+	}
+
+	r.ElementsMatch([]string{"a.md", "b.md"}, noteFilenames)
+}
+
+func TestFS_GetAllMatchingNotesInAllMatchingDirs(t *testing.T) {
+	r := require.New(t)
+	fs, _ := NewFS(-1, afero.NewMemMapFs())
+	err := fs.Touch("brain", "a.md")
+	r.Nil(err)
+	err = fs.Touch("brain", "ab.md")
+	r.Nil(err)
+	err = fs.Touch("brain", "b.md")
+	r.Nil(err)
+	err = fs.Touch("today", "c.md")
+	r.Nil(err)
+
+	notes, err := fs.SearchNotes("brain a")
+	r.Nil(err)
+	r.Len(notes, 2)
+
+	var noteFilenames []string
+	for _, note := range notes {
+		noteFilenames = append(noteFilenames, note.Name)
+	}
+
+	r.ElementsMatch([]string{"a.md", "ab.md"}, noteFilenames)
+}
+
+func TestFS_GetAllNotesInAllDirsForEmptyQuery(t *testing.T) {
+	r := require.New(t)
+	fs, _ := NewFS(-1, afero.NewMemMapFs())
+	err := fs.Touch("brain", "a.md")
+	r.Nil(err)
+	err = fs.Touch("b", "b.md")
+	r.Nil(err)
+	err = fs.Touch("today", "c.md")
+	r.Nil(err)
+
+	notes, err := fs.SearchNotes("")
+	r.Nil(err)
+	r.Len(notes, 2)
+
+	var noteFilenames []string
+	for _, note := range notes {
+		noteFilenames = append(noteFilenames, note.Name)
+	}
+
+	r.ElementsMatch([]string{"a.md", "b.md"}, noteFilenames)
 }
