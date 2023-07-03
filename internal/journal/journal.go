@@ -1,9 +1,10 @@
-package internal
+package journal
 
 import (
 	"bytes"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/Kunde21/markdownfmt/v3/markdown"
 	"github.com/yuin/goldmark"
@@ -12,14 +13,16 @@ import (
 	"zakirullin/stuffbot/internal/fs"
 )
 
+var now = time.Now // to be replaced in tests
+
 const (
 	headerLevel        = 4
 	intraNoteSeparator = "; "
 )
 
-func (b *Bot) AddDailyNote(dir, noteFilename string) error {
+func AddDailyNote(dir, noteFilename string, botFs *fs.FS, journalFilenameFormat, journalHeaderFormat string) error {
 	// TODO: somehow lock the file
-	content, err := b.fs.Content(dir, noteFilename)
+	content, err := botFs.Content(dir, noteFilename)
 	if err != nil {
 		return fmt.Errorf("failed to move to journal: can't get note content: %w", err)
 	}
@@ -32,22 +35,23 @@ func (b *Bot) AddDailyNote(dir, noteFilename string) error {
 			}
 		}
 	}
-	journalFilename := b.journalFilename()
-	exists, err := b.fs.Exists(fs.DirJournal, journalFilename)
+	journalFilename := now().Format(journalFilenameFormat)
+	exists, err := botFs.Exists(fs.DirJournal, journalFilename)
 	if err != nil {
 		return err
 	}
 	if exists {
-		content, err = b.fs.Content(fs.DirJournal, journalFilename)
+		content, err = botFs.Content(fs.DirJournal, journalFilename)
 		if err != nil {
 			return err
 		}
 	}
-	content = insertDailyNote(content, now().Format(b.conf.JournalHeaderFormat()), note)
-	return b.fs.Put(fs.DirJournal, journalFilename, content)
+	content = insertDailyNote(content, journalHeaderFormat, note)
+	return botFs.Put(fs.DirJournal, journalFilename, content)
 }
 
-func insertDailyNote(mdContent, header, note string) string {
+func insertDailyNote(mdContent, journalHeaderFormat, note string) string {
+	header := now().Format(journalHeaderFormat)
 	r := markdown.NewRenderer()
 	md := goldmark.New(
 		goldmark.WithRenderer(r),
@@ -113,8 +117,4 @@ func newListItem(txt string) *ast.ListItem {
 	listItem := ast.NewListItem(0)
 	listItem.AppendChild(listItem, ast.NewString([]byte(txt)))
 	return listItem
-}
-
-func (b *Bot) journalFilename() string {
-	return now().Format(b.conf.JournalFilename())
 }

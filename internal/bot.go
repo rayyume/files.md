@@ -9,6 +9,7 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"golang.org/x/exp/slog"
+	"zakirullin/stuffbot/internal/journal"
 
 	"zakirullin/stuffbot/i18n"
 	"zakirullin/stuffbot/internal/db"
@@ -933,7 +934,7 @@ func (b *Bot) moveToJournal(params []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to move to journal: can't unhash filename: %w", err)
 	}
-	err = b.AddDailyNote(dir, filename)
+	err = journal.AddDailyNote(dir, filename, b.fs, b.conf.JournalFilenameFormat(), b.conf.JournalHeaderFormat())
 	if err != nil {
 		return fmt.Errorf("failed to move to journal: can't add note: %w", err)
 	}
