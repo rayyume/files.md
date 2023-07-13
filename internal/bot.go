@@ -81,16 +81,16 @@ var panelCmdIconArray = [][2]string{
 	{cmdShowPostpone, i18n.EmPostpone},
 }
 
-var panelCmdIconMap = CreateMap()
+var panelCmdIconMap = createPanelCmdIconMap()
 
-func CreateMap() map[string]string {
-	myMap := make(map[string]string)
+func createPanelCmdIconMap() map[string]string {
+	res := make(map[string]string)
 	for _, pair := range panelCmdIconArray {
 		key := pair[0]
 		value := pair[1]
-		myMap[key] = value
+		res[key] = value
 	}
-	return myMap
+	return res
 }
 
 func NewBot(userID int64, tg TGInterface, fs *fs.FS, db *db.DB, conf *userconfig.Config) *Bot {
