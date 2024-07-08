@@ -324,7 +324,7 @@ func (b *Bot) createOrAdd(dir, filename, content string) error {
 	}
 
 	if exists {
-		existingContent, err := b.fs.Content(dir, filename)
+		existingContent, err := b.fs.Read(dir, filename)
 		if err != nil {
 			return fmt.Errorf("create: %w", err)
 		}
@@ -676,7 +676,7 @@ func (b *Bot) showRenameFile(params []string) error {
 		return fmt.Errorf("show rename: can't unhash filename %s in %s: %w", filenameHash, dir, err)
 	}
 
-	content, err := b.fs.Content(dir, filename)
+	content, err := b.fs.Read(dir, filename)
 	if err != nil {
 		return fmt.Errorf("show rename: can't get content for %s: %w", filename, err)
 	}
@@ -721,7 +721,7 @@ func (b *Bot) showTask(params []string) error {
 		return fmt.Errorf("show task: %w", err)
 	}
 
-	content, err := b.fs.Content(dir, filename)
+	content, err := b.fs.Read(dir, filename)
 	if err != nil {
 		return fmt.Errorf("show task: %w", err)
 	}
@@ -760,7 +760,7 @@ func (b *Bot) showDoc(params []string) error {
 		return fmt.Errorf("show doc: %w", err)
 	}
 
-	content, err := b.fs.Content("", filename)
+	content, err := b.fs.Read("", filename)
 	if err != nil {
 		return fmt.Errorf("show doc: : %w", err)
 	}
@@ -894,7 +894,7 @@ func (b *Bot) moveToDoc(params []string) error {
 	// We can tolerate this
 	_ = b.fs.Del(fs.DirToday, filename)
 
-	docContent, err := b.fs.Content("", doc)
+	docContent, err := b.fs.Read("", doc)
 	if err != nil {
 		return fmt.Errorf("move to doc: can't get doc content of '%s': %w", doc, err)
 	}

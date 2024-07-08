@@ -88,7 +88,7 @@ func Test_AddRecord(t *testing.T) {
 			botFS.Put(fs.DirToday, "note", test.note)
 
 			AddRecord(botFS, "note.md")
-			md, err := botFS.Content(fs.DirJournal, "2023 May.md")
+			md, err := botFS.Read(fs.DirJournal, "2023 May.md")
 			r.NoError(err)
 			r.Equal(test.want, md)
 		})

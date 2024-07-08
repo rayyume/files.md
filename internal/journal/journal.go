@@ -25,7 +25,7 @@ func AddRecord(botFs *fs.FS, noteFilename string) error {
 
 	var md string
 	if exists {
-		md, err = botFs.Content(fs.DirJournal, journalFilename)
+		md, err = botFs.Read(fs.DirJournal, journalFilename)
 		if err != nil {
 			return err
 		}

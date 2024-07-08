@@ -298,7 +298,7 @@ func TestFS_TouchExisting(t *testing.T) {
 	r.NoError(err)
 	r.Less(orig_ctime, Ctime(fi))
 
-	content, err := fs.Content("today", "a.md")
+	content, err := fs.Read("today", "a.md")
 	r.NoError(err)
 	r.Equal("A", content)
 }

@@ -45,7 +45,7 @@ func main() {
 				continue
 			}
 
-			content, err := fsys.Content(dir.Name, note.Name)
+			content, err := fsys.Read(dir.Name, note.Name)
 			if err != nil {
 				fmt.Printf("Can't get content: %s", err)
 				return
@@ -91,7 +91,7 @@ func main() {
 	for dir, notes := range backlinks {
 		for note, links := range notes {
 			for _, link := range links {
-				content, err := fsys.Content(dir, note+".md")
+				content, err := fsys.Read(dir, note+".md")
 				if err != nil {
 					fmt.Printf("Can't get target note content: %s, backlinks: %v", err, links)
 					return

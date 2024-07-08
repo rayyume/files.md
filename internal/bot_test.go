@@ -70,7 +70,7 @@ func TestAddMultilineTaskToToday(t *testing.T) {
 	r.Equal("New task.md", tasks[0].Name)
 	r.Equal(true, tasks[0].IsMultiline)
 
-	content, err := bot.fs.Content("today", "New task.md")
+	content, err := bot.fs.Read("today", "New task.md")
 	r.NoError(err)
 	r.Equal("Content", content)
 }
@@ -98,7 +98,7 @@ func TestAddTaskWithSpecCharsToToday(t *testing.T) {
 	r.Equal("New task.md", tasks[0].Name)
 	r.Equal(true, tasks[0].IsMultiline)
 
-	content, err := bot.fs.Content("today", "New task.md")
+	content, err := bot.fs.Read("today", "New task.md")
 	r.NoError(err)
 	r.Equal("Url! http://g.com (Also\\_text] ##header\n-item1\n-item2\n1+1=2", content)
 }

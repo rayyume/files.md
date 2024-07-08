@@ -111,7 +111,7 @@ func (fs FS) Exists(dir, filename string) (bool, error) {
 	return exists, nil
 }
 
-func (fs FS) Content(dir, filename string) (string, error) {
+func (fs FS) Read(dir, filename string) (string, error) {
 	path := fs.Path(dir, filename)
 	if !fs.isSafe(path) {
 		return "", fmt.Errorf("get content: unsafe path '%s': %w", path, errUnsafePath)
@@ -325,7 +325,7 @@ func (fs FS) RestoreContent(dir, filename string) (string, error) {
 	}
 
 	title := Title(filename)
-	content, err := fs.Content(dir, filename)
+	content, err := fs.Read(dir, filename)
 	if err != nil {
 		return "", fmt.Errorf("can't restore text: %w", err)
 	}

@@ -30,7 +30,7 @@ var (
 
 func ReadHabits(botFS *fs.FS, year int) (map[string]Year, error) {
 	filename := "%d Habits.md"
-	habitsStr, err := botFS.Content(fs.DirInsights, fmt.Sprintf(filename, year))
+	habitsStr, err := botFS.Read(fs.DirInsights, fmt.Sprintf(filename, year))
 	if err != nil {
 		return nil, fmt.Errorf("read %s error: %w", filename, err)
 	}
