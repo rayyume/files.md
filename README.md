@@ -62,6 +62,10 @@ Any file can be uniquely identified by filename and dir. We only support one lev
 - Package db.go doesn't store userID (we often use it separately...) Do we?
 - We can't ucfist filename in fs.Put - what if that was user-created file (outside the bot), i.e. it comes with lowercase
 
+### Dropbox notes
+- Symlink created on server will be synced on client as is (without resolving)
+- Typical file operations usually resolve symlinks so it is vulnerable, and we should use isSafe every time
+
 ## Why schedule is stored at once
 To lessen roundrip to redis (is it tangible at all?)
 - in PHP get/set takes 1,2,9 ms sometimes. Connection included

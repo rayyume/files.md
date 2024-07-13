@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
@@ -17,14 +18,17 @@ var monthMD string
 //go:embed testdata/last_month_habits.md
 var lastMonthMD string
 
-func TestRead(t *testing.T) {
+//go:embed testdata/two_months_habits.md
+var twoMonthsMD string
+
+func TestHabits(t *testing.T) {
 	r := require.New(t)
 
 	botFS, err := fs.NewFS("/", afero.NewMemMapFs())
 	r.NoError(err)
 	botFS.Write(fs.DirInsights, "1970 Habits.md", monthMD)
 
-	habits, err := ReadHabits(botFS, 1970)
+	habits, err := Habits(botFS, 1970)
 	r.NoError(err)
 
 	r.Len(habits, 6)
@@ -42,14 +46,14 @@ func TestRead(t *testing.T) {
 	r.Equal(true, completed)
 }
 
-func TestReadLastMonthHabits(t *testing.T) {
+func TestLastMonthHabits(t *testing.T) {
 	r := require.New(t)
 
 	botFS, err := fs.NewFS("/", afero.NewMemMapFs())
 	r.NoError(err)
 	botFS.Write(fs.DirInsights, "1970 Habits.md", lastMonthMD)
 
-	habits, err := ReadHabits(botFS, 1970)
+	habits, err := Habits(botFS, 1970)
 	r.NoError(err)
 
 	r.Len(habits, 1)
@@ -66,4 +70,26 @@ func TestReadLastMonthHabits(t *testing.T) {
 	completed, ok = year[365]
 	r.True(ok)
 	r.Equal(true, completed)
+}
+
+func TestLastWeekHabits(t *testing.T) {
+	r := require.New(t)
+
+	botFS, err := fs.NewFS("/", afero.NewMemMapFs())
+	r.NoError(err)
+	botFS.Write(fs.DirInsights, "1970 Habits.md", twoMonthsMD)
+
+	savedNow := now
+	defer func() {
+		now = savedNow
+	}()
+	now = func() time.Time {
+		return time.Date(1970, time.September, 30, 0, 0, 0, 0, time.Local)
+	}
+
+	habits, err := LastWeekHabits(botFS)
+	r.NoError(err)
+	r.Len(habits, 1)
+	r.Len(habits["Habit"], 7)
+	r.EqualValues(map[int]bool{271: false, 272: true, 273: false, 274: false, 275: false, 276: true, 277: false}, habits["Habit"])
 }

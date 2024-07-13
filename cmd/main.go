@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -19,6 +20,7 @@ import (
 	"zakirullin/stuffbot/internal"
 	"zakirullin/stuffbot/internal/db"
 	"zakirullin/stuffbot/internal/fs"
+	"zakirullin/stuffbot/internal/habits"
 	"zakirullin/stuffbot/internal/sched/worker"
 	"zakirullin/stuffbot/internal/sync"
 	"zakirullin/stuffbot/internal/userconfig"
@@ -102,11 +104,12 @@ func main() {
 	go func() {
 		router := http.NewServeMux()
 		router.HandleFunc("GET /habits/{id}", func(w http.ResponseWriter, r *http.Request) {
-			id := r.PathValue("id")
-			fmt.Fprintf(w, "habits task with id=%v\n", id)
+			_ = r.PathValue("id")
+			str, _ := habits.Render()
+			w.Write(str)
 		})
 
-		http.ListenAndServe(":8080", router)
+		http.ListenAndServe(":80", router)
 	}()
 
 	// Service

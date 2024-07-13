@@ -23,12 +23,10 @@ const (
 
 var (
 	errMalformedMonthLine = errors.New("malformed month line")
+	now = time.Now
 )
 
-// getLastWeekHabits
-// getLastMonthHabits
-
-func ReadHabits(botFS *fs.FS, year int) (map[string]Year, error) {
+func Habits(botFS *fs.FS, year int) (map[string]Year, error) {
 	filename := "%d Habits.md"
 	habitsStr, err := botFS.Read(fs.DirInsights, fmt.Sprintf(filename, year))
 	if err != nil {
@@ -92,6 +90,32 @@ func ReadHabits(botFS *fs.FS, year int) (map[string]Year, error) {
 		for gr.Next() {
 			habits[habitName][dayOfTheYear+dayOffset] = gr.Str() != habitSkipped
 			dayOfTheYear++
+		}
+	}
+
+	return habits, nil
+}
+
+func LastWeekHabits(botFS *fs.FS) (map[string]Year, error) {
+	habitsForYear, err := Habits(botFS, now().Year())
+	if err != nil {
+		return nil, fmt.Errorf("can't get habits for last week: %w", err)
+	}
+
+	var currentDay = now()
+	for currentDay.Weekday() != time.Monday {
+		currentDay = currentDay.Add(-24 * time.Hour)
+	}
+	
+	habits := make(map[string]Year)
+	for habit, statuses := range habitsForYear {
+		habits[habit] = make(Year)
+		for offset := range 7 {
+			yearDay := currentDay.Add(time.Duration(offset) * 24 * time.Hour).YearDay()
+			habits[habit][yearDay] = false
+			if status, ok := statuses[yearDay]; ok {
+				habits[habit][yearDay] = status
+			}
 		}
 	}
 

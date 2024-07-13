@@ -8,7 +8,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"log/slog"
 	"os"
 	"path"
 	"path/filepath"
@@ -330,6 +329,7 @@ func (fs FS) isSafe(path string) (bool, error) {
 		return false, nil
 	}
 
+	// Not safe if we have symlink
 	exists, err := afero.Exists(fs.backend, path)
 	if err != nil {
 		return false, err
@@ -337,20 +337,14 @@ func (fs FS) isSafe(path string) (bool, error) {
 	if exists {
 		lstater, ok := fs.backend.(afero.Lstater)
 		if !ok {
-			slog.Error("CAN'T STAT")
-			// TODO return new error
-			return false, err
+			return false, fmt.Errorf("safety can't be checked, fs should support lstater interface: %w", err)
 		}
 
 		stat, _, err := lstater.LstatIfPossible(path)
 		if err != nil {
-			slog.Error("CAN'T STAT 2")
-			// TODO return new error
-			// TODO wrap err
-			return false, err
+			return false, fmt.Errorf("safety can't be checked, fs should support lstat: %w", err)
 		}
-		slog.Error("FILE INFO", "info", stat)
-		if stat.Mode()&os.ModeSymlink != 0 {
+		if stat.Mode() & os.ModeSymlink != 0 {
 			return false, nil
 		}
 	}
@@ -604,6 +598,7 @@ func SortByCtime(entries []File) []File {
 	return entries
 }
 
+// TODO check if safe
 // Touch updates an existing file's access and modification times.
 // If there's no such file it creates an empty file.
 func (fs FS) Touch(dir, filename string) error {
