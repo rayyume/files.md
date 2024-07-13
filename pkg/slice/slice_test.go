@@ -25,7 +25,6 @@ func TestSmallerChunk(t *testing.T) {
 func TestLargerChunk(t *testing.T) {
 	r := require.New(t)
 	r.Equal([][]int{{1, 2, 3, 4, 5, 6}}, Chunk([]int{1, 2, 3, 4, 5, 6}, 10))
-
 }
 
 func TestEqualChunk(t *testing.T) {

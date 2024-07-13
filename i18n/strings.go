@@ -18,7 +18,7 @@ const (
 	StrBtnRepeat      = "🔄️ Repeat the task"
 	StrBtnQuickPanel  = "🎛 Quick Panel"
 
-	//Calendar
+	// Calendar
 	StrMonday    = "1️⃣ Mn"
 	StrTuesday   = "2️⃣ Tu"
 	StrWednesday = "3️⃣ Wd"

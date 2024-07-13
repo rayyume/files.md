@@ -11,7 +11,7 @@ func TestBold(t *testing.T) {
 	r := require.New(t)
 
 	text := "bold"
-	var messageEntities = []tgbotapi.MessageEntity{
+	messageEntities := []tgbotapi.MessageEntity{
 		{Type: "bold", Offset: 0, Length: 4},
 	}
 
@@ -23,7 +23,7 @@ func TestItalic(t *testing.T) {
 	r := require.New(t)
 
 	text := "italic"
-	var messageEntities = []tgbotapi.MessageEntity{
+	messageEntities := []tgbotapi.MessageEntity{
 		{Type: "italic", Offset: 0, Length: 6},
 	}
 
@@ -35,7 +35,7 @@ func TestBoldAndItalic(t *testing.T) {
 	r := require.New(t)
 
 	text := "BoldAndItalic"
-	var messageEntities = []tgbotapi.MessageEntity{
+	messageEntities := []tgbotapi.MessageEntity{
 		{Type: "bold", Offset: 0, Length: 13},
 		{Type: "italic", Offset: 0, Length: 13},
 	}
@@ -48,7 +48,7 @@ func TestBoldThenItalic(t *testing.T) {
 	r := require.New(t)
 
 	text := "bolditalic"
-	var messageEntities = []tgbotapi.MessageEntity{
+	messageEntities := []tgbotapi.MessageEntity{
 		{Type: "bold", Offset: 0, Length: 4},
 		{Type: "italic", Offset: 4, Length: 6},
 	}
@@ -61,7 +61,7 @@ func TestLink(t *testing.T) {
 	r := require.New(t)
 
 	text := "l"
-	var messageEntities = []tgbotapi.MessageEntity{
+	messageEntities := []tgbotapi.MessageEntity{
 		{Type: "text_link", Offset: 0, Length: 1, URL: "google.com"},
 	}
 
@@ -73,7 +73,7 @@ func TestMultilineTextWithMarkdown(t *testing.T) {
 	r := require.New(t)
 
 	text := "header\nitalic\n\nAlso italic\n\nheader2\nitalic\ncode"
-	var messageEntities = []tgbotapi.MessageEntity{
+	messageEntities := []tgbotapi.MessageEntity{
 		{Type: "bold", Offset: 0, Length: 7},
 		{Type: "italic", Offset: 7, Length: 21},
 		{Type: "bold", Offset: 28, Length: 8},
@@ -90,7 +90,7 @@ func TestSpacedItalic(t *testing.T) {
 	r := require.New(t)
 	text := "Header\nLeverage one Minute Praising instead"
 
-	var messageEntities = []tgbotapi.MessageEntity{
+	messageEntities := []tgbotapi.MessageEntity{
 		{Type: "italic", Offset: 16, Length: 20},
 	}
 
@@ -103,7 +103,7 @@ func TestEmoji(t *testing.T) {
 	r := require.New(t)
 
 	text := "👍b"
-	var messageEntities = []tgbotapi.MessageEntity{
+	messageEntities := []tgbotapi.MessageEntity{
 		{Type: "bold", Offset: 2, Length: 1}, // Emoji is 4 bytes or 2 runes
 	}
 
@@ -115,7 +115,7 @@ func TestSkinEmoji(t *testing.T) {
 	r := require.New(t)
 
 	text := "🤘🏾b"
-	var messageEntities = []tgbotapi.MessageEntity{
+	messageEntities := []tgbotapi.MessageEntity{
 		{Type: "bold", Offset: 4, Length: 1}, // Tone emoji is 8 bytes or 4 runes
 	}
 

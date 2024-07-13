@@ -7,8 +7,10 @@ import (
 	"golang.org/x/text/language"
 )
 
-var lang *i18n.Bundle
-var emojisByKeyword map[string]string
+var (
+	lang            *i18n.Bundle
+	emojisByKeyword map[string]string
+)
 
 // LoadLangFile only supports single language for now
 func LoadLangFile(path string) error {

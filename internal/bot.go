@@ -25,7 +25,7 @@ import (
 	"zakirullin/stuffbot/pkg/txt"
 )
 
-var now = time.Now 
+var now = time.Now
 
 var botPlugins []BotPluginInterface
 
@@ -432,10 +432,10 @@ func (b *Bot) showMove(params []string) error {
 }
 
 func (b *Bot) quickPanelRow() []tg.Btn {
-	var quickPanelRow = tg.NewRow()
+	quickPanelRow := tg.NewRow()
 	// We iterate through hardcoded panel to preserve order of buttons in UI
 	for _, pair := range quickPanelAvailableCmds {
-		var cmd = pair.cmd
+		cmd := pair.cmd
 		if b.conf.HasQuickPanelCmd(cmd) {
 			quickPanelRow = append(quickPanelRow, tg.NewBtn(
 				pair.emoji,
@@ -477,7 +477,7 @@ func (b *Bot) showList(params []string) error {
 		kb.AddRow(btn)
 	}
 
-	var quickPanelRow = b.quickPanelRow()
+	quickPanelRow := b.quickPanelRow()
 	if len(quickPanelRow) > 0 {
 		kb.AddRow(quickPanelRow)
 	}
@@ -1339,7 +1339,6 @@ func (b *Bot) togglePomodoro(_ []string) error {
 }
 
 func (b *Bot) showSettings(params []string) error {
-
 	var kb tg.Keyboard
 	kb.AddRow(tg.NewBtn(i18n.StrBtnQuickPanel, tg.NewCmd(constants.CmdConfigurePanel, nil)))
 	kb.AddRow(tg.NewBtn(i18n.StrBtnToday, tg.NewCmd(constants.CmdShowToday, nil)))
@@ -1353,7 +1352,6 @@ func (b *Bot) showSettings(params []string) error {
 }
 
 func (b *Bot) showConfigureQuickPanel(params []string) error {
-
 	var kb tg.Keyboard
 
 	// Step 1. Append all buttons that are already chosen by user
@@ -1362,7 +1360,7 @@ func (b *Bot) showConfigureQuickPanel(params []string) error {
 
 	// We iterate through hardcoded panel to preserve order of buttons in UI
 	for _, cmdDef := range quickPanelAvailableCmds {
-		var cmd = cmdDef.cmd
+		cmd := cmdDef.cmd
 		if b.conf.HasQuickPanelCmd(cmd) {
 			kb.AddRow(tg.NewBtn(fmt.Sprintf("%s %s %s", cmdDef.emoji, cmdDef.desc, i18n.QuickPanelDelButton), tg.NewCmd(constants.CmdDelFromPonel, []string{cmd})))
 			enabled = append(enabled, cmd)
@@ -1374,9 +1372,9 @@ func (b *Bot) showConfigureQuickPanel(params []string) error {
 
 	// Step 3. Now, let's fill buttons that are not disabled...
 	for _, cmdDef := range quickPanelAvailableCmds {
-		var cmd = cmdDef.cmd
+		cmd := cmdDef.cmd
 		// Check if command is enabled
-		var cmdEnabled = false
+		cmdEnabled := false
 		for _, enabledCmd := range enabled {
 			if cmd == enabledCmd {
 				cmdEnabled = true
@@ -1404,7 +1402,7 @@ func (b *Bot) addToPanel(params []string) error {
 		return fmt.Errorf("No params suplied to addToPanel")
 	}
 	// Search whether a command is valid
-	var found = false
+	found := false
 	for _, cmd := range quickPanelAvailableCmds {
 		if cmd.cmd == params[0] {
 			found = true

@@ -109,7 +109,6 @@ func (tg *TG) buildInlineKeyboard(kb *Keyboard) *tgbotapi.InlineKeyboardMarkup {
 			}
 			inlineKb.InlineKeyboard = append(inlineKb.InlineKeyboard, inlineRow)
 		}
-
 	}
 
 	return &inlineKb

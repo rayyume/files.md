@@ -4,8 +4,7 @@ import (
 	"encoding/json"
 )
 
-type Row interface {
-}
+type Row interface{}
 
 type Btn struct {
 	Name string

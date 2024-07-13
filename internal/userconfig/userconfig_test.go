@@ -3,9 +3,10 @@ package userconfig
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 func Test_strDuration_UnmarshalJSON(t *testing.T) {
@@ -38,7 +39,6 @@ func Test_strDuration_UnmarshalJSON(t *testing.T) {
 }
 
 func TestConfig_SetPomodoroDuration(t *testing.T) {
-
 	tests := []struct {
 		value   time.Duration
 		wantErr bool

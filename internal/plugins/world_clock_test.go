@@ -3,6 +3,7 @@ package plugins
 import (
 	"testing"
 	"time"
+
 	"zakirullin/stuffbot/pkg/tg/fake"
 
 	"github.com/stretchr/testify/require"

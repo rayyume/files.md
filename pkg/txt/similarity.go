@@ -11,7 +11,7 @@ func Similar(str1 string, str2 string) int {
 
 // returns the len of the longest string both in str1 and str2 and the positions in str1 and str2
 func similarStr(str1 []rune, str2 []rune) (int, int, int) {
-	var maxLen, tmp, pos1, pos2 = 0, 0, 0, 0
+	maxLen, tmp, pos1, pos2 := 0, 0, 0, 0
 	len1, len2 := len(str1), len(str2)
 
 	for p := 0; p < len1; p++ {
@@ -24,7 +24,6 @@ func similarStr(str1 []rune, str2 []rune) (int, int, int) {
 				maxLen, pos1, pos2 = tmp, p, q
 			}
 		}
-
 	}
 
 	return maxLen, pos1, pos2

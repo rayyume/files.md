@@ -61,7 +61,6 @@ func Test_Locker_Queue(t *testing.T) {
 		}()
 		l.Unlock(userId)
 	}()
-
 }
 
 func Test_Locker_FrozenRequests(t *testing.T) {

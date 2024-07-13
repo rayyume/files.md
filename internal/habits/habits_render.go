@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"fmt"
 	"html/template"
+
 	"zakirullin/stuffbot/internal/fs"
 )
 

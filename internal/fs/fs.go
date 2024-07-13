@@ -70,7 +70,7 @@ func NewFS(absRootPath string, backend afero.Fs) (*FS, error) {
 		return nil, fmt.Errorf("new fs: %w", err)
 	}
 	if !exists {
-		err = backend.Mkdir(absRootPath, 0755)
+		err = backend.Mkdir(absRootPath, 0o755)
 		if err != nil {
 			return nil, fmt.Errorf("new fs: %w", err)
 		}
@@ -88,7 +88,7 @@ func (fs FS) CreateUserDirs() error {
 		}
 
 		if !exists {
-			err = fs.backend.Mkdir(userPath, 0755)
+			err = fs.backend.Mkdir(userPath, 0o755)
 			if err != nil {
 				return fmt.Errorf("create default dirs: %w", err)
 			}
@@ -148,11 +148,11 @@ func (fs FS) Write(dir, filename, content string) error {
 	dirs := strings.Split(path, "/")
 	dirs = dirs[:len(dirs)-1]
 	pathToDir := strings.Join(dirs, "/")
-	if err := fs.backend.MkdirAll(pathToDir, 0755); err != nil {
+	if err := fs.backend.MkdirAll(pathToDir, 0o755); err != nil {
 		return fmt.Errorf("put: can't create dirs '%s': %w", pathToDir, err)
 	}
 
-	if err := afero.WriteFile(fs.backend, path, []byte(content), 0644); err != nil {
+	if err := afero.WriteFile(fs.backend, path, []byte(content), 0o644); err != nil {
 		return fmt.Errorf("put to '%s/%s': %w", dir, filename, err)
 	}
 
@@ -169,7 +169,7 @@ func (fs FS) MakeDir(dir string) error {
 		return fmt.Errorf("fs make dir: unsafe path '%s': %w", path, errUnsafePath)
 	}
 
-	err = fs.backend.Mkdir(path, 0755)
+	err = fs.backend.Mkdir(path, 0o755)
 	if err != nil {
 		return fmt.Errorf("make dir: %w", err)
 	}
@@ -344,7 +344,7 @@ func (fs FS) isSafe(path string) (bool, error) {
 		if err != nil {
 			return false, fmt.Errorf("safety can't be checked, fs should support lstat: %w", err)
 		}
-		if stat.Mode() & os.ModeSymlink != 0 {
+		if stat.Mode()&os.ModeSymlink != 0 {
 			return false, nil
 		}
 	}

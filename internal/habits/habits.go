@@ -124,7 +124,7 @@ func LastWeekHabits(userFS *fs.FS) (map[string]Year, error) {
 		return nil, fmt.Errorf("can't get habits for last week: %w", err)
 	}
 
-	var currentDay = now()
+	currentDay := now()
 	for currentDay.Weekday() != time.Monday {
 		currentDay = currentDay.Add(-24 * time.Hour)
 	}

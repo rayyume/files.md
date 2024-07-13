@@ -105,7 +105,7 @@ func (c *Config) Save(path string) error { // TODO add lazy saving, save only if
 		return fmt.Errorf("config save: can't marshal config: %w", err)
 	}
 
-	err = fs.WriteFile(path, bytes, 0644)
+	err = fs.WriteFile(path, bytes, 0o644)
 	if err != nil {
 		return fmt.Errorf("config save: can't write config file: %w", err)
 	}
@@ -150,11 +150,12 @@ func (c *Config) PomodoroDuration() time.Duration {
 	if minutes <= 0 {
 		slog.Error("Pomodoro duration is invalid. Using default value", "duration",
 			c.raw.PomodoroDurationMinute, "default", DefaultConfig.raw.PomodoroDurationMinute)
-		//I don't use DefaultConfig.PomodoroDuration() because it may cause infinite recursion
+		// I don't use DefaultConfig.PomodoroDuration() because it may cause infinite recursion
 		minutes = DefaultConfig.raw.PomodoroDurationMinute
 	}
 	return time.Duration(minutes * float64(time.Minute))
 }
+
 func (c *Config) Schedules() []Schedule {
 	return c.raw.Schedules
 }
@@ -218,7 +219,7 @@ func (c *Config) HasQuickPanelCmd(cmd string) bool {
 
 func (c *Config) DelPanelButton(toDelete string) bool {
 	var newButtons []string
-	var found = false // Was the target
+	found := false // Was the target
 	for _, curBtn := range c.raw.QuickPanelCommands {
 		if curBtn == toDelete {
 			found = true

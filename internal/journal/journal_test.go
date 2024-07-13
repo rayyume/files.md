@@ -13,7 +13,7 @@ import (
 func TestAddRecord(t *testing.T) {
 	r := require.New(t)
 	now = func() time.Time {
-		return time.Date(2023, 05, 30, 10, 04, 36, 0, time.UTC)
+		return time.Date(2023, 0o5, 30, 10, 0o4, 36, 0, time.UTC)
 	}
 
 	type testcase struct {

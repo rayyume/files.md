@@ -386,14 +386,14 @@ func TestFS_OnlyUserDirs(t *testing.T) {
 
 func TestIsSafeWrongRoot(t *testing.T) {
 	r := require.New(t)
-	
+
 	fs, _ := NewFS("/a", afero.NewMemMapFs())
 	r.False(fs.isSafe("/b"))
 }
 
 func TestIsSafePathTraversalAttack(t *testing.T) {
 	r := require.New(t)
-	
+
 	fs, _ := NewFS("/a", afero.NewMemMapFs())
 	r.False(fs.isSafe("/a/../b"))
 	r.False(fs.isSafe("/a/../../b"))
@@ -403,7 +403,7 @@ func TestIsSafePathTraversalAttack(t *testing.T) {
 
 func TestIsSafePathTraversalAttackWithRelativePaths(t *testing.T) {
 	r := require.New(t)
-	
+
 	fs, _ := NewFS(".", afero.NewMemMapFs())
 	r.False(fs.isSafe("./a/../b"))
 	r.False(fs.isSafe("./a/../../b"))
