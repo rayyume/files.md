@@ -574,7 +574,7 @@ func (b *Bot) showFiles(params []string) error {
 		kb.AddRow(tg.NewBtn("-", tg.NewCmd(constants.CmdDoNothing, nil)))
 	}
 
-	files = fs.OnlyFiles(files)
+	files = fs.ExcludeConfig(fs.OnlyFiles(files))
 	var fileBtns []tg.Btn
 	for _, file := range files {
 		cmd := tg.NewCmd(constants.CmdShowFile, []string{fs.DirRoot, fs.Hash(file.Name)})

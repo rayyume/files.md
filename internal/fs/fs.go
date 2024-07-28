@@ -43,6 +43,7 @@ const (
 	DirWatch     = "-watch-"
 	DirShop      = "-shop-"
 	FilePomodoro = "Take a break.md"
+	FileConfig   = "config.json"
 
 	minSearchSimilarity = 70
 )
@@ -548,6 +549,19 @@ func ExcludePomodoro(files []File) []File {
 	var newFiles []File
 	for _, file := range files {
 		if file.Name == FilePomodoro {
+			continue
+		}
+
+		newFiles = append(newFiles, file)
+	}
+
+	return newFiles
+}
+
+func ExcludeConfig(files []File) []File {
+	var newFiles []File
+	for _, file := range files {
+		if file.Name == FileConfig && file.ParentDir == DirRoot {
 			continue
 		}
 
