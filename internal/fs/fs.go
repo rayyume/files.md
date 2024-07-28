@@ -504,7 +504,6 @@ func Hash(filename string) string {
 	return hex.EncodeToString(hash[:])[:11]
 }
 
-
 func ExcludeChecklists(dirs []File) []File {
 	var newDirs []File
 	for _, dir := range dirs {

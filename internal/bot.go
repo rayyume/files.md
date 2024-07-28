@@ -30,6 +30,7 @@ const (
 	maxTitleLength         = 100
 	inlineResultsCacheTime = 15 // seconds
 	btnsPerRow             = 3
+	maxMsgLength           = 4096 // UTF-8 characters
 )
 
 // UpdInterface represents incoming user updates
@@ -134,6 +135,8 @@ func (b *Bot) Answer(u UpdInterface) error {
 			// TODO err?
 			return fmt.Errorf("answer: can't parse file path from sent via bot msg")
 		}
+
+		b.delAllKeyboards()
 
 		return b.showFile([]string{dir, filename})
 	}
@@ -395,7 +398,15 @@ func (b *Bot) show(text string, kb *tg.Keyboard, markup string) error {
 	if mid == nil {
 		b.delAllKeyboards()
 
-		mid, err := b.tg.Send(b.userID, text, kb, markup)
+		// If our msg is too long, we send a few messages.
+		// Keyboard is attached to the last one
+		textChunks := txt.SplitTextIntoChunks(text, maxMsgLength)
+		lastText, textChunks := textChunks[len(textChunks)-1], textChunks[:len(textChunks)-1]
+		for _, textChunk := range textChunks {
+			_, _ = b.tg.Send(b.userID, textChunk, nil, markup)
+		}
+
+		mid, err := b.tg.Send(b.userID, lastText, kb, markup)
 		if err != nil {
 			return fmt.Errorf("show: %w", err)
 		}
@@ -1428,7 +1439,7 @@ func (b *Bot) showConfigureQuickPanel(params []string) error {
 	kb.AddRow(tg.NewBtn(i18n.StrBtnBack, tg.NewCmd(constants.CmdShowSettings, nil)))
 
 	addBtn := userconfig.QuickPanelAddButton
-	delBtn := userconfig.QuickPanelDelButton 
+	delBtn := userconfig.QuickPanelDelButton
 	text := fmt.Sprintf("Configure quick panel (%s = add to panel, %s = to remove): ", addBtn, delBtn)
 	err := b.show(text, &kb, tg.MarkupHTML)
 	if err != nil {

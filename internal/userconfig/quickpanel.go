@@ -24,8 +24,10 @@ var QuickPanelAvailableBtns = []QuickPanelBtn{
 	NewQuickPanelBtn(constants.CmdWebAppHabits, tg.CmdTypeWebApp, i18n.Emoji("Habits"), "Habits"),
 }
 
-var QuickPanelAddButton = "➕"
-var QuickPanelDelButton = "➖"
+var (
+	QuickPanelAddButton = "➕"
+	QuickPanelDelButton = "➖"
+)
 
 func NewQuickPanelBtn(cmd, cmdType, emoji, description string) QuickPanelBtn {
 	return QuickPanelBtn{cmd, cmdType, emoji, description}

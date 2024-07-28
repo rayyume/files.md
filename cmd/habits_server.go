@@ -2,8 +2,8 @@ package main
 
 import (
 	"net/http"
-	"strconv"
 	"path"
+	"strconv"
 	"time"
 
 	"github.com/spf13/afero"
@@ -52,7 +52,6 @@ func habitsServer() {
 		if err != nil {
 			w.Write([]byte("can't parse status"))
 		}
-
 
 		habitName := r.PathValue("habitName")
 

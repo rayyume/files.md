@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 )
 
 func I64(i int64) string {
@@ -49,4 +50,34 @@ func Emoji(emoji, str string) string {
 func NormNewLines(text string) string {
 	text = strings.Replace(text, "\\r\\n", "\n", -1)
 	return strings.Replace(text, "\\n\\r", "\n", -1)
+}
+
+func SplitTextIntoChunks(text string, maxLen int) []string {
+	var chunks []string
+
+	for utf8.RuneCountInString(text) > maxLen {
+		// Get the substring of the first maxLen runes
+		runes := []rune(text)
+		subStr := string(runes[:maxLen])
+
+		// Find the last newline in the substring
+		splitIndex := strings.LastIndex(subStr, "\n")
+		if splitIndex == -1 {
+			// No newline found, find the last space
+			splitIndex = strings.LastIndex(subStr, " ")
+			if splitIndex == -1 {
+				// No space found either, split at maxLen
+				splitIndex = maxLen
+			}
+		} else {
+			// Adjust the split index to the rune count
+			splitIndex = utf8.RuneCountInString(subStr[:splitIndex])
+		}
+
+		chunks = append(chunks, string(runes[:splitIndex]))
+		text = string(runes[splitIndex:])
+	}
+	chunks = append(chunks, text)
+	
+	return chunks
 }
