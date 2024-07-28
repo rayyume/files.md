@@ -66,6 +66,9 @@ func habitsServer() {
 			w.Write([]byte("can't read habits"))
 		}
 
+		if _, ok := userHabits[habitName]; !ok {
+			userHabits[habitName] = make(habits.Year)
+		}
 		userHabits[habitName][int(yearDay)] = int(status)
 		err = habits.Write(userFS, time.Now().Year(), userHabits)
 		if err != nil {
