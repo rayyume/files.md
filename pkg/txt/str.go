@@ -78,6 +78,6 @@ func SplitTextIntoChunks(text string, maxLen int) []string {
 		text = string(runes[splitIndex:])
 	}
 	chunks = append(chunks, text)
-	
+
 	return chunks
 }

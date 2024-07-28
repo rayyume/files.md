@@ -3,6 +3,7 @@ package internal
 import (
 	"errors"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -31,6 +32,7 @@ const (
 	inlineResultsCacheTime = 15 // seconds
 	btnsPerRow             = 3
 	maxMsgLength           = 4096 // UTF-8 characters
+	maxMsgsToSend          = 5
 )
 
 // UpdInterface represents incoming user updates
@@ -401,6 +403,7 @@ func (b *Bot) show(text string, kb *tg.Keyboard, markup string) error {
 		// If our msg is too long, we send a few messages.
 		// Keyboard is attached to the last one
 		textChunks := txt.SplitTextIntoChunks(text, maxMsgLength)
+		textChunks = textChunks[max(0, len(textChunks)-maxMsgsToSend):]
 		lastText, textChunks := textChunks[len(textChunks)-1], textChunks[:len(textChunks)-1]
 		for _, textChunk := range textChunks {
 			_, _ = b.tg.Send(b.userID, textChunk, nil, markup)
