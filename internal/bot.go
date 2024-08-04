@@ -1397,15 +1397,18 @@ func (b *Bot) showConfigureQuickPanel(params []string) error {
 	var usedBtns []string
 
 	// We iterate through hardcoded panel to preserve order of buttons in UI
-	for _, btn := range userconfig.QuickPanelAvailableBtns {
-		if !b.conf.HasQuickPanelCmd(btn.Cmd) {
-			continue
-		}
+	for _, cmd := range b.conf.QuickPanelCmds() {
+		for _, btn := range userconfig.QuickPanelAvailableBtns {
+			if btn.Cmd != cmd {
+				continue
+			}
 
-		name := fmt.Sprintf("%s %s %s", btn.Emoji, btn.Description, userconfig.QuickPanelDelButton)
-		enabledCmd := tg.NewCmd(constants.CmdDelFromPonel, []string{btn.Cmd})
-		kb.AddRow(tg.NewBtn(name, enabledCmd))
-		usedBtns = append(usedBtns, btn.Cmd)
+			name := fmt.Sprintf("%s %s %s", btn.Emoji, btn.Description, userconfig.QuickPanelDelButton)
+			enabledCmd := tg.NewCmd(constants.CmdDelFromPonel, []string{btn.Cmd})
+			kb.AddRow(tg.NewBtn(name, enabledCmd))
+			usedBtns = append(usedBtns, cmd)
+			break
+		}
 	}
 
 	kb.AddRow(tg.NewBtn("-", tg.NewCmd(constants.CmdDoNothing, nil)))
