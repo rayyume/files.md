@@ -548,6 +548,15 @@ func Hash(filename string) string {
 	return hex.EncodeToString(hash[:])[:11]
 }
 
+// ShortHash returns a short hash of the filename
+// Telegram only allows 64 bytes in callback_data,
+// so if we have 3 params we should use shortHash.
+// More collisions are possible, but it's a trade-off.
+func ShortHash(filename string) string {
+	hash := md5.Sum([]byte(filename))
+	return hex.EncodeToString(hash[:])[:5]
+}
+
 func ExcludeChecklists(dirs []File) []File {
 	var newDirs []File
 	for _, dir := range dirs {

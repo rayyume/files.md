@@ -410,7 +410,7 @@ func (b *Bot) addToRepliedFile(replyToMsgID int, newContent string) error {
 	b.delAllKeyboards()
 
 	b.db.SetQuickCommand(b.userID, constants.CmdMoveToExistingFile)
-	b.db.SetQuickCommandParams(b.userID, []string{fs.Hash(existingFilename), fs.Hash(fs.DirToday)})
+	b.db.SetQuickCommandParams(b.userID, []string{fs.ShortHash(existingFilename), fs.ShortHash(fs.DirToday)})
 
 	return b.ShowTodayTasks(nil)
 }
@@ -1105,7 +1105,7 @@ func (b *Bot) moveToExistingFile(params []string) error {
 	}
 
 	b.db.SetQuickCommand(b.userID, constants.CmdMoveToExistingFile)
-	b.db.SetQuickCommandParams(b.userID, []string{fs.Hash(existingFilename), fs.Hash(fs.DirToday)})
+	b.db.SetQuickCommandParams(b.userID, []string{fs.ShortHash(existingFilename), fs.ShortHash(fs.DirToday)})
 
 	return b.ShowTodayTasks(nil)
 }
@@ -1431,7 +1431,7 @@ func (b *Bot) toFileKeyboardButtons(newFilenameHash string) ([]tg.Btn, error) {
 		return tg.NewBtn(title, tg.NewCmd(constants.CmdMoveToExistingFile, params))
 	}
 	for _, file := range files {
-		buttons = append(buttons, newBtn(file.Title, file.Hash))
+		buttons = append(buttons, newBtn(file.Title, fs.ShortHash(file.Name)))
 	}
 
 	return buttons, nil
@@ -1451,7 +1451,8 @@ func (b *Bot) toDirKeyboardButtons(filenameHash string) ([]tg.Btn, error) {
 
 	var buttons []tg.Btn
 	for _, dir := range dirs {
-		buttons = append(buttons, newBtn(dir.Name))
+		// We use unhashed dir here because we only have 64 bytes for callback_data
+		buttons = append(buttons, newBtn(dir.Hash))
 	}
 
 	return buttons, nil
