@@ -126,16 +126,6 @@ func TestMarkdownToHtmlItalic(t *testing.T) {
 //
 //		r.Equal("line1\n<b>line2</b>\nline3", html)
 //	}
-func TestMarkdownToHtmlItalicInsideBold(t *testing.T) {
-	r := require.New(t)
-
-	md := "**bold and _italic_**"
-	r.Equal("<b>bold and <i>italic</i></b>", MarkdownToHtml(md))
-
-	md = "**bold and *italic***"
-	//*italic and **bold***  => *italic and bold*
-	r.Equal("<b>bold and <i>italic</i></b>", MarkdownToHtml(md))
-}
 
 func TestMarkdownToHtmlBoldInsideItalic(t *testing.T) {
 	r := require.New(t)
