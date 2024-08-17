@@ -533,7 +533,12 @@ func (b *Bot) showMoveTo(params []string) error {
 	filenameHash := params[0]
 
 	var kb tg.Keyboard
-	userBtnsByRows := slice.Chunk(b.moveToBtns(filenameHash), btnsPerRow)
+	userMoveToBtns := b.moveToBtns(filenameHash)
+	if len(userMoveToBtns) == 0 {
+		return b.ShowTodayTasks(nil)
+	}
+
+	userBtnsByRows := slice.Chunk(userMoveToBtns, btnsPerRow)
 	for _, row := range userBtnsByRows {
 		kb.AddRow(row)
 	}
