@@ -33,7 +33,7 @@ func TodayReport(userFS *fs.FS, db DBInterface, userID int64) (string, error) {
 		return "", fmt.Errorf("stats.TodayReport: can't get trashed files: %w", err)
 	}
 	doneTotal := len(archivedFiles)
-	stats = append(stats, fmt.Sprintf("📊 %d tasks done in total", doneTotal))
+	stats = append(stats, fmt.Sprintf("\n📊 %d tasks done in total", doneTotal))
 
 	return strings.Join(stats, "\n"), nil
 }
