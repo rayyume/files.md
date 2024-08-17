@@ -235,6 +235,8 @@ func (b *Bot) handlers() map[string]func([]string) error {
 		consts.CmdShowMoveToBtnsSettings: b.showMoveToBtnsSettings,
 		consts.CmdAddToQuickBtns:         b.addToQuickBtns,
 		consts.CmdDelFromQuickBtns:       b.delFromQuickBtns,
+		consts.CmdAddToMoveToBtns:        b.addToMoveToBtns,
+		consts.CmdDelFromMoveToBtns:      b.delFromMoveToBtns,
 		// Used for button-like separators
 		consts.CmdDoNothing: func(s []string) error { return nil },
 	}
@@ -536,7 +538,7 @@ func (b *Bot) showMoveTo(params []string) error {
 	userMoveToBtns := b.moveToBtns(filenameHash)
 	if len(userMoveToBtns) == 0 {
 		b.delAllKeyboards()
-	
+
 		return b.ShowTodayTasks(nil)
 	}
 
