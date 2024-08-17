@@ -18,28 +18,35 @@ import (
 
 var DefaultConfig = Config{ // TODO apply default config if some fields are missing
 	raw: raw{
-		Language:               "en",
-		HomeCmd:                "today",
-		MoveToCommands:         []string{constants.CmdTomorrow, constants.CmdLater, "day", "file", "journal", "checklist", "recent"}, // TODO replace with constants
+		Language: "en",
+		HomeCmd:  "today",
+		MoveToCmds: []string{
+			constants.CmdScheduleForTmrw,
+			constants.CmdLater,
+			constants.CmdShowScheduleForDay,
+			constants.CmdShowMoveToFile,
+			constants.CmdMoveToJournal,
+			//"checklist",
+		},
 		PomodoroDurationMinute: 25,
 		Schedules:              []Schedule{},
 		JournalFilenameFormat:  "January 2006.md",
 		JournalHeaderFormat:    "02, Monday",
-		QuickPanelCommands:     []string{},
+		QuickCmds:              []string{},
 	},
 }
 
 var TasksOnlyConfig = Config{
 	raw: raw{
-		HomeCmd:        "today",
-		MoveToCommands: []string{"tomorrow", "later", "day"},
+		HomeCmd:    "today",
+		MoveToCmds: []string{"tomorrow", "later", "day"},
 	},
 }
 
 var NotesOnlyConfig = Config{
 	raw: raw{
-		HomeCmd:        "notes",
-		MoveToCommands: []string{"##NOTE_DIRS##"},
+		HomeCmd:    "notes",
+		MoveToCmds: []string{"##NOTE_DIRS##"},
 	},
 }
 
@@ -56,13 +63,13 @@ type Schedule struct {
 
 type raw struct {
 	Language               string     `json:"language"`
-	HomeCmd                string     `json:"homeCmd"`
-	MoveToCommands         []string   `json:"moveToCommands"`
+	HomeCmd                string     `json:"homeCommand"`
+	MoveToCmds             []string   `json:"moveToCommands"`
 	PomodoroDurationMinute float64    `json:"pomodoroDurationMinute"`
 	JournalFilenameFormat  string     `json:"journalFilename"`
 	JournalHeaderFormat    string     `json:"journalHeaderFormat"`
 	Schedules              []Schedule `json:"schedules"`
-	QuickPanelCommands     []string   `json:"quickPanelCommands"`
+	QuickCmds              []string   `json:"quickCommands"`
 }
 
 func NewConfig() *Config {
@@ -124,7 +131,7 @@ func (c *Config) MoveToCmds() []string {
 	}
 
 	var realCmds []string
-	for _, configName := range c.raw.MoveToCommands {
+	for _, configName := range c.raw.MoveToCmds {
 		realName, ok := configToReal[configName]
 		if !ok {
 			continue

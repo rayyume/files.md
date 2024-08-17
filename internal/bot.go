@@ -211,7 +211,7 @@ func (b *Bot) handlers() map[string]func([]string) error {
 		constants.CmdShowFile:           b.showFile,
 		constants.CmdShowChecklist:      b.showChecklist,
 		constants.CmdCompleteChecklist:  b.completeChecklist,
-		constants.CmdShowChooseDay:      b.showChooseDay,
+		constants.CmdShowScheduleForDay: b.showChooseDay,
 		constants.CmdShowMoveToFile:     b.showMoveToFile,
 		constants.CmdShowToChecklist:    b.showToChecklist,
 		constants.CmdMoveToDir:          b.moveToDir,
@@ -220,8 +220,9 @@ func (b *Bot) handlers() map[string]func([]string) error {
 		constants.CmdMoveToNewFile:      b.moveToNewFile,
 		constants.CmdMoveToChecklist:    b.moveToChecklist,
 		constants.CmdMoveToNewChecklist: b.moveToNewChecklist,
-		constants.CmdMoveJournal:        b.moveToJournal,
+		constants.CmdMoveToJournal:      b.moveToJournal,
 		constants.CmdSchedule:           b.schedule,
+		constants.CmdScheduleForTmrw:    b.scheduleForTmrw,
 		constants.CmdComplete:           b.complete,
 		constants.CmdPostpone:           b.postpone,
 		constants.CmdPomodoro:           b.togglePomodoro,
@@ -530,9 +531,9 @@ func (b *Bot) showMoveTo(params []string) error {
 	btns := []tg.Btn{
 		tg.NewBtn(i18n.StrForTomorrow, tg.NewCmd(constants.CmdSchedule, []string{filenameHash, txt.I64(sched.Tomorrow()), ""})),
 		tg.NewBtn(i18n.StrForLater, tg.NewCmd(constants.CmdMoveToDir, []string{fs.DirLater, fs.DirToday, filenameHash})),
-		tg.NewBtn(i18n.StrForDay, tg.NewCmd(constants.CmdShowChooseDay, []string{filenameHash})),
+		tg.NewBtn(i18n.StrForDay, tg.NewCmd(constants.CmdShowScheduleForDay, []string{filenameHash})),
 		tg.NewBtn(i18n.StrToFile, tg.NewCmd(constants.CmdShowMoveToFile, []string{filenameHash})),
-		tg.NewBtn(i18n.StrToJournal, tg.NewCmd(constants.CmdMoveJournal, []string{fs.DirToday, filenameHash})),
+		tg.NewBtn(i18n.StrToJournal, tg.NewCmd(constants.CmdMoveToJournal, []string{fs.DirToday, filenameHash})),
 		tg.NewBtn(i18n.StrToChecklist, tg.NewCmd(constants.CmdShowToChecklist, []string{filenameHash})),
 	}
 
@@ -566,11 +567,11 @@ func (b *Bot) showMoveTo(params []string) error {
 	return nil
 }
 
-func (b *Bot) quickPanelBtns() []tg.Btn {
+func (b *Bot) quickBtns() []tg.Btn {
 	quickPanelRow := tg.NewRow()
 	// We iterate through hardcoded panel to preserve order of buttons in UI
-	for _, cmd := range b.conf.QuickPanelCmds() {
-		for _, btn := range userconfig.QuickPanelAvailableBtns {
+	for _, cmd := range b.conf.QuickCmds() {
+		for _, btn := range userconfig.AvailableQuickBtns {
 			if btn.Cmd == cmd {
 				params := []string{}
 				if btn.Cmd == constants.CmdWebAppHabits {
@@ -608,7 +609,7 @@ func (b *Bot) ShowTodayTasks(params []string) error {
 		kb.AddRow(btn)
 	}
 
-	quickPanelBtns := b.quickPanelBtns()
+	quickPanelBtns := b.quickBtns()
 	if len(quickPanelBtns) > 0 {
 		quickPanelBtnsByRows := slice.Chunk(quickPanelBtns, quickBtnsPerRow)
 		for _, row := range quickPanelBtnsByRows {
@@ -1287,6 +1288,12 @@ func (b *Bot) schedule(params []string) error {
 	return b.ShowTodayTasks(nil)
 }
 
+func (b *Bot) scheduleForTmrw(params []string) error {
+	filenameHash := params[0]
+
+	return b.schedule([]string{filenameHash, txt.I64(sched.Tomorrow()), ""})
+}
+
 func (b *Bot) delAllKeyboards() {
 	var msgIDs []int
 	mid, hasLastKeyboard := b.db.LastKeyboardMsgID(b.userID)
@@ -1553,8 +1560,8 @@ func (b *Bot) showConfigureQuickPanel(params []string) error {
 	var usedBtns []string
 
 	// We iterate through hardcoded panel to preserve order of buttons in UI
-	for _, cmd := range b.conf.QuickPanelCmds() {
-		for _, btn := range userconfig.QuickPanelAvailableBtns {
+	for _, cmd := range b.conf.QuickCmds() {
+		for _, btn := range userconfig.AvailableQuickBtns {
 			if btn.Cmd != cmd {
 				continue
 			}
@@ -1570,7 +1577,7 @@ func (b *Bot) showConfigureQuickPanel(params []string) error {
 	kb.AddRow(tg.NewBtn("-", tg.NewCmd(constants.CmdDoNothing, nil)))
 
 	// Step 2. now, let's fill buttons that are not disabled...
-	for _, btn := range userconfig.QuickPanelAvailableBtns {
+	for _, btn := range userconfig.AvailableQuickBtns {
 		// Check if command is enabled
 		btnUsed := false
 		for _, usedBtn := range usedBtns {
@@ -1607,7 +1614,7 @@ func (b *Bot) addToPanel(params []string) error {
 
 	// Search whether a command is valid
 	found := false
-	for _, btn := range userconfig.QuickPanelAvailableBtns {
+	for _, btn := range userconfig.AvailableQuickBtns {
 		if btn.Cmd == params[0] {
 			found = true
 			break
@@ -1618,7 +1625,7 @@ func (b *Bot) addToPanel(params []string) error {
 		return fmt.Errorf("unknown command: %s", params[0])
 	}
 
-	if !b.conf.AddPanelButton(params[0]) {
+	if !b.conf.AddQuickBtn(params[0]) {
 		return fmt.Errorf("button already exists in user's prefs: %s", params[0])
 	}
 	b.showConfigureQuickPanel([]string{})
@@ -1630,7 +1637,7 @@ func (b *Bot) delFromPanel(params []string) error {
 	if len(params) == 0 {
 		return fmt.Errorf("no params suplied to delFromPanel")
 	}
-	if !b.conf.DelPanelButton(params[0]) {
+	if !b.conf.DelQuickBtn(params[0]) {
 		return fmt.Errorf("button doesn't exist in user's prefs: %s", params[0])
 	}
 

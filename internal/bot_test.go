@@ -432,9 +432,9 @@ func TestLater(t *testing.T) {
 
 func TestTodayQuickMenuFilled(t *testing.T) {
 	cfg := &userconfig.Config{}
-	cfg.AddPanelButton("files")
-	cfg.AddPanelButton("checklists")
-	cfg.AddPanelButton("postpone")
+	cfg.AddQuickBtn("files")
+	cfg.AddQuickBtn("checklists")
+	cfg.AddQuickBtn("postpone")
 	bot, tgram, r := makeBot(t, cfg)
 	err := bot.Answer(fake.NewUpdCmdFake(-1, tg.NewCmd("today", nil)))
 	r.NoError(err)
@@ -919,7 +919,7 @@ func TestConfigureQP_Empty_DelEmpty(t *testing.T) {
 func RunQuickPanelTc(tc PrefTableTestCase, t *testing.T) {
 	cnf := &userconfig.Config{}
 	for _, opt := range tc.initial_opts {
-		cnf.AddPanelButton(opt)
+		cnf.AddQuickBtn(opt)
 	}
 
 	bot, tgram, r := makeBot(t, cnf)
@@ -933,7 +933,7 @@ func RunQuickPanelTc(tc PrefTableTestCase, t *testing.T) {
 func RunQuickPanelTc_Error(tc PrefTableTestCase, expectedErr string, t *testing.T) {
 	cnf := &userconfig.Config{}
 	for _, opt := range tc.initial_opts {
-		cnf.AddPanelButton(opt)
+		cnf.AddQuickBtn(opt)
 	}
 	bot, _, r := makeBot(t, cnf)
 	actualErr := bot.Answer(tc.cmd_to_execute)
