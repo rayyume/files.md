@@ -1383,5 +1383,4 @@ func TestMoveToChecklistSplittable(t *testing.T) {
 
 	items := fs.OnlyFilenames(files)
 	r.ElementsMatch([]string{"Item1.md", "Item2.md"}, items)
-
 }

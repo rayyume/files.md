@@ -1,18 +1,17 @@
 <img src="https://github.com/zakirullin/stuff-bot/raw/main/docs/go.svg" alt="Stuff Bot logo" title="Stuff Bot" align="right" height="60" />
 
 # Stuff Bot
-A telegram bot for your personal stuff.
+A telegram bot for your personal stuff. Everything is stored in plain text files.  
 
 [Tasks management bot showcase in Dorofeev's club](https://club.mnogosdelal.ru/post/180/)  
 [Notes taking via bot](https://vas3k.club/post/18815/)
 
 ## Spin it up 🚀
-0) Install [Go](https://go.dev/doc/install)
-1) Register new telegram bot via [@BotFather](https://t.me/BotFather)
-2) Copy your bot token to `.env` file (see `.env.example`)
+1) Install [Go](https://go.dev/doc/install)
+2) Register new telegram bot via [@BotFather](https://t.me/BotFather)
+3) Copy your bot token to `.env` file (see `.env.example`)
 
 ```bash
-```
 $ make install && make run
 ```
 or
@@ -42,15 +41,19 @@ $ git checkout -b feature/feature_name
 - `content` - note's content (body/text)
 - `dir` - a dir that is meant to store notes under some category, like "happiness"
 - `userID` - chatID. For the most part we're only using chatID as userID (PM with the bot)
-- `ctime` - file's ownership, location, file type and permission settings changed time (parent folder rename won't affect). We need this to track file's location changes, like to understand when it was moved to archive
+- `ctime` -  data blocks or metadata change time: file's ownership, location, file type and permission settings changed time.  Parent folder renaming won't affect, moving the file does affect, renaming the file does affect. We need this to track file's location changes, like to understand when it was moved to archive
 
 Any file can be uniquely identified by filename and dir. We only support one level of nesting.
 
-## Bot's artifacts are plain files, yet we differentiate the following types:
-- Tasks: `/today/pay the bills.md` (`today/*.md`, `later/*.md`, `archive/*.md`)
-- Notes: `/brain/brain is the most complex object.md` (`/.*/*.md` also `/inbox/*`)
-- Documents: `/my big project.md` (`/*.md`)
-- Check list items: `/-shop-/cheese.md` (`-*-/*.md`)
+We differentiate the following types of files (with `/` denoting your root folder):
+- Tasks: `/today/Pay the bills.md` (`/today/*.md`, `/later/*.md`)
+- Files: `/My project.md` (`/*.md`)
+- Notes: `/brain/Brain is the most complex object.md` (`/*/*.md` also `/inbox/*.md`)
+- Checklists: `/-read-/How to Take Smart Notes.md` (`/-[read|watch|shop]-/*.md`)
+- Journal: `/Journal/2024.08 August.md` (`/journal/<YEAR>.<MONTH> <MONTH NAME>.md`)
+- Habits: `/habits/2 minute morning workout.md` (`/habits/*.md`)
+- Insights: `/insights/2024 Habits.md` (`/insights/<YEAR> Habits.md`)
+- Images: `/img/*`
 
 ## ADRs (Architecture Decision Records)
 - Sanitize Early, we gave up sanitizing in Path method. That's an unexpected behaviour - it breaks paths. We should sanitize everything as soon as we received. Most commands work with md5 hashes, for such cases no sanitize is needed
@@ -66,12 +69,9 @@ Any file can be uniquely identified by filename and dir. We only support one lev
 - Package db.go doesn't store userID (we often use it separately...) Do we?
 - We can't ucfist filename in fs.Put - what if that was user-created file (outside the bot), i.e. it comes with lowercase
 
-### Notes about Dropbox
+## Notes about Dropbox
 - Symlink created on server will be synced on client as is (without resolving)
 - Typical file operations usually resolve symlinks so it is vulnerable, and we should use isSafe every time
-
-## TODO
-- recreate checklists folder instead of coding source dir in name?
 
 ## Overarching design principles
 - `Clarity`: The code’s purpose and rationale is clear to the reader.
