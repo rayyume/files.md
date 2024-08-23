@@ -192,23 +192,21 @@ func (b *Bot) Answer(u UpdInterface) error {
 // Commands and their handlers.
 // Every handler accepts []string params
 func (b *Bot) handlers() map[string]func([]string) error {
-	return map[string]func([]string) error{
+	handlers := map[string]func([]string) error{
 		// Direct user commands
-		consts.CmdShowStart:              b.showStart,
-		consts.CmdShowToday:              b.ShowTodayTasks,
-		consts.CmdShowLater:              b.showLaterTasks,
-		consts.CmdShowFiles:              b.showFiles,
-		consts.CmdShowChecklists:         b.showChecklists,
-		consts.CmdShowPostpone:           b.showPostpone,
-		consts.CmdShowRename:             b.showRename,
-		consts.CmdShowStats:              b.showStats,
-		consts.CmdShowReadChecklist:      b.showRead,
-		consts.CmdShowWatchChecklist:     b.showWatch,
-		consts.CmdShowShopChecklist:      b.showShop,
-		consts.CmdShowSchedule:           b.showSchedule,
-		consts.CmdAddToJournalShortcut:   b.addToJournalFromShortcut,
-		consts.CmdAddToJournalShortcutRu: b.addToJournalFromShortcut,
-		consts.CmdShowSettings:           b.showSettings,
+		consts.CmdShowStart:          b.showStart,
+		consts.CmdShowToday:          b.ShowTodayTasks,
+		consts.CmdShowLater:          b.showLaterTasks,
+		consts.CmdShowFiles:          b.showFiles,
+		consts.CmdShowChecklists:     b.showChecklists,
+		consts.CmdShowPostpone:       b.showPostpone,
+		consts.CmdShowRename:         b.showRename,
+		consts.CmdShowStats:          b.showStats,
+		consts.CmdShowReadChecklist:  b.showRead,
+		consts.CmdShowWatchChecklist: b.showWatch,
+		consts.CmdShowShopChecklist:  b.showShop,
+		consts.CmdShowSchedule:       b.showSchedule,
+		consts.CmdShowSettings:       b.showSettings,
 		// Button's commands (callbacks)
 		consts.CmdRenameFile:             b.showRenameFile,
 		consts.CmdShowMultilineTask:      b.showMultilineTask,
@@ -242,9 +240,18 @@ func (b *Bot) handlers() map[string]func([]string) error {
 		consts.CmdDelFromQuickBtns:       b.delFromQuickBtns,
 		consts.CmdAddToMoveToBtns:        b.addToMoveToBtns,
 		consts.CmdDelFromMoveToBtns:      b.delFromMoveToBtns,
+		consts.CmdAddToJournalShortcut:   b.addToJournalFromShortcut,
 		// Used for button-like separators
 		consts.CmdDoNothing: func(s []string) error { return nil },
 	}
+
+	for cmd, shortcuts := range consts.Shortcuts {
+		for _, shortcut := range shortcuts {
+			handlers[shortcut] = handlers[cmd]
+		}
+	}
+
+	return handlers
 }
 
 func (b *Bot) extractCmd(u UpdInterface) (*tg.Cmd, error) {
@@ -270,18 +277,20 @@ func (b *Bot) extractCmd(u UpdInterface) (*tg.Cmd, error) {
 		return cmd, nil
 	}
 
-	for _, shortcutCmd := range b.AllowedShortcutCmds() {
-		re := regexp.MustCompile(fmt.Sprintf(`/%s$|/%s\s+`, shortcutCmd, shortcutCmd))
+	for canonicCMD, schortcuts := range consts.Shortcuts {
+		for _, shortcut := range schortcuts {
+			re := regexp.MustCompile(fmt.Sprintf(`^%s\s+|\s+%s$`, shortcut, shortcut))
 
-		if !re.MatchString(u.MsgText()) {
-			continue
+			if !re.MatchString(u.MsgText()) {
+				continue
+			}
+
+			text := string(re.ReplaceAll([]byte(u.MsgText()), []byte("")))
+			text = txt.Ucfirst(strings.TrimSpace(text))
+			shortCmd := tg.NewCmd(canonicCMD, []string{text})
+
+			return &shortCmd, nil
 		}
-
-		text := strings.Replace(u.MsgText(), "/"+shortcutCmd, "", 1)
-		text = txt.Ucfirst(strings.TrimSpace(text))
-		shortCmd := tg.NewCmd(shortcutCmd, []string{text})
-
-		return &shortCmd, nil
 	}
 
 	return nil, nil
@@ -299,21 +308,8 @@ func (b *Bot) allowedTextCmds() []string {
 		consts.CmdShowStats,
 		consts.CmdShowSchedule,
 		consts.CmdAddToJournalShortcut,
-		consts.CmdAddToLaterShortcut,
-		consts.CmdAddToTomorrowShortcut,
 		//"help" TODO,
 		//"err" TODO,
-	}
-}
-
-func (b *Bot) AllowedShortcutCmds() []string {
-	return []string{
-		consts.CmdAddToJournalShortcut,
-		consts.CmdAddToLaterShortcut,
-		consts.CmdAddToTomorrowShortcut,
-		consts.CmdAddToJournalShortcutRu,
-		consts.CmdAddToLaterShortcutRu,
-		consts.CmdAddToTomorrowShortcutRu,
 	}
 }
 

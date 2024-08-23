@@ -1366,13 +1366,13 @@ func TestExtractCmd(t *testing.T) {
 	r.NoError(err)
 
 	bot := NewBot(-1, tg.NewFakeTG(), userFS, db.NewFakeDB(), fakeConfig())
-	upd := tg.NewFakeUpd(-1, "/t task for tomorrow")
+	upd := tg.NewFakeUpd(-1, "jj journal record")
 	cmd, err := bot.extractCmd(upd)
 	r.NoError(err)
 
 	r.NotNil(cmd)
-	r.Equal("t", cmd.Name)
-	r.Equal([]string{"Task for tomorrow"}, cmd.Params)
+	r.Equal("j", cmd.Name)
+	r.Equal([]string{"Journal record"}, cmd.Params)
 }
 
 func TestExtractCmdRu(t *testing.T) {
@@ -1382,26 +1382,52 @@ func TestExtractCmdRu(t *testing.T) {
 	r.NoError(err)
 
 	bot := NewBot(-1, tg.NewFakeTG(), userFS, db.NewFakeDB(), fakeConfig())
-	upd := tg.NewFakeUpd(-1, "/т task for tomorrow")
+	upd := tg.NewFakeUpd(-1, "жж запись в журнал")
 	cmd, err := bot.extractCmd(upd)
 	r.NoError(err)
 
 	r.NotNil(cmd)
-	r.Equal("т", cmd.Name)
-	r.Equal([]string{"Task for tomorrow"}, cmd.Params)
+	r.Equal("j", cmd.Name)
+	r.Equal([]string{"Запись в журнал"}, cmd.Params)
 }
 
-func TestExtractCmdSkips(t *testing.T) {
+func TestExtractCmdSkipsInTheBeginning(t *testing.T) {
 	r := require.New(t)
 
 	userFS, err := fs.NewFS("/", afero.NewMemMapFs())
 	r.NoError(err)
 
 	bot := NewBot(-1, tg.NewFakeTG(), userFS, db.NewFakeDB(), fakeConfig())
-	upd := tg.NewFakeUpd(-1, "/today task for tomorrow")
+	upd := tg.NewFakeUpd(-1, "jjj task for tomorrow")
 	cmd, err := bot.extractCmd(upd)
 	r.NoError(err)
 
+	r.Nil(cmd)
+}
+
+func TestExtractCmdSkipsAtTheMiddle(t *testing.T) {
+	r := require.New(t)
+
+	userFS, err := fs.NewFS("/", afero.NewMemMapFs())
+	r.NoError(err)
+
+	bot := NewBot(-1, tg.NewFakeTG(), userFS, db.NewFakeDB(), fakeConfig())
+	upd := tg.NewFakeUpd(-1, "journal jj record")
+	cmd, err := bot.extractCmd(upd)
+	r.NoError(err)
+	r.Nil(cmd)
+}
+
+func TestExtractCmdSkipsInTheEnd(t *testing.T) {
+	r := require.New(t)
+
+	userFS, err := fs.NewFS("/", afero.NewMemMapFs())
+	r.NoError(err)
+
+	bot := NewBot(-1, tg.NewFakeTG(), userFS, db.NewFakeDB(), fakeConfig())
+	upd := tg.NewFakeUpd(-1, "task for tomorrow jjj")
+	cmd, err := bot.extractCmd(upd)
+	r.NoError(err)
 	r.Nil(cmd)
 }
 
@@ -1412,13 +1438,13 @@ func TestExtractCmdAtTheEnd(t *testing.T) {
 	r.NoError(err)
 
 	bot := NewBot(-1, tg.NewFakeTG(), userFS, db.NewFakeDB(), fakeConfig())
-	upd := tg.NewFakeUpd(-1, "task for tomorrow /t")
+	upd := tg.NewFakeUpd(-1, "journal record jj")
 	cmd, err := bot.extractCmd(upd)
 	r.NoError(err)
 
 	r.NotNil(cmd)
-	r.Equal("t", cmd.Name)
-	r.Equal([]string{"Task for tomorrow"}, cmd.Params)
+	r.Equal("j", cmd.Name)
+	r.Equal([]string{"Journal record"}, cmd.Params)
 }
 
 func TestAddToJournalFromShortcut(t *testing.T) {
@@ -1431,7 +1457,7 @@ func TestAddToJournalFromShortcut(t *testing.T) {
 	tgram := tg.NewFakeTG()
 
 	bot := NewBot(-1, tgram, userFS, db.NewFakeDB(), fakeConfig())
-	err = bot.Answer(tg.NewFakeUpd(-1, "/j record"))
+	err = bot.Answer(tg.NewFakeUpd(-1, "jj record"))
 	r.NoError(err)
 
 	files, err := userFS.FilesAndDirs("journal")

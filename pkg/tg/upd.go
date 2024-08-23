@@ -253,7 +253,8 @@ func (u *Upd) imageID() (string, bool) {
 // or language it belongs to. This number is called the rune (code point).
 func getTextByOffset(text string, offset, length int) string {
 	utfEncodedString := utf16.Encode([]rune(text))
-	runeString := utf16.Decode(utfEncodedString[offset:length])
+
+	runeString := utf16.Decode(utfEncodedString[offset : offset+length])
 
 	return string(runeString)
 }
