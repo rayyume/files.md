@@ -184,7 +184,7 @@ func TestSaveFromRegularReply(t *testing.T) {
 
 	content, err := bot.fs.Read("today", "Existing file.md")
 	r.NoError(err)
-	r.Equal("### 11.08.2024 Sunday\nLine\nExisting content", content)
+	r.Equal("#### 11 August, Sunday\nLine\nExisting content", content)
 }
 
 func TestSaveFromPhotoWithCaption(t *testing.T) {
@@ -327,7 +327,7 @@ func TestSaveFromReplyPhotoWithCaption(t *testing.T) {
 
 	content, err := bot.fs.Read("today", "Existing file.md")
 	r.NoError(err)
-	r.Equal("### 11.08.2024 Sunday\n![[../img/tg_PHOTO_ID|center|400]]\nCaption\nExisting content", content)
+	r.Equal("#### 11 August, Sunday\n![[../img/tg_PHOTO_ID|center|400]]\nCaption\nExisting content", content)
 }
 
 func TestAddTaskToLater(t *testing.T) {
@@ -1143,7 +1143,7 @@ func TestMoveToExistingFile(t *testing.T) {
 
 	content, err := userFS.Read("", "Existing file.md")
 	r.NoError(err)
-	r.Equal("### 11.08.2024 Sunday\nNew file", content)
+	r.Equal("#### 11 August, Sunday\nNew file", content)
 }
 
 func TestMoveToExistingFileExistingRecord(t *testing.T) {
@@ -1174,7 +1174,7 @@ func TestMoveToExistingFileExistingRecord(t *testing.T) {
 
 	content, err := userFS.Read("", "Existing file.md")
 	r.NoError(err)
-	r.Equal("### 11.08.2024 Sunday\nNew file\nContent", content)
+	r.Equal("#### 11 August, Sunday\nNew file\n### 11.08.2024 Sunday\nContent", content)
 }
 
 func TestShowMoveTo(t *testing.T) {

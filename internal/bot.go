@@ -436,7 +436,7 @@ func (b *Bot) addToRepliedFile(replyToMsgID int, newContent string) error {
 		return fmt.Errorf("add: can't read: %w", err)
 	}
 
-	header := fmt.Sprintf("### %s", now().Format("02.01.2006 Monday"))
+	header := fmt.Sprintf("#### %d %s, %s", now().Day(), now().Format("January"), now().Weekday())
 	content := txt.InsertTextAfterHeader(existingContent, header, newContent)
 	err = b.fs.Write(dir, existingFilename, content)
 	if err != nil {
@@ -1160,7 +1160,7 @@ func (b *Bot) moveToExistingFile(params []string) error {
 	// We can tolerate this
 	_ = b.fs.Del(fromDir, newFilename)
 
-	header := fmt.Sprintf("### %s", now().Format("02.01.2006 Monday"))
+	header := fmt.Sprintf("#### %d %s, %s", now().Day(), now().Format("January"), now().Weekday())
 	content := txt.InsertTextAfterHeader(existingContent, header, fileContent)
 
 	err = b.fs.Write(fs.DirRoot, existingFilename, content)
