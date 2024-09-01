@@ -358,6 +358,7 @@ func (fs FS) IsMultiline(dir, filename string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("can't check for multiline: %w", err)
 	}
+	content = strings.TrimSpace(content)
 
 	return len(content) > 0, nil
 }
