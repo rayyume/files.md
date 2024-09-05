@@ -26,6 +26,7 @@ func NewDB() *DB {
 	return &DB{}
 }
 
+// TODO add locks
 func (db *DB) LastKeyboardMsgID(userID int64) (int, bool) {
 	msgIDStr, err := os.ReadFile(tmpFilePath(userID, "msgid"))
 	if err != nil {
@@ -45,7 +46,7 @@ func (db *DB) SetLastKeyboardMsgID(userID int64, ID int) {
 }
 
 func (db *DB) DelLastKeyboardMsgID(userID int64) {
-	lastKeyboardMsgIDs.Delete(lastKeyboardMsgIDKey(userID))
+	_ = os.Remove(tmpFilePath(userID, "msgid"))
 }
 
 func (db *DB) InputExpectation(userID int64) *tg.Cmd {
