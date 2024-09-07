@@ -12,7 +12,7 @@ An application for your personal stuff:
 Everything is stored locally in plain `*.md` files.  
 Can be used as a desktop/mobile app or as a Telegram bot.
 
-[Tasks management bot showcase in Dorofeev's club](https://club.mnogosdelal.ru/post/180/)  
+[Tasks management via bot](https://club.mnogosdelal.ru/post/180/)  
 [Notes taking via bot](https://vas3k.club/post/18815/)
 
 ## Spin the app up 🚀
