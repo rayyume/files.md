@@ -10,5 +10,5 @@ import (
 var Ctime = func(fi os.FileInfo) int64 {
 	stat := fi.Sys().(*syscall.Stat_t)
 
-	return stat.Ctim.Sec
+	return int64(stat.Ctim.Sec)
 }

@@ -69,6 +69,7 @@ func (c *ChatGUI) Send(_ int64, text string, kb *tg.Keyboard, markup string) (in
 		return 0, nil
 	}
 
+	// We don't need a separate container here I beleive
 	btnsContainer := container.NewVBox()
 	var msgContainer *fyne.Container
 	if len(text) > maxCharsPerLine {
