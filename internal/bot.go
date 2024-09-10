@@ -284,8 +284,10 @@ func (b *Bot) extractCmd(u UpdInterface) (*tg.Cmd, error) {
 				continue
 			}
 
+			// TODO extract formatting from tg entities  (adding `recs` to journal have no effect)
+			// it doesn't work for some reason
 			text := extractPlainText(u)
-			text = string(re.ReplaceAll([]byte(u.MsgText()), []byte("")))
+			text = string(re.ReplaceAll([]byte(text), []byte("")))
 			text = txt.Ucfirst(strings.TrimSpace(text))
 			shortCmd := tg.NewCmd(canonicalCMD, []string{text})
 
