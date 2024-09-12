@@ -12,6 +12,10 @@ import (
 	"golang.org/x/exp/slog"
 )
 
+type TGInterface interface {
+	Send(userID int64, text string, kb *tg.Keyboard, markup string) (int, error)
+}
+
 const (
 	timeFormat = "02.01.2006 15:04:05"
 	dateFormat = "02.01.2006"
@@ -32,15 +36,6 @@ var (
 		"ME":  "🏝",
 	}
 )
-
-func loadLocation(name string) *time.Location {
-	location, err := time.LoadLocation(name)
-	if err != nil {
-		slog.Warn("Error loading location", err)
-		return nil
-	}
-	return location
-}
 
 type WorldClockPlugin struct {
 	userID int64
@@ -123,4 +118,13 @@ func (p *WorldClockPlugin) fmtTimestamp(t time.Time) string {
 	_, offset := t.Zone()
 	timestampInLoc := t.Add(time.Duration(offset) * time.Second).Unix()
 	return strconv.FormatInt(timestampInLoc, 10)
+}
+
+func loadLocation(name string) *time.Location {
+	location, err := time.LoadLocation(name)
+	if err != nil {
+		slog.Warn("Error loading location", err)
+		return nil
+	}
+	return location
 }
