@@ -31,14 +31,15 @@ func TestDoneToday(t *testing.T) {
 		return time.Unix(0, 0)
 	}
 
-	fs, _ := fs.NewFS("/", afero.NewMemMapFs())
-	err := fs.Write("archive", "a.md", "")
+	userFS, err := fs.NewFS("/", afero.NewMemMapFs())
+	r.NoError(err)
+	err = userFS.Write("archive", "a.md", "")
 	r.NoError(err)
 
 	database := db.NewDB()
 	r.NoError(err)
 
-	tasks, err := DoneToday(fs, database, -1)
+	tasks, err := DoneToday(userFS, database, -1)
 	r.NoError(err)
 
 	r.Equal([]string{"A"}, tasks)

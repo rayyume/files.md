@@ -368,10 +368,17 @@ func TestFSPathTraversalAttack(t *testing.T) {
 func TestFSOnlyUserDirs(t *testing.T) {
 	r := require.New(t)
 
-	fs, _ := NewFS("/", afero.NewMemMapFs())
-	_ = fs.MakeDir("str")
-	_ = fs.MakeDir("123")
-	_ = fs.MakeDir("123.56")
+	fs, err := NewFS("/", afero.NewMemMapFs())
+	r.NoError(err)
+
+	err = fs.MakeDir("str")
+	r.NoError(err)
+
+	err = fs.MakeDir("123")
+	r.NoError(err)
+
+	err = fs.MakeDir("123.56")
+	r.NoError(err)
 
 	dirs, _ := fs.FilesAndDirs("")
 	userDirs := OnlyUserDirs(dirs)
@@ -408,7 +415,8 @@ func TestIsSafePathTraversalAttackWithRelativePaths(t *testing.T) {
 func TestUnhashRootDirectory(t *testing.T) {
 	r := require.New(t)
 
-	fs, _ := NewFS(".", afero.NewMemMapFs())
+	fs, err := NewFS(".", afero.NewMemMapFs())
+	r.NoError(err)
 	unhashed, err := fs.Unhash("", "")
 	r.NoError(err)
 

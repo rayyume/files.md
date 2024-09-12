@@ -399,8 +399,6 @@ func (b *Bot) saveFromForward(u UpdInterface) error {
 		return fmt.Errorf("save forward: %w", err)
 	}
 
-	// TODO what if sanitized content different same in
-	// case of regular save, we should save it in the body
 	sanitizedTitle = fs.SanitizeFilename(sanitizedTitle)
 	filename := fs.Filename(sanitizedTitle)
 
