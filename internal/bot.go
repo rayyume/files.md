@@ -1307,7 +1307,7 @@ func (b *Bot) requestNewDir(params []string) error {
 
 func (b *Bot) moveToNewDir(params []string) error {
 	filenameHash := params[0]
-	dir := params[1]
+	dir := strings.ToLower(params[1])
 
 	err := b.fs.MakeDir(dir)
 	if err != nil {
@@ -1870,9 +1870,10 @@ func (b *Bot) showMoveToFileOrDir(params []string) error {
 		skippedBtns = true
 	}
 	// Add "New Dir" to the end of the dirs list
-	if len(dirBtns) >= maxRecentBtns {
+	// TODO add tests for all these cases
+	if len(dirBtns) == maxRecentBtns {
 		// Free up space for the new dir button
-		fileBtns = fileBtns[:len(fileBtns)-1]
+		dirBtns = dirBtns[:len(fileBtns)-1]
 	}
 	btn := tg.NewBtn("🗂 New Dir", tg.NewCmd(consts.CmdRequestNewDir, []string{filenameHash}))
 	dirBtns = append(dirBtns, btn)
@@ -1945,7 +1946,7 @@ func (b *Bot) moveToFileBtns(newFilenameShortHash string) ([]tg.Btn, error) {
 
 func (b *Bot) moveToDirBtns(filenameHash string) ([]tg.Btn, error) {
 	newBtn := func(dir string) tg.Btn {
-		emojifiedDir := fmt.Sprintf("%s %s", i18n.Emoji("dir"), dir)
+		emojifiedDir := fmt.Sprintf("%s %s", i18n.Emoji("dir"), txt.Ucfirst(dir))
 		return tg.NewBtn(emojifiedDir, tg.NewCmd(consts.CmdMoveToDir, []string{fs.ShortHash(dir), fs.DirRoot, filenameHash}))
 	}
 

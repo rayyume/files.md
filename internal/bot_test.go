@@ -1133,7 +1133,7 @@ func TestShowMoveToFile(t *testing.T) {
 		tg.NewRow(tg.NewBtn("📄 Note", tg.NewCmd("mf", []string{"345fb", "", "345fb"}))),
 		tg.NewBtn("Or choose a dir:", tg.NewCustomCmd("search", nil, "iq")),
 		tg.NewRow(
-			tg.NewBtn("🗂️ dir", tg.NewCmd("mv", []string{"73600", "", "345fbd7ab08"})),
+			tg.NewBtn("🗂️ Dir", tg.NewCmd("mv", []string{"73600", "", "345fbd7ab08"})),
 			tg.NewBtn("🗂 New Dir", tg.NewCmd("new_dir", []string{"345fbd7ab08"})),
 		),
 	}), tgram.LastSentKeyboard)
@@ -2314,8 +2314,8 @@ func TestSaveToExistingFileIntegration(t *testing.T) {
 		),
 		tg.NewBtn("Or choose a dir:", tg.NewCustomCmd("search", nil, "iq")),
 		tg.NewRow(
-			tg.NewBtn("🗂️ habits", tg.NewCmd("mv", []string{"51fc0", "", "232004794e5"})),
-			tg.NewBtn("🗂️ inbox", tg.NewCmd("mv", []string{"af1cd", "", "232004794e5"})),
+			tg.NewBtn("🗂️ Habits", tg.NewCmd("mv", []string{"51fc0", "", "232004794e5"})),
+			tg.NewBtn("🗂️ Inbox", tg.NewCmd("mv", []string{"af1cd", "", "232004794e5"})),
 			tg.NewBtn("🗂 New Dir", tg.NewCmd("new_dir", []string{"232004794e5"})),
 		),
 	})
@@ -2391,8 +2391,8 @@ func TestSaveToNewFileIntegration(t *testing.T) {
 		),
 		tg.NewBtn("Or choose a dir:", tg.NewCustomCmd("search", nil, "iq")),
 		tg.NewRow(
-			tg.NewBtn("🗂️ habits", tg.NewCmd("mv", []string{"51fc0", "", "232004794e5"})),
-			tg.NewBtn("🗂️ inbox", tg.NewCmd("mv", []string{"af1cd", "", "232004794e5"})),
+			tg.NewBtn("🗂️ Habits", tg.NewCmd("mv", []string{"51fc0", "", "232004794e5"})),
+			tg.NewBtn("🗂️ Inbox", tg.NewCmd("mv", []string{"af1cd", "", "232004794e5"})),
 			tg.NewBtn("🗂 New Dir", tg.NewCmd("new_dir", []string{"232004794e5"})),
 		),
 	})
@@ -2468,8 +2468,8 @@ func TestSaveToNewDirIntegration(t *testing.T) {
 		),
 		tg.NewBtn("Or choose a dir:", tg.NewCustomCmd("search", nil, "iq")),
 		tg.NewRow(
-			tg.NewBtn("🗂️ habits", tg.NewCmd("mv", []string{"51fc0", "", "232004794e5"})),
-			tg.NewBtn("🗂️ inbox", tg.NewCmd("mv", []string{"af1cd", "", "232004794e5"})),
+			tg.NewBtn("🗂️ Habits", tg.NewCmd("mv", []string{"51fc0", "", "232004794e5"})),
+			tg.NewBtn("🗂️ Inbox", tg.NewCmd("mv", []string{"af1cd", "", "232004794e5"})),
 			tg.NewBtn("🗂 New Dir", tg.NewCmd("new_dir", []string{"232004794e5"})),
 		),
 	})
@@ -2482,7 +2482,7 @@ func TestSaveToNewDirIntegration(t *testing.T) {
 	r.Nil(tgram.LastEditedKeyboard)
 	r.Equal(tg.NewCmd("mv_to_new_dir", []string{"232004794e5", "%s"}), *database.InputExpectation(-1))
 
-	err = bot.Answer(tg.NewFakeUpd(-1, "my dir"))
+	err = bot.Answer(tg.NewFakeUpd(-1, "My dir"))
 	r.NoError(err)
 
 	content, err := userFS.Read("my dir", "Text.md")
@@ -2550,8 +2550,8 @@ func TestSaveToNewMultilineFileIntegration(t *testing.T) {
 		),
 		tg.NewBtn("Or choose a dir:", tg.NewCustomCmd("search", nil, "iq")),
 		tg.NewRow(
-			tg.NewBtn("🗂️ habits", tg.NewCmd("mv", []string{"51fc0", "", "232004794e5"})),
-			tg.NewBtn("🗂️ inbox", tg.NewCmd("mv", []string{"af1cd", "", "232004794e5"})),
+			tg.NewBtn("🗂️ Habits", tg.NewCmd("mv", []string{"51fc0", "", "232004794e5"})),
+			tg.NewBtn("🗂️ Inbox", tg.NewCmd("mv", []string{"af1cd", "", "232004794e5"})),
 			tg.NewBtn("🗂 New Dir", tg.NewCmd("new_dir", []string{"232004794e5"})),
 		),
 	})
@@ -2627,8 +2627,8 @@ func TestSaveToNewCustomFileIntegration(t *testing.T) {
 		),
 		tg.NewBtn("Or choose a dir:", tg.NewCustomCmd("search", nil, "iq")),
 		tg.NewRow(
-			tg.NewBtn("🗂️ habits", tg.NewCmd("mv", []string{"51fc0", "", "232004794e5"})),
-			tg.NewBtn("🗂️ inbox", tg.NewCmd("mv", []string{"af1cd", "", "232004794e5"})),
+			tg.NewBtn("🗂️ Habits", tg.NewCmd("mv", []string{"51fc0", "", "232004794e5"})),
+			tg.NewBtn("🗂️ Inbox", tg.NewCmd("mv", []string{"af1cd", "", "232004794e5"})),
 			tg.NewBtn("🗂 New Dir", tg.NewCmd("new_dir", []string{"232004794e5"})),
 		),
 	})
@@ -2709,7 +2709,7 @@ func TestSaveToRecentFileIntegration(t *testing.T) {
 		),
 		tg.NewBtn("Or choose a dir:", tg.NewCustomCmd("search", nil, "iq")),
 		tg.NewRow(
-			tg.NewBtn("🗂️ inbox", tg.NewCmd("mv", []string{"af1cd", "", "72e564182be"})),
+			tg.NewBtn("🗂️ Inbox", tg.NewCmd("mv", []string{"af1cd", "", "72e564182be"})),
 			tg.NewBtn("🗂 New Dir", tg.NewCmd("new_dir", []string{"72e564182be"})),
 		),
 	})
