@@ -1676,6 +1676,13 @@ func (b *Bot) completeChecklistItem(params []string) error {
 		return fmt.Errorf("complete: can't touch %s: %w", filename, err)
 	}
 
+	// Informative records, we don't need to check for errors
+	if dir == fs.DirRead {
+		_ = journal.AddRecord(b.fs, fmt.Sprintf("📚 Read %s", fs.Title(filename)), b.cfg.Timezone())
+	} else if dir == fs.DirWatch {
+		_ = journal.AddRecord(b.fs, fmt.Sprintf("📺 Watched %s", fs.Title(filename)), b.cfg.Timezone())
+	}
+
 	err = b.fs.Rename(dir, filename, fs.DirArchive, filename)
 	if err != nil {
 		return fmt.Errorf("complete: can't complete %s: %w", filename, err)
