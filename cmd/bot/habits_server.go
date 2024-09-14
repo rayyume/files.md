@@ -53,7 +53,7 @@ func habitsServer(habitsHost, certDir, logFilename string) {
 			ErrorLog:     logger,
 		}
 
-		err := srv.ListenAndServe()
+		err = srv.ListenAndServe()
 		if err != nil {
 			panic(err)
 		}

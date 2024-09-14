@@ -4,16 +4,17 @@
 An application for your personal stuff:
 - ✅ Tasks  
 - 📝 Notes  
+- 💼 Projects
+- 💚 Journal
 - 🛒 Checklists  
-- 💚 Journal  
 - 🌱 Habits  
 - 🍅 Pomodoro  
 
+**Everything is stored as plain local `*.md` files.**  
+
 It works like a regular chat, so it's easier to use because there's less resistance. We're used to sending messages to friends, now we're going to send stuff to the bot.  
 
-Unload your brain - send the bot whatever's on your mind. Then choose how you want to store it. It can be a task, a note, or a journal entry.
-
-**Everything is stored as plain local `*.md` files.**  
+When we are focused and distracting information comes in, we want to get rid of it as quickly as possible. To do that, just send the bot whatever's is on your mind. Then choose how you want to save it - as a task, a note, or a journal entry.
 
 [Tasks management via bot](https://club.mnogosdelal.ru/post/180/)  
 [Notes taking via bot](https://vas3k.club/post/18815/)
@@ -67,8 +68,8 @@ Any file can be uniquely identified by filename and dir. We only support one lev
 
 We differentiate the following types of files (with `/` denoting your root folder):
 - Tasks: `/today/Pay the bills.md` (`/today/*.md`, `/later/*.md`)
-- Files: `/My project.md` (`/*.md`)
 - Notes: `/brain/Brain is the most complex object.md` (`/*/*.md` also `/inbox/*.md`)
+- Files: `/My project.md` (`/*.md`)
 - Checklists: `/-read-/How to Take Smart Notes.md` (`/-[read|watch|shop]-/*.md`)
 - Journal: `/Journal/2024.08 August.md` (`/journal/<YEAR>.<MONTH> <MONTH NAME>.md`)
 - Habits: `/habits/2 minute morning workout.md` (`/habits/*.md`)
