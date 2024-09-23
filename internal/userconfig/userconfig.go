@@ -253,5 +253,4 @@ func (c *Config) userLock() *sync.Mutex {
 	userLocks[c.userID] = newLock
 
 	return newLock
-
 }

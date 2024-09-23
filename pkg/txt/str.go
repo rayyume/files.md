@@ -129,7 +129,7 @@ func FirstWord(str string) string {
 
 func EscapeHTML(str string) string {
 	// HTML escaping
-	var htmlEscaper = strings.NewReplacer(
+	htmlEscaper := strings.NewReplacer(
 		"&", "&amp;",
 		"<", "&lt;",
 		">", "&gt;",

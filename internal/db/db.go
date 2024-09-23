@@ -11,15 +11,16 @@ import (
 )
 
 // In-memory database
-var filenameByMsgID sync.Map
-var dirByMsgID sync.Map
-var inputExpectations sync.Map
-var recentCommands sync.Map
-var recentCommandsTargets sync.Map
+var (
+	filenameByMsgID       sync.Map
+	dirByMsgID            sync.Map
+	inputExpectations     sync.Map
+	recentCommands        sync.Map
+	recentCommandsTargets sync.Map
+)
 
 // DB Do we need a type at all?
-type DB struct {
-}
+type DB struct{}
 
 func NewDB() *DB {
 	return &DB{}
@@ -41,7 +42,7 @@ func (db *DB) LastKeyboardMsgID(userID int64) (int, bool) {
 }
 
 func (db *DB) SetLastKeyboardMsgID(userID int64, ID int) {
-	_ = os.WriteFile(tmpFilePath(userID, "msgid"), []byte(strconv.Itoa(ID)), 0644)
+	_ = os.WriteFile(tmpFilePath(userID, "msgid"), []byte(strconv.Itoa(ID)), 0o644)
 }
 
 func (db *DB) DelLastKeyboardMsgID(userID int64) {

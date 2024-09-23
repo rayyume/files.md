@@ -17,7 +17,6 @@ func TestWorldClock_ExecutePlugin_With_Time(t *testing.T) {
 	result, err := worldClockPlugin.Handle("15.06.2023 15:30:00")
 	r.NoError(err)
 	r.True(result)
-
 }
 
 func TestWorldClock_ExecutePlugin_With_Timestamp(t *testing.T) {

@@ -5,11 +5,13 @@ import (
 	"strings"
 )
 
-type parser func(input string) []result
-type result struct {
-	consumed string
-	left     string
-}
+type (
+	parser func(input string) []result
+	result struct {
+		consumed string
+		left     string
+	}
+)
 
 var openTags = map[string]string{
 	"*":  "<i>",

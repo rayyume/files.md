@@ -21,9 +21,7 @@ const (
 	daysInAdvanceForLater = 7 * 24 * time.Hour
 )
 
-var (
-	now = time.Now
-)
+var now = time.Now
 
 // MoveDueTasks moves due tasks from archive to later or today, or from later to today
 func MoveDueTasks(

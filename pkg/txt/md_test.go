@@ -74,7 +74,6 @@ func TestMarkdownToHTMLCharAndNewLineChar(t *testing.T) {
 
 	italic := "*a\n*"
 	r.Equal("<i>a\n</i>", MarkdownToHTML(italic))
-
 }
 
 func TestMarkdownToHTMLNewLineAndChar(t *testing.T) {

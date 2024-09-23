@@ -1353,7 +1353,8 @@ func TestShowMoveTo(t *testing.T) {
 			{Name: "📄 To File", Cmd: tg.Cmd{Name: "to_file", Params: []string{"d0776a3e2b9"}, Type: "cmd"}},
 			{Name: "💚 To Journal", Cmd: tg.Cmd{Name: "mv_to_journal", Params: []string{"d0776a3e2b9"}, Type: "cmd"}},
 			{Name: "➡️ Today", Cmd: tg.Cmd{Name: "today", Params: []string(nil), Type: "cmd"}},
-		}},
+		},
+	},
 	)
 	r.Equal(kb, tgram.LastSentKeyboard)
 }
@@ -1739,11 +1740,13 @@ func TestShowForADay(t *testing.T) {
 			{Name: "Tue", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "432000", ""}, Type: "cmd"}},
 			{Name: "Wed", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "518400", ""}, Type: "cmd"}},
 			{Name: "Thu", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "604800", ""}, Type: "cmd"}},
-		}, []tg.Btn{
+		},
+		[]tg.Btn{
 			{Name: "Fri", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "691200", ""}, Type: "cmd"}},
 			{Name: "Sat", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "172800", ""}, Type: "cmd"}},
 			{Name: "Sun", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "259200", ""}, Type: "cmd"}},
-		}, []tg.Btn{
+		},
+		[]tg.Btn{
 			{Name: "1", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "2678400", ""}, Type: "cmd"}},
 			{Name: "2", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "2764800", ""}, Type: "cmd"}},
 			{Name: "3", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "172800", ""}, Type: "cmd"}},
@@ -1751,7 +1754,8 @@ func TestShowForADay(t *testing.T) {
 			{Name: "5", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "345600", ""}, Type: "cmd"}},
 			{Name: "6", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "432000", ""}, Type: "cmd"}},
 			{Name: "7", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "518400", ""}, Type: "cmd"}},
-		}, []tg.Btn{
+		},
+		[]tg.Btn{
 			{Name: "9", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "691200", ""}, Type: "cmd"}},
 			{Name: "10", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "777600", ""}, Type: "cmd"}},
 			{Name: "11", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "864000", ""}, Type: "cmd"}},
@@ -1760,7 +1764,8 @@ func TestShowForADay(t *testing.T) {
 			{Name: "14", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "1123200", ""}, Type: "cmd"}},
 			{Name: "15", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "1209600", ""}, Type: "cmd"}},
 			{Name: "16", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "1296000", ""}, Type: "cmd"}},
-		}, []tg.Btn{
+		},
+		[]tg.Btn{
 			{Name: "17", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "1382400", ""}, Type: "cmd"}},
 			{Name: "18", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "1468800", ""}, Type: "cmd"}},
 			{Name: "19", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "1555200", ""}, Type: "cmd"}},
@@ -1769,7 +1774,8 @@ func TestShowForADay(t *testing.T) {
 			{Name: "22", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "1814400", ""}, Type: "cmd"}},
 			{Name: "23", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "1900800", ""}, Type: "cmd"}},
 			{Name: "24", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "1987200", ""}, Type: "cmd"}},
-		}, []tg.Btn{
+		},
+		[]tg.Btn{
 			{Name: "25", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "2073600", ""}, Type: "cmd"}},
 			{Name: "26", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "2160000", ""}, Type: "cmd"}},
 			{Name: "27", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "2246400", ""}, Type: "cmd"}},
@@ -1777,7 +1783,8 @@ func TestShowForADay(t *testing.T) {
 			{Name: "29", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "2419200", ""}, Type: "cmd"}},
 			{Name: "30", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "2505600", ""}, Type: "cmd"}},
 			{Name: "31", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f819d075", "2592000", ""}, Type: "cmd"}},
-		}, tg.Btn{Name: "➡️ Move to Today", Cmd: tg.Cmd{Name: "today", Params: []string(nil), Type: "cmd"}},
+		},
+		tg.Btn{Name: "➡️ Move to Today", Cmd: tg.Cmd{Name: "today", Params: []string(nil), Type: "cmd"}},
 	}), tgram.LastSentKeyboard)
 }
 
@@ -1824,7 +1831,8 @@ func TestShowForADayRecurring(t *testing.T) {
 			{Name: "5", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f", "345600", "0 0 5 * *"}, Type: "cmd"}},
 			{Name: "6", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f", "432000", "0 0 6 * *"}, Type: "cmd"}},
 			{Name: "7", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f", "518400", "0 0 7 * *"}, Type: "cmd"}},
-		}, []tg.Btn{{Name: "8", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f", "604800", "0 0 8 * *"}, Type: "cmd"}},
+		}, []tg.Btn{
+			{Name: "8", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f", "604800", "0 0 8 * *"}, Type: "cmd"}},
 			{Name: "9", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f", "691200", "0 0 9 * *"}, Type: "cmd"}},
 			{Name: "10", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f", "777600", "0 0 10 * *"}, Type: "cmd"}},
 			{Name: "11", Cmd: tg.Cmd{Name: "sc", Params: []string{"1c8f", "864000", "0 0 11 * *"}, Type: "cmd"}},
@@ -2240,7 +2248,8 @@ func TestSaveToNewTaskIntegration(t *testing.T) {
 			tg.NewBtn("📄 To File", tg.NewCmd("to_file", []string{"d0776a3e2b9"})),
 			tg.NewBtn("💚 To Journal", tg.NewCmd("mv_to_journal", []string{"d0776a3e2b9"})),
 			tg.NewBtn("➡️ Today", tg.NewCmd("today", nil)),
-		)})
+		),
+	})
 	r.Equal(kb, tgram.LastSentKeyboard)
 
 	err = bot.Answer(tg.NewFakeUpdCmd(-1, tg.NewCmd("today", nil)))
@@ -2301,7 +2310,8 @@ func TestSaveToExistingFileIntegration(t *testing.T) {
 			tg.NewBtn("📄 To File", tg.NewCmd("to_file", []string{"232004794e5"})),
 			tg.NewBtn("💚 To Journal", tg.NewCmd("mv_to_journal", []string{"232004794e5"})),
 			tg.NewBtn("➡️ Today", tg.NewCmd("today", nil)),
-		)})
+		),
+	})
 	r.Equal(kb, tgram.LastSentKeyboard)
 
 	err = bot.Answer(tg.NewFakeUpdCmd(-1, tg.NewCmd("to_file", []string{"232004794e5"})))
@@ -2378,7 +2388,8 @@ func TestSaveToNewFileIntegration(t *testing.T) {
 			tg.NewBtn("📄 To File", tg.NewCmd("to_file", []string{"232004794e5"})),
 			tg.NewBtn("💚 To Journal", tg.NewCmd("mv_to_journal", []string{"232004794e5"})),
 			tg.NewBtn("➡️ Today", tg.NewCmd("today", nil)),
-		)})
+		),
+	})
 	r.Equal(kb, tgram.LastSentKeyboard)
 
 	err = bot.Answer(tg.NewFakeUpdCmd(-1, tg.NewCmd("to_file", []string{"232004794e5"})))
@@ -2454,7 +2465,8 @@ func TestSaveToNewDirIntegration(t *testing.T) {
 			tg.NewBtn("📄 To File", tg.NewCmd("to_file", []string{"232004794e5"})),
 			tg.NewBtn("💚 To Journal", tg.NewCmd("mv_to_journal", []string{"232004794e5"})),
 			tg.NewBtn("➡️ Today", tg.NewCmd("today", nil)),
-		)})
+		),
+	})
 	r.Equal(kb, tgram.LastSentKeyboard)
 
 	err = bot.Answer(tg.NewFakeUpdCmd(-1, tg.NewCmd("to_file", []string{"232004794e5"})))
@@ -2537,7 +2549,8 @@ func TestSaveToNewMultilineFileIntegration(t *testing.T) {
 			tg.NewBtn("📄 To File", tg.NewCmd("to_file", []string{"232004794e5"})),
 			tg.NewBtn("💚 To Journal", tg.NewCmd("mv_to_journal", []string{"232004794e5"})),
 			tg.NewBtn("➡️ Today", tg.NewCmd("today", nil)),
-		)})
+		),
+	})
 	r.Equal(kb, tgram.LastSentKeyboard)
 
 	err = bot.Answer(tg.NewFakeUpdCmd(-1, tg.NewCmd("to_file", []string{"232004794e5"})))
@@ -2613,7 +2626,8 @@ func TestSaveToNewCustomFileIntegration(t *testing.T) {
 			tg.NewBtn("📄 To File", tg.NewCmd("to_file", []string{"232004794e5"})),
 			tg.NewBtn("💚 To Journal", tg.NewCmd("mv_to_journal", []string{"232004794e5"})),
 			tg.NewBtn("➡️ Today", tg.NewCmd("today", nil)),
-		)})
+		),
+	})
 	r.Equal(kb, tgram.LastSentKeyboard)
 
 	err = bot.Answer(tg.NewFakeUpdCmd(-1, tg.NewCmd("to_file", []string{"232004794e5"})))
@@ -2691,7 +2705,8 @@ func TestSaveToRecentFileIntegration(t *testing.T) {
 			tg.NewBtn("📄 To File", tg.NewCmd("to_file", []string{"72e564182be"})),
 			tg.NewBtn("💚 To Journal", tg.NewCmd("mv_to_journal", []string{"72e564182be"})),
 			tg.NewBtn("➡️ Today", tg.NewCmd("today", nil)),
-		)})
+		),
+	})
 	r.Equal(kb, tgram.LastSentKeyboard)
 
 	err = bot.Answer(tg.NewFakeUpdCmd(-1, tg.NewCmd("to_file", []string{"72e564182be"})))
@@ -2738,7 +2753,8 @@ func TestSaveToRecentFileIntegration(t *testing.T) {
 		),
 		tg.NewRow(
 			tg.NewBtn("➡️ Today", tg.NewCmd("today", nil)),
-		)})
+		),
+	})
 	r.Equal(kb, tgram.LastSentKeyboard)
 
 	r.Nil(database.InputExpectation(-1))

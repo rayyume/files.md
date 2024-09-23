@@ -32,7 +32,7 @@ func habitsServer(habitsHost, certDir, logFilename string) {
 		Cache:      autocert.DirCache(certDir),
 	}
 
-	logFile, err := os.OpenFile(logFilename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	logFile, err := os.OpenFile(logFilename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o666)
 	if err != nil {
 		log.Fatalf("Server: failed to open log file: %v", err)
 	}
