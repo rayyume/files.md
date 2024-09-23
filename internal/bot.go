@@ -1680,9 +1680,9 @@ func (b *Bot) completeChecklistItem(params []string) error {
 
 	// Informative records, we don't need to check for errors
 	if dir == fs.DirRead {
-		_ = journal.AddRecord(b.fs, fmt.Sprintf("📚 Read %s", fs.Title(filename)), b.cfg.Timezone())
+		_ = journal.AddRecord(b.fs, fmt.Sprintf("📚 Read %s", filename), b.cfg.Timezone())
 	} else if dir == fs.DirWatch {
-		_ = journal.AddRecord(b.fs, fmt.Sprintf("📺 Watched %s", fs.Title(filename)), b.cfg.Timezone())
+		_ = journal.AddRecord(b.fs, fmt.Sprintf("📺 Watched %s", filename), b.cfg.Timezone())
 	}
 
 	err = b.fs.Rename(dir, filename, fs.DirArchive, filename)
