@@ -129,7 +129,7 @@ func TestSplitTextIntoChunks(t *testing.T) {
 			name:     "trailing and leading spaces",
 			input:    "   Leading and trailing spaces   ",
 			maxLen:   15,
-			expected: []string{"Leading and", "trailing", "spaces"},
+			expected: []string{"Leading and", "trailing spaces"},
 		},
 		{
 			name:     "no split needed",
@@ -140,6 +140,12 @@ func TestSplitTextIntoChunks(t *testing.T) {
 		{
 			name:     "empty string",
 			input:    "",
+			maxLen:   10,
+			expected: []string{""},
+		},
+		{
+			name:     "string with only spaces",
+			input:    "                                            ",
 			maxLen:   10,
 			expected: []string{""},
 		},

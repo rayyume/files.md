@@ -67,12 +67,10 @@ func SplitTextIntoChunks(text string, maxLen int) []string {
 	}
 
 	var chunks []string
-	runes := []rune(text) // Convert the string to runes
+	runes := []rune(strings.TrimSpace(text)) // Convert the string to runes
 
 	for len(runes) > maxLen {
-		// Prevent leading spaces
-		runes = []rune(strings.TrimLeft(string(runes), " "))
-		subStr := runes[:maxLen]
+		subStr := runes[:min(len(runes), maxLen)]
 
 		// Find the last newline in the substring
 		splitIndex := -1
@@ -109,6 +107,8 @@ func SplitTextIntoChunks(text string, maxLen int) []string {
 		}
 		// Move the pointer forward
 		runes = runes[splitIndex:]
+		// Prevent leading spaces
+		runes = []rune(strings.TrimSpace(string(runes)))
 	}
 
 	// Add the remaining runes as the final chunk
