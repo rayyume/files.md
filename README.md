@@ -28,10 +28,10 @@ $ go run ./cmd/bot
 Bot's artifacts can be seen in `./storage/<USER_ID>` folder
 
 ## Or spin the local app up 🚀
-1) Install [Go](https://go.dev/doc/install)
+1) Install [Go](https://go.dev/doc/install) and [Wails](https://wails.io/docs/gettingstarted/installation)
 2) Run the app:
 ```bash
-$ go run ./cmd/gui
+$ make gui
 ```
 
 ## File structure

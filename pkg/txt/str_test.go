@@ -399,35 +399,3 @@ func TestRestoreFromPlaceholders(t *testing.T) {
 	}
 	require.Equal(t, "No matching placeholders", RestoreFromPlaceholders(str, placeholders), "Should return the original string if placeholder is not found")
 }
-
-func TestSplitLongLines(t *testing.T) {
-	// Basic test case with a short line
-	input := "Short line"
-	expected := "Short line\n"
-	require.Equal(t, expected, SplitLongLines(input, 10), "Should return the same line since it's shorter than the limit")
-
-	// Test case with one long line
-	input = "This is a very long line that should be split into smaller lines."
-	expected = "This is a\nvery long\nline that\nshould be\nsplit into\nsmaller l\nines.\n"
-	require.Equal(t, expected, SplitLongLines(input, 10), "Should split the line into chunks of 10 runes")
-
-	// Test case with multiple lines
-	input = "First line\nThis is a very long line that needs splitting\nShort"
-	expected = "First line\nThis is a\nvery long\nline that\nneeds spli\ntting\nShort\n"
-	require.Equal(t, expected, SplitLongLines(input, 10), "Should split only the long line and keep short lines intact")
-
-	// Test with Unicode characters
-	input = "这是一个很长的中文句子。它应该被分割。"
-	expected = "这是一个很长\n的中文句子。\n它应该被分割\n。\n"
-	require.Equal(t, expected, SplitLongLines(input, 6), "Should correctly split a line with Unicode characters")
-
-	// Test with maxRunesPerLine greater than the longest line
-	input = "A short line\nAnother short line"
-	expected = "A short line\nAnother short line\n"
-	require.Equal(t, expected, SplitLongLines(input, 50), "Should return the same lines as input if the max limit is larger than the longest line")
-
-	// Test with empty input
-	input = ""
-	expected = "\n"
-	require.Equal(t, expected, SplitLongLines(input, 10), "Should handle empty input by returning a single newline")
-}

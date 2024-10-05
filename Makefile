@@ -2,7 +2,7 @@ bot:
 	go run ./cmd/bot
 
 gui:
-	go run ./cmd/gui
+	cd ./cmd/gui && wails dev
 
 test:
 	go test ./...

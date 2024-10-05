@@ -14,6 +14,7 @@
         <textarea id="input-field" rows="1" placeholder="Write a message..."></textarea>
         <button id="send-button" disabled>&#10142;</button>
     </div>
+    <div id="command-popup" class="popup hidden"></div>
 </div>
 
 <script>
@@ -100,15 +101,115 @@
         const messageBubble = document.createElement('div');
         let side = author === 'user' ? 'right' : 'left';
         messageBubble.classList.add('message', side, author);
-        messageBubble.textContent = text;
+        messageBubble.innerHTML = text.replace(/\n/g, '<br>');
         messagesContainer.appendChild(messageBubble);
 
         return messageBubble
     }
 
     const input = document.getElementById('input-field');
+    const inputContainer = document.getElementById('input-container');
     const sendButton = document.getElementById('send-button');
     const messagesContainer = document.getElementById('messages');
+    const commandPopup = document.getElementById('command-popup');
+
+    const commands = [
+        { command: '/today', display: '🏠 Today' },
+        { command: '/files', display: '📄 Files' },
+        { command: '/checklists', display: '☑️ Checklists' },
+        { command: '/schedule', display: '📆 Schedule' },
+        { command: '/stats', display: '📊 Stats' },
+        { command: '/postpone', display: '🦥 Postpone' },
+        { command: '/rename', display: '✏️ Rename' },
+        { command: '/move', display: '➡️ Move' },
+        { command: '/settings', display: '⚙️ Settings' },
+        { command: '/help', display: '📕 Help' }
+    ];
+
+    function showCommandPopup() {
+        const inputText = input.value.trim();
+
+        // Filter the commands based on the input text
+        const filteredCommands = commands.filter(cmd => cmd.command.startsWith(inputText));
+
+        // Populate the popup with filtered commands
+        commandPopup.innerHTML = '';
+        filteredCommands.forEach((cmd) => {
+            const cmdItem = document.createElement('div');
+            cmdItem.classList.add('command-item');
+            cmdItem.textContent = cmd.display;
+
+            cmdItem.onclick = () => {
+                input.value = cmd.command; // Set the command input to the actual command (e.g., /today)
+                input.focus();
+                sendMessage();
+                hideCommandPopup();
+            };
+
+            commandPopup.appendChild(cmdItem);
+        });
+
+        // If there are matching commands, show the popup
+        if (filteredCommands.length > 0) {
+            commandPopup.style.display = 'block';
+        } else {
+            hideCommandPopup();
+        }
+    }
+    function showCommandPopup() {
+        const inputText = input.value.trim();
+
+        // Filter the commands based on the input text
+        const filteredCommands = commands.filter(cmd => cmd.command.startsWith(inputText));
+
+        // Populate the popup with filtered commands
+        commandPopup.innerHTML = '';
+        filteredCommands.forEach((cmd, index) => {
+            const cmdItem = document.createElement('div');
+            cmdItem.classList.add('command-item');
+            cmdItem.textContent = cmd.display;
+
+            // Set a unique id for the command item
+            cmdItem.setAttribute('data-index', index);
+
+            cmdItem.onclick = () => {
+                input.value = cmd.command; // Set the command input to the actual command (e.g., /today)
+                input.focus();
+                sendMessage();
+                hideCommandPopup();
+            };
+
+            commandPopup.appendChild(cmdItem);
+        });
+
+        // If there are no matching commands, hide the popup
+        if (filteredCommands.length === 0) {
+            hideCommandPopup();
+            return;
+        }
+
+        // Remove 'hidden' class to make the popup visible
+        commandPopup.classList.remove('hidden');
+
+    }
+
+    function insertFocusedCommand() {
+        const focusedCommand = commandPopup.querySelector('.command-item.focused');
+        if (focusedCommand) {
+            const commandText = focusedCommand.textContent.trim();
+            const selectedCommand = commands.find(cmd => cmd.display === commandText);
+            if (selectedCommand) {
+                input.value = selectedCommand.command; // Insert the actual command into the input
+                input.focus();
+                hideCommandPopup();
+            }
+        }
+    }
+
+    function hideCommandPopup() {
+        commandPopup.classList.add('hidden');
+        commandPopup.innerHTML = ''; // Clear the popup content
+    }
 
     window.onload = () => {
         sendCommand('/today')
@@ -126,13 +227,23 @@
         if (input.value.trim() === '') {
             input.rows = 1
         }
+
+        if (input.value.startsWith('/')) {
+            showCommandPopup();
+        } else {
+            hideCommandPopup();
+        }
     });
 
     // Handle shift + enter for new line, and enter for sending message
     input.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
-            sendMessage();
+            if (input.value.startsWith('/')) {
+                insertFocusedCommand();
+            } else {
+                sendMessage();
+            }
         }
 
         if (event.key === 'Enter') {
