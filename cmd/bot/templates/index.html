@@ -5,15 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Files.md</title>
     <style>
-        body {
+        html {
+            box-sizing: border-box;
+            width: 100%;
+            height: 100%;
+            font-size: 62.5%
+        }
 
+        body {
+            margin: 0;
+            background-color: #FFFEF0;
+            color: #100F0F;
+            font-size: 1.4em;
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
         }
 
         :root {
-            --font-large: calc(1.35em + 0.55vw);
-            --font-medium: calc(1em + 0.2vw);
             --font-normal: calc(1.5rem + 0.25vw);
+            --wrap-wide: 1000px;
             --wrap-normal: 37em;
+            --line-height: 1.5;
         }
 
         @media (max-width: 860px) {
@@ -24,17 +37,8 @@
             }
         }
 
-        body {
-            background-color: #FFFEF0;
-            color: #100F0F;
-            padding: 10px;
-            margin: 0;
-            font-size: 1.4em;
-            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'IBM Plex Sans', 'Segoe UI', Helvetica, Arial, sans-serif;
-            text-rendering: optimizeLegibility;
-        }
-
-        content {
+        heading, content {
+            display: block;
             margin-left: auto;
             margin-right: auto;
             max-width: var(--wrap-wide);
@@ -43,7 +47,6 @@
 
         h1 {
             font-weight: 500;
-            font-size: 2em;
             font-size: calc(1.35em + 0.55vw);
             letter-spacing: -0.02em;
             line-height: 1.25;
@@ -51,23 +54,15 @@
             margin-bottom: 0.25em
         }
 
-        h2 {
-            font-size: var(--font-medium);
-            margin-top: 1em;
-        }
-
         p {
             font-size: var(--font-normal);
             max-width: var(--wrap-normal);
+            line-height: var(--line-height);
         }
 
         @media (max-width: 860px) {
             :root {
                 --wrap-normal: 88vw;
-            }
-
-            body {
-                padding: 0 2vw;
             }
         }
 
@@ -84,27 +79,27 @@
             <p>The only thing that matters is your calmness.</p>
             <p>Let's save your mental energy.</p>
             <p>It drains if you keep stuff in your head.</p>
-            <p><strong>What stuff?</strong></p>
+<!--            <p><strong>What stuff?</strong></p>-->
 
-            <details>
-                <summary>Notes, when you have thoughts and ideas</summary>
-                <p>Jot down ideas to clear your mind and free up mental space.</p>
-            </details>
+<!--            <details>-->
+<!--                <summary>Notes, when you have thoughts and ideas</summary>-->
+<!--                <p>Jot down ideas to clear your mind and free up mental space.</p>-->
+<!--            </details>-->
 
-            <details>
-                <summary>Tasks, when there's something we have to do</summary>
-                <p>Keep track of your to-dos without cluttering your mind.</p>
-            </details>
+<!--            <details>-->
+<!--                <summary>Tasks, when there's something we have to do</summary>-->
+<!--                <p>Keep track of your to-dos without cluttering your mind.</p>-->
+<!--            </details>-->
 
-            <details>
-                <summary>Checklist items, when there's something to buy or read</summary>
-                <p>A simple list for what you need to get done, bought, or read.</p>
-            </details>
+<!--            <details>-->
+<!--                <summary>Checklist items, when there's something to buy or read</summary>-->
+<!--                <p>A simple list for what you need to get done, bought, or read.</p>-->
+<!--            </details>-->
 
-            <details>
-                <summary>Emotions, when we are stressed or acting out our patterns</summary>
-                <p>Capture your feelings to understand them and stay calm.</p>
-            </details>
+<!--            <details>-->
+<!--                <summary>Emotions, when we are stressed or acting out our patterns</summary>-->
+<!--                <p>Capture your feelings to understand them and stay calm.</p>-->
+<!--            </details>-->
         </content>
     </article>
 </main>
