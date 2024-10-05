@@ -4,6 +4,11 @@ import (
 	"io"
 )
 
+type Message struct {
+	Text    string
+	Buttons []Row
+}
+
 type FakeTG struct {
 	SentTexts          []string
 	LastSentText       string
@@ -12,6 +17,8 @@ type FakeTG struct {
 	LastEditedKeyboard *Keyboard
 	InlineQueryResults []any
 	LastSentMessageID  int
+	Messages           []Message
+	EditedMessages     []Message
 }
 
 func NewFakeTG() *FakeTG {
@@ -24,8 +31,15 @@ func (f *FakeTG) Send(userID int64, text string, kb *Keyboard, markup string) (i
 	f.LastSentKeyboard = kb
 	f.LastEditedKeyboard = nil
 	f.LastEditedText = ""
-
 	f.LastSentMessageID++
+
+	msg := Message{
+		Text: text,
+	}
+	if kb != nil {
+		msg.Buttons = kb.Btns
+	}
+	f.Messages = append(f.Messages, msg)
 
 	return f.LastSentMessageID, nil
 }
@@ -34,6 +48,14 @@ func (f *FakeTG) Edit(userID int64, msgID int, text string, kb *Keyboard, markup
 	f.LastEditedText = text
 	f.LastEditedKeyboard = kb
 	f.LastSentKeyboard = nil
+
+	msg := Message{
+		Text: text,
+	}
+	if kb != nil {
+		msg.Buttons = kb.Btns
+	}
+	f.EditedMessages = append(f.EditedMessages, msg)
 
 	return nil
 }

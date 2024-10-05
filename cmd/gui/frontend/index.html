@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Files.md</title>
+    <script src="./src/main.js" type="module"></script>
+</head>
+<body>
+
+<div id="chat-container">
+    <div id="messages"></div>
+    <div id="input-container">
+        <textarea id="input-field" rows="1" placeholder="Write a message..."></textarea>
+        <button id="send-button" disabled>&#10142;</button>
+    </div>
+</div>
+
+<script>
+    function sendMessage() {
+        const msg = input.value.trim();
+        if (msg === '') return;
+
+        addMessage(msg, 'user');
+
+        if (msg.startsWith('/')) {
+            sendCommand(msg);
+        } else {
+            (async () => {
+                let update = await window.newUpdate(msg, null)
+                processResponse(await window.send(update));
+            })();
+        }
+
+        input.value = '';
+        input.rows = 1;
+        sendButton.disabled = true;
+        document.querySelector('#messages').scrollTop = messagesContainer.scrollHeight;
+    }
+
+    async function sendCommand(command) {
+        let update = await window.newUpdate('', await window.newCmd(command.substring(1), null));
+        processResponse(await window.send(update));
+    }
+
+    function processResponse(response) {
+        console.log(response)
+        document.querySelectorAll('.bot').forEach(element => element.remove());
+        document.querySelectorAll('.button-container').forEach(element => element.remove());
+        response.Messages?.forEach(message => {
+            const bubble = addMessage(message.Text, 'bot');
+            document.querySelector('#messages').appendChild(bubble);
+            if (message.Buttons && message.Buttons.length > 0) {
+                attachKeyboard(message.Buttons)
+            }
+        });
+        input.focus();
+    }
+
+    function attachKeyboard(buttons) {
+        const buttonContainer = document.createElement('div');
+        buttonContainer.classList.add('button-container');
+
+        buttons.forEach((row) => {
+            if (Array.isArray(row)) {
+                // If row is an array, create a row container for buttons
+                const rowContainer = document.createElement('div');
+                rowContainer.classList.add('button-row');
+
+                row.forEach((btn) => {
+                    const button = document.createElement('button');
+                    button.innerText = btn.Name;
+                    button.classList.add('telegram-button'); // Add a class for styling
+                    button.onclick = async () => {
+                        let update = await window.newUpdate('', btn.Cmd)
+                        processResponse(await window.send(update));
+                    };
+                    rowContainer.appendChild(button);
+                });
+                buttonContainer.appendChild(rowContainer);
+            } else {
+                // If it's a single button, not a row
+                const button = document.createElement('button');
+                button.innerText = row.Name;
+                button.classList.add('telegram-button'); // Add a class for styling
+                button.onclick = async () => {
+                    let update = await window.newUpdate('', row.Cmd)
+                    processResponse(await window.send(update));
+                };
+                buttonContainer.appendChild(button);
+            }
+        });
+
+        document.querySelector('#messages').appendChild(buttonContainer);
+        const messagesContainer = document.querySelector('#messages');
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function addMessage(text, author) {
+        const messageBubble = document.createElement('div');
+        let side = author === 'user' ? 'right' : 'left';
+        messageBubble.classList.add('message', side, author);
+        messageBubble.textContent = text;
+        messagesContainer.appendChild(messageBubble);
+
+        return messageBubble
+    }
+
+    const input = document.getElementById('input-field');
+    const sendButton = document.getElementById('send-button');
+    const messagesContainer = document.getElementById('messages');
+
+    window.onload = () => {
+        sendCommand('/today')
+        input.focus();
+    };
+
+    document.addEventListener('scroll', () => {
+        input.focus();
+    });
+
+    // Handle input expansion and send button state
+    input.addEventListener('input', () => {
+        input.style.height = 'auto';
+        sendButton.disabled = input.value.trim() === '';
+        if (input.value.trim() === '') {
+            input.rows = 1
+        }
+    });
+
+    // Handle shift + enter for new line, and enter for sending message
+    input.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage();
+        }
+
+        if (event.key === 'Enter') {
+            if (event.shiftKey) {
+                event.preventDefault();
+                input.value += '\n';
+                input.rows += 1;
+            } else {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+    });
+
+    sendButton.addEventListener('click', sendMessage);
+</script>
+</body>
+</html>

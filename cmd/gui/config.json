@@ -1,0 +1,10 @@
+{
+    "language": "en",
+    "timezone": "UTC",
+    "moveToCommands": [],
+    "pomodoroDurationInMinutes": 50,
+    "schedules": [],
+    "quickCommands": [],
+    "allowTwoEmojisInButton": false,
+    "filesOnlyMode": false
+}

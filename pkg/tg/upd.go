@@ -25,7 +25,7 @@ func NewUpd(userID int64, msg string) *Upd {
 	}
 }
 
-func NewFakeUpdCmd(id int64, cmd Cmd) *Upd {
+func NewUpdCmd(id int64, cmd Cmd) *Upd {
 	return &Upd{userID: id, cmd: cmd}
 }
 
