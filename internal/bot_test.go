@@ -2409,7 +2409,7 @@ func TestSaveToNewFileIntegration(t *testing.T) {
 	err = bot.Answer(tg.NewUpdCmd(-1, tg.NewCmd("mf", []string{"23200", "", "23200"})))
 	r.NoError(err)
 
-	r.Empty(tgram.LastEditedKeyboard.Btns)
+	r.Empty(tgram.LastEditedKeyboard)
 
 	content, err := userFS.Read("", "Text.md")
 	r.NoError(err)
@@ -2418,7 +2418,7 @@ func TestSaveToNewFileIntegration(t *testing.T) {
 	r.Nil(database.InputExpectation(-1))
 	msgID, ok := database.LastKeyboardMsgID(-1)
 	r.True(ok)
-	r.Equal(1, msgID)
+	r.Equal(3, msgID)
 	r.Equal(msgID, tgram.LastSentMessageID)
 }
 
@@ -2570,7 +2570,7 @@ func TestSaveToNewMultilineFileIntegration(t *testing.T) {
 	err = bot.Answer(tg.NewUpdCmd(-1, tg.NewCmd("mf", []string{"23200", "", "23200"})))
 	r.NoError(err)
 
-	r.Empty(tgram.LastEditedKeyboard.Btns)
+	r.Empty(tgram.LastEditedKeyboard)
 
 	content, err := userFS.Read("", "Text.md")
 	r.NoError(err)
@@ -2579,7 +2579,7 @@ func TestSaveToNewMultilineFileIntegration(t *testing.T) {
 	r.Nil(database.InputExpectation(-1))
 	msgID, ok := database.LastKeyboardMsgID(-1)
 	r.True(ok)
-	r.Equal(1, msgID)
+	r.Equal(3, msgID)
 	r.Equal(msgID, tgram.LastSentMessageID)
 }
 

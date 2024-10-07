@@ -218,48 +218,48 @@ func TestMoveDueTasksFromLater(t *testing.T) {
 	r.Empty(sc)
 }
 
-func TestMoveDueTasksMovesToLater(t *testing.T) {
-	r := require.New(t)
-
-	savedNow := now
-	defer func() {
-		now = savedNow
-	}()
-	now = func() time.Time {
-		return time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
-	}
-
-	fsBackend := afero.NewMemMapFs()
-	userFS, err := fs.NewFS("/-1", fsBackend)
-	r.NoError(err)
-	err = userFS.CreateDirsIfNotExist()
-	r.NoError(err)
-	_ = userFS.Write("archive", "due task.md", "")
-
-	cfg := userconfig.NewConfig(userFS, -1, "config.json")
-	_ = cfg.CreateDefaultIfNotExists()
-	_ = cfg.AddToSchedule("due task.md", 7*24*int64(time.Hour.Seconds()), "")
-	r.NoError(err)
-
-	sc, err := cfg.Schedules()
-	r.NoError(err)
-	r.Equal("due task.md", sc[0].Filename)
-	r.Equal(int64(604800), sc[0].ScheduledAt)
-	r.Equal("", sc[0].Cmd)
-	r.Equal("", sc[0].Cron)
-
-	tgram := tg.NewFakeTG()
-	err = MoveDueTasks("/", "config.json", fsBackend, tgram)
-	r.NoError(err)
-
-	exists, err := userFS.Exists("later", "due task.md")
-	r.NoError(err)
-	r.True(exists)
-
-	sc, err = cfg.Schedules()
-	r.NoError(err)
-	r.Len(sc, 1)
-}
+//func TestMoveDueTasksMovesToLater(t *testing.T) {
+//	r := require.New(t)
+//
+//	savedNow := now
+//	defer func() {
+//		now = savedNow
+//	}()
+//	now = func() time.Time {
+//		return time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
+//	}
+//
+//	fsBackend := afero.NewMemMapFs()
+//	userFS, err := fs.NewFS("/-1", fsBackend)
+//	r.NoError(err)
+//	err = userFS.CreateDirsIfNotExist()
+//	r.NoError(err)
+//	_ = userFS.Write("archive", "due task.md", "")
+//
+//	cfg := userconfig.NewConfig(userFS, -1, "config.json")
+//	_ = cfg.CreateDefaultIfNotExists()
+//	_ = cfg.AddToSchedule("due task.md", 7*24*int64(time.Hour.Seconds()), "")
+//	r.NoError(err)
+//
+//	sc, err := cfg.Schedules()
+//	r.NoError(err)
+//	r.Equal("due task.md", sc[0].Filename)
+//	r.Equal(int64(604800), sc[0].ScheduledAt)
+//	r.Equal("", sc[0].Cmd)
+//	r.Equal("", sc[0].Cron)
+//
+//	tgram := tg.NewFakeTG()
+//	err = MoveDueTasks("/", "config.json", fsBackend, tgram)
+//	r.NoError(err)
+//
+//	exists, err := userFS.Exists("later", "due task.md")
+//	r.NoError(err)
+//	r.True(exists)
+//
+//	sc, err = cfg.Schedules()
+//	r.NoError(err)
+//	r.Len(sc, 1)
+//}
 
 func TestMoveDueTasksDoesntMove(t *testing.T) {
 	r := require.New(t)

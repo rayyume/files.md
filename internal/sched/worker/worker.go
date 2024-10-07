@@ -65,18 +65,7 @@ func MoveDueTasks(
 		for _, schedule := range schedules {
 			secondsLeft := schedule.ScheduledAt - now().Unix()
 			shouldScheduleForToday := secondsLeft <= 0
-			shouldScheduleForLater := secondsLeft > 0 && secondsLeft <= int64(daysInAdvanceForLater.Seconds())
-			shouldNotSchedule := !shouldScheduleForToday && !shouldScheduleForLater
-			if shouldNotSchedule {
-				continue
-			}
-
-			if shouldScheduleForLater {
-				err = moveTaskToLater(schedule.Filename, userFS)
-				if err != nil {
-					slog.Error("schedule worker: can't move to later", "err", err)
-				}
-				// We don't need to save the schedule, since we didn't modify it
+			if !shouldScheduleForToday {
 				continue
 			}
 

@@ -1400,8 +1400,9 @@ func (b *Bot) moveToExistingFile(params []string) error {
 
 	// TODO add test for adding to same file, it seems it is broken (after we added short hash)
 	if fromFilenameHash == existingFilenameHash {
-		// Just an informative messages
+		b.delAllKeyboards()
 		msg := txt.Emoji(i18n.Emoji("file"), fmt.Sprintf(i18n.Tr("Saved to <b>%s</b>"), fs.Title(existingFilename)))
+		// Just an informative messages
 		_, _ = b.tg.Send(b.userID, msg, nil, tg.MarkupHTML)
 		return b.ShowToday(nil)
 	}
