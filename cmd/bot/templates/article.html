@@ -203,6 +203,17 @@
         #slider {
             transform: rotate(90deg); /* Rotates the range input to vertical */
         }
+
+        @keyframes highlight {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .highlight {
+            color: var(--color-tx-faint);
+            background-color: blue;
+            animation: highlight 1s infinite;
+        }
     </style>
 </head>
 <body>
@@ -384,7 +395,21 @@ stuff // 🧠+
                 document.querySelectorAll('l2').forEach(el => el.style.display = 'inline');
                 document.querySelectorAll('l3').forEach(el => el.style.display = 'inline');
             }
+
+            highlightNewBlocks();
         }
+
+        function highlightNewBlocks() {
+            const newBlocks = document.querySelectorAll('l2, l3');
+            newBlocks.forEach(block => {
+                console.log('hi')
+                block.classList.add('highlight');
+                setTimeout(() => {
+                    block.classList.remove('highlight');
+                }, 500);
+            });
+        }
+
 
         window.addEventListener('load', updateContentBasedOnHash);
         window.addEventListener('hashchange', updateContentBasedOnHash);
