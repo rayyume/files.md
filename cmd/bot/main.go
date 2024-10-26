@@ -7,7 +7,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"sync"
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -24,8 +23,6 @@ import (
 	"zakirullin/stuffbot/pkg/tg"
 	"zakirullin/stuffbot/pkg/txt"
 )
-
-var userChannels = sync.Map{} // Updates are processed sequentially on per-user basis
 
 func processUserUpdates(updates <-chan tgbotapi.Update, telegram *tg.TG, infolog *slog.Logger) {
 	for upd := range updates {
@@ -117,7 +114,10 @@ func main() {
 		go habitsServer(config.BotCfg.HabitsHost, config.BotCfg.ServerCertDir, config.BotCfg.ServerLogFile)
 	}
 
-	var infolog = slog.New(slog.NewTextHandler(os.Stdout, nil))
+	infolog := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
+	// Updates are processed sequentially on per-user basis
+	userChannels := make(map[int64]chan tgbotapi.Update)
 
 	// Main bot loop.
 	// Listen for updates from user and process them in separate per-user goroutines.
@@ -128,11 +128,11 @@ func main() {
 		u := tg.NewTGUpd(upd)
 		userID := u.UserID()
 
-		ch, loaded := userChannels.LoadOrStore(userID, make(chan tgbotapi.Update))
-		userCh := ch.(chan tgbotapi.Update)
-
-		// Start per-user worker if none is running
-		if !loaded {
+		userCh, exists := userChannels[userID]
+		if !exists {
+			userCh = make(chan tgbotapi.Update)
+			userChannels[userID] = userCh
+			// Start per-user worker if none is running
 			go func() {
 				defer func() {
 					err := recover()
@@ -140,7 +140,6 @@ func main() {
 						slog.Error("Bot panic", "err", err)
 					}
 				}()
-				defer userChannels.Delete(userID)
 
 				processUserUpdates(userCh, telegram, infolog)
 			}()
