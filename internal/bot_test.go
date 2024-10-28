@@ -2920,3 +2920,17 @@ func TestCollapseForwardedMessages(t *testing.T) {
 		return true
 	})
 }
+
+func TestTitleChecklist(t *testing.T) {
+	r := require.New(t)
+
+	title := checklistTitle("_checklist_")
+	r.Equal("Checklist", title)
+}
+
+func TestTitleChecklistItem(t *testing.T) {
+	r := require.New(t)
+
+	title := checklistTitle("_checklist_item")
+	r.Equal("Item", title)
+}

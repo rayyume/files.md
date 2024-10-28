@@ -35,20 +35,6 @@ func TestTitleWithSpace(t *testing.T) {
 	r.Equal("Filename", title)
 }
 
-func TestTitleChecklist(t *testing.T) {
-	r := require.New(t)
-
-	title := Title("_checklist_")
-	r.Equal("Checklist", title)
-}
-
-func TestTitleChecklistItem(t *testing.T) {
-	r := require.New(t)
-
-	title := Title("_checklist_item")
-	r.Equal("Item", title)
-}
-
 func TestMD5(t *testing.T) {
 	r := require.New(t)
 

@@ -931,7 +931,7 @@ func (b *Bot) showChecklists(_ []string) error {
 	var kb tg.Keyboard
 	for _, checklist := range checklists {
 		cmd := tg.NewCmd(consts.CmdShowChecklist, []string{fs.Hash(checklist.Name)})
-		btn := tg.NewBtn(i18n.Emojify(checklist.Title), cmd)
+		btn := tg.NewBtn(i18n.Emojify(checklistTitle(checklist.Name)), cmd)
 
 		kb.AddRow(btn)
 	}
@@ -1257,7 +1257,7 @@ func (b *Bot) showChecklist(params []string) error {
 	}
 	kb.AddRow(tg.NewBtn(i18n.StrToday, tg.NewCmd(consts.CmdShowToday, nil)))
 
-	title := fs.Title(checklist)
+	title := checklistTitle(checklist)
 	if checklist == fs.DirRead {
 		title = i18n.Tr(i18n.Emojify("Reading List"))
 	} else if checklist == fs.DirWatch {
@@ -2256,10 +2256,12 @@ func (b *Bot) filenameAndContent(dir, filename string) (string, error) {
 	}
 
 	title := fs.Title(filename)
-	filenameHasContent := !strings.HasPrefix(strings.ToLower(content), strings.TrimRight(strings.ToLower(title), "..."))
+	nonTruncatedTitle := strings.TrimRight(title, "...")
+	sanitizedContent := strings.ToLower(fs.SanitizeFilename(content))
+	filenameHasUniqueContent := !strings.HasPrefix(sanitizedContent, strings.ToLower(nonTruncatedTitle))
 	if len(content) == 0 {
 		content = title
-	} else if filenameHasContent {
+	} else if filenameHasUniqueContent {
 		content = fmt.Sprintf("%s\n%s", title, content)
 	}
 
@@ -2271,6 +2273,16 @@ func extractMarkdown(u Update) string {
 	content = strings.TrimSpace(txt.NormNewLines(content))
 
 	return txt.Ucfirst(content)
+}
+
+func checklistTitle(checklist string) string {
+	// Once we move our items from checklists to archive,
+	// they got named like -checklist-itemName
+	stripChecklistChars := regexp.MustCompile(`^_.*?_(.+)`)
+	title := stripChecklistChars.ReplaceAllString(checklist, "$1")
+	title = strings.TrimPrefix(strings.TrimSuffix(title, "_"), "_")
+
+	return fs.Title(title)
 }
 
 func angerEmoji(file fs.File) string {

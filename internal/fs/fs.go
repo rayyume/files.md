@@ -512,14 +512,7 @@ func UnsanitizeFilename(filename string) string {
 }
 
 func Title(filename string) string {
-	// Once we move our items from checklists to archive,
-	// they got named like -checklist-itemName
-	stripChecklistChars := regexp.MustCompile(`^_.*?_(.+)`)
-	title := stripChecklistChars.ReplaceAllString(filename, "$1")
-	title = strings.TrimPrefix(strings.TrimSuffix(title, "_"), "_")
-	title = txt.Ucfirst(strings.TrimSuffix(strings.TrimSpace(title), FileExt))
-
-	return title
+	return txt.Ucfirst(strings.TrimSuffix(strings.TrimSpace(filename), FileExt))
 }
 
 func Hash(filename string) string {
