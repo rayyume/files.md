@@ -611,7 +611,7 @@ func OnlyChecklists(dirs []File) []File {
 
 	var dirsWithChecklists []File
 	for _, entry := range entries {
-		isChecklist := strings.HasPrefix(entry.Name, "-") && strings.HasSuffix(entry.Name, "-")
+		isChecklist := strings.HasPrefix(entry.Name, "_") && strings.HasSuffix(entry.Name, "_")
 		if isChecklist {
 			dirsWithChecklists = append(dirsWithChecklists, entry)
 		}
