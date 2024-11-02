@@ -683,6 +683,7 @@ func (b *Bot) showMD(probablyInvalidMD string, kb *tg.Keyboard) error {
 		if len(images) > 0 {
 			// We tolerate errors with the image gallery for now, text is more important
 			imgMid, imgErr := b.tg.SendImages(b.userID, images)
+			fmt.Printf("imgMid: %d, imgErr: %v\n", imgMid, imgErr)
 			if imgErr == nil {
 				b.db.SetImageMsgID(b.userID, imgMid)
 			}
@@ -1888,20 +1889,15 @@ func (b *Bot) delAllKeyboards() {
 }
 
 func (b *Bot) delAllImages() {
-	fmt.Printf("invoking\n")
 	mid, hasImageSent := b.db.ImageMsgID(b.userID)
 	if !hasImageSent {
 		return
 	}
-	fmt.Printf("has img to delete\n")
 
 	b.db.DelImageMsgID(b.userID)
 	// If we fail to del - user would get a bunch
 	// of keyboards in one chat, which is messy but not critical
-	err := b.tg.Del(b.userID, mid)
-	if err != nil {
-		fmt.Printf("can't delete image: %v", err)
-	}
+	_ = b.tg.Del(b.userID, mid)
 }
 
 func (b *Bot) showToADay(params []string) error {
