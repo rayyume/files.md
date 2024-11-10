@@ -167,12 +167,16 @@
   background: #eee;
 }
 .cm-s-hypermd-light pre.HyperMD-header {
-  line-height: 2.2 !important; /* customized */
+  line-height: 1.5 !important;
   font-family: inherit !important;
   padding-left: 5px !important;
   margin-left: 0 !important;
   border-left: 0 !important;
   padding-bottom: 0.25em;
+}
+
+.cm-s-hypermd-light pre.HyperMD-header:not(:first-child) {
+  padding-top: 1em !important; /* Applies padding only to elements except the first */
 }
 .cm-s-hypermd-light pre.HyperMD-header > span > span:first-child {
   margin-left: 0 !important;
