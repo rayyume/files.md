@@ -72,6 +72,11 @@
             editor.focus();
         }, 0);
     }
+    editor.on("change", async function() {
+        const folder = editor.currentFolder;
+        const filename = editor.currentFile;
+        await saveFile(folder, filename);
+    });
 
     function buildSidebar() {
         var root = new TreeNode("zettel"); // Create the root-node
@@ -276,12 +281,6 @@
             alert(`Cannot save ${filename}. No file handle found.`);
         }
     }
-
-    document.addEventListener("keydown", function (event) {
-        const folder = editor.currentFolder;
-        const filename = editor.currentFile;
-        saveFile(folder, filename);
-    });
 
     function initDB() {
         return new Promise((resolve, reject) => {
