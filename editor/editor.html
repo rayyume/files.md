@@ -30,12 +30,13 @@
 </head>
 <body>
 <div id="editor">
-<div id="editor-sidebar">
-</div>
-<div id="editor-content"><textarea id="editor-textarea"></textarea></div>
-<ninja-keys placeholder="Quick panel" class="dark" openHotkey="cmd+m" noAutoLoadMdIcons="true" hideBreadcrumbs="true">
-    <slot name="footer"></slot>
-</ninja-keys>
+    <div id="editor-sidebar">
+    </div>
+    <div id="editor-content"><textarea id="editor-textarea"></textarea></div>
+    <ninja-keys placeholder="Quick panel" class="dark" openHotkey="cmd+m" noAutoLoadMdIcons="true"
+                hideBreadcrumbs="true">
+        <slot name="footer"></slot>
+    </ninja-keys>
 </div>
 
 <script>
@@ -58,25 +59,23 @@
         },
     });
     editor.setSize(null, "100%");
-    editor.hmdResolveURL = function(w) {
+    editor.hmdResolveURL = function (w) {
     }
-    editor.on("inputRead", function (cm, change) {
+    editor.on("inputRead", async function (cm, change) {
         if (change.text.length === 1 && change.text[0] === '[') editor.showHint()
     })
-    editor.hmdReadLink = async function(path) {
+    editor.on("change", async function (cm, changeObj) {
+        // Save on user input only
+        if (changeObj.origin && changeObj.origin !== "setValue") {
+            await saveFile(editor.currentFolder, editor.currentFile);
+            console.log(`Auto-saved ${editor.currentFile}`);
+        }
+    });
+    editor.hmdReadLink = async function (path) {
         path = path.replace('[', '').replace(']', '');
         let parts = path.split('/');
-        const content = await loadFile(parts[0], parts[1] + '.md');
-        editor.getDoc().setValue(content);
-        setTimeout(function () {
-            editor.focus();
-        }, 0);
+        await showFile(parts[0], parts[1] + '.md');
     }
-    editor.on("change", async function() {
-        const folder = editor.currentFolder;
-        const filename = editor.currentFile;
-        await saveFile(folder, filename);
-    });
 
     function buildSidebar() {
         var root = new TreeNode("zettel"); // Create the root-node
@@ -89,11 +88,7 @@
             for (let file in zettel[dir]) {
                 let fileNode = new TreeNode(file, {expanded: false});
                 fileNode.on('click', async function (n, node) {
-                    const content = await loadFile(node.parent.toString(), node.toString());
-                    editor.getDoc().setValue(content);
-                    editor.currentFolder = node.parent.toString();
-                    editor.currentFile = node.toString();
-                    editor.focus();
+                    await showFile(node.parent.toString(), node.toString());
                 });
                 dirNode.addChild(fileNode);
             }
@@ -105,11 +100,7 @@
             for (let file in zettel[""]) {
                 let fileNode = new TreeNode(file, {expanded: false});
                 fileNode.on('click', async function (n, node) {
-                    const content = await loadFile("", node.toString());
-                    editor.getDoc().setValue(content);
-                    editor.currentFolder = "";
-                    editor.currentFile = node.toString();
-                    editor.focus();
+                    await showFile("", node.toString());
                 });
                 root.addChild(fileNode)
             }
@@ -173,31 +164,16 @@
     const ninja = document.querySelector("ninja-keys");
     ninja.data = hotkeys;
 
-
-    let savedDirectoryHandle = null;
-
     async function openDirectory() {
-        // Retrieve saved handle from IndexedDB if available
-        if (!savedDirectoryHandle) {
-            savedDirectoryHandle= await getSavedDirectoryHandle();
-        }
-
-        // If no saved handle, prompt the user to pick a directory
-        if (!savedDirectoryHandle) {
-            savedDirectoryHandle = await window.showDirectoryPicker();
-            await saveDirectoryHandle(savedDirectoryHandle);  // Save handle to IndexedDB
-        }
-
-        zettel = {};  // Reset the zettel structure
-        await loadDirectory(savedDirectoryHandle);
-        buildSidebar();
-        await openRandomFile();
+        zettel = {};
+        let dirHandle = await window.showDirectoryPicker();
+        await saveDirectoryHandle(dirHandle);
+        await loadDirectory(dirHandle)
     }
 
-    // Recursively load directory and parse .md files
-    async function loadDirectory(directoryHandle, path = "", depth = 1) {
+    async function loadDirectory(dirHandle, path = "", depth = 1) {
         const entries = [];
-        for await (const entry of directoryHandle.values()) {
+        for await (const entry of dirHandle.values()) {
             entries.push(entry);
         }
         entries.sort((a, b) => a.name.localeCompare(b.name));
@@ -214,10 +190,12 @@
             } else if (entry.kind === 'file' && entry.name.endsWith('.md')) {
                 const folder = path.split('/').filter(Boolean).join('/');
                 if (!zettel[folder]) zettel[folder] = {};
-                zettel[folder][entry.name] = { handle: entry };
+                zettel[folder][entry.name] = {handle: entry};
             }
         }
+        buildSidebar();
     }
+
     async function openRandomFile() {
         const ignoredFolders = ["img", "archive", "_read_", "_watch_", "_shop_", "today", "later", "journal", "habits", "triggers", ""];
 
@@ -230,41 +208,37 @@
             }
         }
 
-        // Check if there are any files
         if (allFiles.length === 0) {
             console.error("No files found to open.");
             return;
         }
 
-        // Select a random file from the list
         const randomFile = allFiles[Math.floor(Math.random() * allFiles.length)];
 
         try {
-            // Load the content of the randomly selected file
-            const content = await loadFile(randomFile.folder, randomFile.file);
-            editor.getDoc().setValue(content);
-            editor.currentFolder = randomFile.folder;
-            editor.currentFile = randomFile.file;
-            editor.focus();
+            await showFile(randomFile.folder, randomFile.file);
         } catch (error) {
             console.error("Failed to open random file:", error);
         }
     }
 
-    async function loadFile(folder, filename) {
+    async function showFile(folder, filename) {
         const fileData = zettel[folder][filename];
-        if (fileData && fileData.handle) {
-            const file = await fileData.handle.getFile();
-            const header = filename.replace('.md', '').replace(/^\w/, (c) => c.toUpperCase());
-            let content = await file.text();
-            content = `# ${header}\n${content}`;
-            content = content.replace(/\[\[(.+?)\|.*?\]\]/g, '[[$1]]');
-            return content;
-        }
-        throw new Error(`Cannot load ${filename}. No file handle found.`);
+        const file = await fileData.handle.getFile();
+        const header = filename.replace('.md', '').replace(/^\w/, (c) => c.toUpperCase());
+        let content = await file.text();
+        content = `# ${header}\n${content}`;
+        content = content.replace(/\[\[(.+?)\|.*?\]\]/g, '[[$1]]');
+
+        editor.getDoc().setValue(content);
+        editor.currentFolder = folder;
+        editor.currentFile = filename;
+        editor.focus();
     }
 
-    async function saveFile(folder, filename) {
+    async function saveFile() {
+        const folder = editor.currentFolder;
+        const filename = editor.currentFile;
         const fileData = zettel[folder][filename];
         if (fileData && fileData.handle) {
             let content = editor.getValue();
@@ -274,6 +248,7 @@
                 content = content.slice(`# ${header}`.length).trimStart();
             }
 
+            console.log('SAVING', folder, filename, content.substring(0, 30));
             const writable = await fileData.handle.createWritable();
             await writable.write(content);
             await writable.close();
@@ -296,7 +271,6 @@
         });
     }
 
-    // Save the directory handle to IndexedDB
     async function saveDirectoryHandle(directoryHandle) {
         const db = await initDB();
         const transaction = db.transaction('handles', 'readwrite');
@@ -304,19 +278,28 @@
         await store.put(directoryHandle, 'savedDirectoryHandle');
     }
 
-    // Retrieve the saved directory handle from IndexedDB
     async function getSavedDirectoryHandle() {
         const db = await initDB();
         return new Promise((resolve, reject) => {
             const transaction = db.transaction('handles', 'readonly');
             const store = transaction.objectStore('handles');
             const request = store.get('savedDirectoryHandle');
-            request.onsuccess = () => resolve(request.result); // Resolve with the result from IndexedDB
+            request.onsuccess = () => resolve(request.result);
             request.onerror = () => reject(request.error);
         });
     }
 
-    openDirectory();
+    async function init() {
+        const savedDirectoryHandle = await getSavedDirectoryHandle();
+        if (savedDirectoryHandle) {
+            zettel = {};
+            await loadDirectory(savedDirectoryHandle);
+            await openRandomFile();
+        }
+    }
+
+    init();
 </script>
+<button onclick="openDirectory()">Open Directory</button>
 </body>
 </html>
