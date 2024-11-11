@@ -93,7 +93,7 @@
         path = path.replace('[', '').replace(']', '');
         let parts = path.split('/');
 
-        await showFile(parts[0], parts[1] + '.md');
+        await showFile(parts[0], parts[1] + '.md', true);
     };
     editor.on("inputRead", async function (cm, change) {
         if (change.text.length === 1 && change.text[0] === '[') editor.showHint()
@@ -105,7 +105,7 @@
             console.log(`Auto-saved ${editor.currentFile}`);
         }
     });
-    editor.setOption("viewportMargin", Infinity);
+    editor.setOption("viewportMargin", Infinity); // All content should be searchable
 
     async function getImageUrl(fileHandle) {
         const file = await fileHandle.getFile();
@@ -205,7 +205,7 @@
         document.getElementById('welcome').style.display = 'none';
         await saveDirectoryHandle(dirHandle);
         await loadDirectory(dirHandle)
-        await openRandomFile();
+        await showRandomFile();
     }
 
     async function loadDirectory(dirHandle, path = "", depth = 1) {
@@ -243,7 +243,7 @@
         buildSidebar();
     }
 
-    async function openRandomFile() {
+    async function showRandomFile() {
         const ignoredFolders = ["img", "archive", "_read_", "_watch_", "_shop_", "today", "later", "journal", "habits", "triggers", "places", ""];
 
         const allFiles = [];
@@ -263,13 +263,13 @@
         const randomFile = allFiles[Math.floor(Math.random() * allFiles.length)];
 
         try {
-            await showFile(randomFile.folder, randomFile.file);
+            await showFile(randomFile.folder, randomFile.file, false);
         } catch (error) {
             console.error("Failed to open random file:", error);
         }
     }
 
-    async function showFile(folder, filename) {
+    async function showFile(folder, filename, setCursor = false) {
         filename = filename.normalize("NFC");
         const fileData = zettel[folder][filename];
         const file = await fileData.handle.getFile();
@@ -282,7 +282,16 @@
         editor.currentFolder = folder;
         editor.currentFile = filename;
         editor.getDoc().setValue(content);
-        // editor.focus();
+
+        if (setCursor) {
+            if (editor.lineCount() > 1) {
+                const chars = editor.getLine(1).length
+                editor.setCursor({ line: 1, ch: chars });
+            } else {
+                const chars = editor.getLine(0).length
+                editor.setCursor({ line: 0, ch: chars });
+            }
+        }
     }
 
     async function saveFile() {
@@ -342,7 +351,7 @@
         if (savedDirectoryHandle) {
             zettel = {};
             await loadDirectory(savedDirectoryHandle);
-            await openRandomFile();
+            await showRandomFile();
         } else {
             document.getElementById('welcome').style.display = 'flex';
         }
