@@ -187,6 +187,8 @@ a:hover {
 .cm-inline-code {
     background: var(--color-bg-alt) !important;
     color: var(--color-tx-muted) !important;
+    font-family: var(--font-mono) !important;
+    font-size: var(--font-smaller) !important;
 }
 
 .hmd-hidden-token {
