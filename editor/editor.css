@@ -148,3 +148,30 @@ a:hover {
 .CodeMirror-scroll {
     padding: 2em calc((100% - var(--normal-width)) / 2);
 }
+
+.CodeMirror-lines::after {
+    content: "";
+    display: block;
+    height: 20em;
+}
+
+.CodeMirror-foldmarker {
+    color: blue;
+    text-shadow: #b9f 1px 1px 2px, #b9f -1px -1px 2px, #b9f 1px -1px 2px, #b9f -1px 1px 2px;
+    font-family: arial;
+    line-height: .3;
+    cursor: pointer;
+}
+.CodeMirror-foldgutter {
+    width: .7em;
+}
+.CodeMirror-foldgutter-open,
+.CodeMirror-foldgutter-folded {
+    cursor: pointer;
+}
+.CodeMirror-foldgutter-open:after {
+    content: "\25BE";
+}
+.CodeMirror-foldgutter-folded:after {
+    content: "\25B8";
+}
