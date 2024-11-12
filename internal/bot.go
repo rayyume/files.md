@@ -74,7 +74,7 @@ type Update interface {
 // Chat provides a simple interface to chat API like Telegram
 type Chat interface {
 	Send(userID int64, text string, kb *tg.Keyboard, markup string) (int, error)
-	SendPhotos(userID int64, photos []string) ([]int, error)
+	SendImages(userID int64, images []string) ([]int, error)
 	Edit(userID int64, msgID int, text string, kb *tg.Keyboard, markup string) error
 	Del(userID int64, msgID int) error
 	AnswerCallbackQuery(queryID string, text string) error
@@ -97,9 +97,9 @@ type Database interface {
 	SetRecentCommand(userID int64, cmd string)
 	RecentCommandParams(userID int64) ([]string, bool)
 	SetRecentCommandParams(userID int64, params []string)
-	AddPhotoMsgID(userID int64, msgID int)
-	PhotoMsgIDs(userID int64) ([]int, bool)
-	DelPhotoMsgIDs(userID int64)
+	AddImgMsgID(userID int64, msgID int)
+	ImgMsgID(userID int64) ([]int, bool)
+	DelImgMsgID(userID int64)
 }
 
 // Bot provides an interface over files on the filesystem
@@ -181,9 +181,9 @@ func (b *Bot) Answer(u Update) error {
 		return nil
 	}
 
-	// Handle photos
-	if _, hasPhoto := u.PhotoOrImageID(); hasPhoto {
-		return b.saveFromPhoto(u)
+	// Handle images
+	if _, hasImage := u.PhotoOrImageID(); hasImage {
+		return b.saveFromImage(u)
 	}
 
 	// Handle regular text messages
@@ -309,12 +309,12 @@ func (b *Bot) extractCmd(u Update) (*tg.Cmd, error) {
 			}
 
 			text := ""
-			_, hasPhoto := u.PhotoOrImageID()
-			if hasPhoto {
-				var errPhoto error
-				text, errPhoto = b.savePhoto(u)
-				if errPhoto != nil {
-					return nil, fmt.Errorf("save photo: %w", errPhoto)
+			_, hasImage := u.PhotoOrImageID()
+			if hasImage {
+				var errImage error
+				text, errImage = b.saveImage(u)
+				if errImage != nil {
+					return nil, fmt.Errorf("save image: %w", errImage)
 				}
 			} else {
 				text = extractMarkdown(u)
@@ -375,10 +375,10 @@ func (b *Bot) saveFromRegularMsg(u Update) error {
 	return b.showMoveTo([]string{fs.Hash(filename)})
 }
 
-func (b *Bot) saveFromPhoto(u Update) error {
-	content, err := b.savePhoto(u)
+func (b *Bot) saveFromImage(u Update) error {
+	content, err := b.saveImage(u)
 	if err != nil {
-		return fmt.Errorf("save from photo: %w", err)
+		return fmt.Errorf("save from image: %w", err)
 	}
 
 	// Adding to an existing file
@@ -399,26 +399,26 @@ func (b *Bot) saveFromPhoto(u Update) error {
 	filename := fs.Filename(sanitizedTitle)
 	err = b.createOrAdd(fs.DirToday, filename, content)
 	if err != nil {
-		return fmt.Errorf("save from photo: %w", err)
+		return fmt.Errorf("save from image: %w", err)
 	}
 
 	return b.showMoveTo([]string{fs.Hash(filename)})
 }
 
-// savePhoto saves a photo to the filesystem and returns a markdown link to it
-func (b *Bot) savePhoto(u Update) (string, error) {
-	photoID, _ := u.PhotoOrImageID()
+// saveImage saves a image to the filesystem and returns a markdown link to it
+func (b *Bot) saveImage(u Update) (string, error) {
+	imageID, _ := u.PhotoOrImageID()
 
 	var buf bytes.Buffer
-	extension, err := b.tg.DownloadFile(photoID, &buf)
+	extension, err := b.tg.DownloadFile(imageID, &buf)
 	if err != nil {
 		return "", fmt.Errorf("can't download file: %w", err)
 	}
 
-	imgFilename := fmt.Sprintf("tg_%s%s", photoID, extension)
+	imgFilename := fmt.Sprintf("tg_%s%s", imageID, extension)
 	err = b.fs.Write(fs.DirImg, imgFilename, buf.String())
 	if err != nil {
-		return "", fmt.Errorf("can't save photo: %w", err)
+		return "", fmt.Errorf("can't save image: %w", err)
 	}
 
 	imgPath := fmt.Sprintf("%s/%s", fs.DirImg, imgFilename)
@@ -650,7 +650,7 @@ func (b *Bot) tr(str string, args ...any) string {
 }
 
 // Replace last message + keyboard with the new one
-// Or show the new one (in case of photo).
+// Or show the new one (in case of wimagehoto).
 func (b *Bot) showHTML(validHTML string, kb *tg.Keyboard) error {
 	b.delAllImages()
 
@@ -672,7 +672,7 @@ func (b *Bot) showHTML(validHTML string, kb *tg.Keyboard) error {
 }
 
 // Replace last message + keyboard with the new ones
-// Or show the new one (in case of photo).
+// Or show the new one (in case of image).
 // Read "Markdown to HTML conversion" section in readme's ADRs
 // Chat allows 1-4096 characters AFTER entities parsing,
 // meaning we can have 4096 plain chars + any amount of tags.
@@ -703,10 +703,10 @@ func (b *Bot) showMD(probablyInvalidMD string, kb *tg.Keyboard) error {
 		// Sending a gallery of images if there are any
 		if len(images) > 0 {
 			// We tolerate errors with the image gallery for now, text is more important
-			mids, imgErr := b.tg.SendPhotos(b.userID, images)
+			mids, imgErr := b.tg.SendImages(b.userID, images)
 			if imgErr == nil {
 				for _, imgMid := range mids {
-					b.db.AddPhotoMsgID(b.userID, imgMid)
+					b.db.AddImgMsgID(b.userID, imgMid)
 				}
 			}
 		}
@@ -1905,12 +1905,12 @@ func (b *Bot) delAllKeyboards() {
 }
 
 func (b *Bot) delAllImages() {
-	mids, hasImageSent := b.db.PhotoMsgIDs(b.userID)
-	if !hasImageSent {
+	mids, hasSentImages := b.db.ImgMsgID(b.userID)
+	if !hasSentImages {
 		return
 	}
 
-	b.db.DelPhotoMsgIDs(b.userID)
+	b.db.DelImgMsgID(b.userID)
 	for _, mid := range mids {
 		// If we fail to del - user would get a bunch
 		// of keyboards in one chat, which is messy but not critical

@@ -136,7 +136,7 @@ func tmpFilePath(userID int64, name string) string {
 	return fmt.Sprintf("%s/%d.%s", os.TempDir(), userID, name)
 }
 
-func (db *DB) AddPhotoMsgID(userID int64, msgID int) {
+func (db *DB) AddImgMsgID(userID int64, msgID int) {
 	key := photoMsgIDKey(userID)
 	if val, ok := sentPhotoMsgIDs.Load(key); ok {
 		ids := val.([]int)
@@ -146,7 +146,7 @@ func (db *DB) AddPhotoMsgID(userID int64, msgID int) {
 	}
 }
 
-func (db *DB) PhotoMsgIDs(userID int64) ([]int, bool) {
+func (db *DB) ImgMsgID(userID int64) ([]int, bool) {
 	key := photoMsgIDKey(userID)
 	val, ok := sentPhotoMsgIDs.Load(key)
 	if !ok {
@@ -157,7 +157,7 @@ func (db *DB) PhotoMsgIDs(userID int64) ([]int, bool) {
 	return ids, true
 }
 
-func (db *DB) DelPhotoMsgIDs(userID int64) {
+func (db *DB) DelImgMsgID(userID int64) {
 	key := photoMsgIDKey(userID)
 	sentPhotoMsgIDs.Delete(key)
 }
