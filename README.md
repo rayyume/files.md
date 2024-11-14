@@ -19,9 +19,9 @@ It works like a regular chat, so it's easier to use because there's less resista
 [Notes taking via bot](https://vas3k.club/post/18815/)
 
 ## App 📝
-[app.files.md](https://app.files.md), a standalone application for viewing/editing files, alpha version. Works offline.
+[app.files.md](https://app.files.md), a standalone application for viewing/editing files, alpha version. Works offline.  
 
-`/app` - directory with the app's source code. All other directories and files are part of the Golang bot.
+`/app` - app's source code. All other directories and files are part of the Golang bot.
 
 ## Telegram Bot 🤖
 1) Install [Go](https://go.dev/doc/install)
