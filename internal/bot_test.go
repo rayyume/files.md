@@ -3114,6 +3114,14 @@ func TestSaveFromImage_MultilineCaption(t *testing.T) {
 func TestSaveFromImage_ReplyToExistingFile(t *testing.T) {
 	r := require.New(t)
 
+	savedNow := now
+	defer func() {
+		now = savedNow
+	}()
+	now = func() time.Time {
+		return time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
+	}
+
 	// Setup in-memory filesystem and add an existing file
 	userFS, err := fs.NewFS("/", afero.NewMemMapFs())
 	r.NoError(err)
@@ -3136,7 +3144,7 @@ func TestSaveFromImage_ReplyToExistingFile(t *testing.T) {
 
 	content, err := bot.fs.Read("today", "Existing file.md")
 	r.NoError(err)
-	r.Equal("#### 14 November, Thursday\n![center|400](img/tg_PHOTO_ID)\nImage Caption\nExisting content", content)
+	r.Equal("#### 1 January, Thursday\n![center|400](img/tg_PHOTO_ID)\nImage Caption\nExisting content", content)
 }
 
 func TestSaveFromImage_EmptyCaption(t *testing.T) {
