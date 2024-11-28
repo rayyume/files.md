@@ -258,7 +258,7 @@ a:hover {
 .CodeMirror .cm-list-1,
 .CodeMirror .cm-list-2,
 .CodeMirror .cm-list-3 {
-    margin: 0 !important;
+    margin: 3px !important;
 }
 
 .CodeMirror .HyperMD-list-line {
