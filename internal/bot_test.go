@@ -18,6 +18,7 @@ import (
 	"zakirullin/stuffbot/internal/sched"
 	"zakirullin/stuffbot/internal/userconfig"
 	"zakirullin/stuffbot/pkg/tg"
+	"zakirullin/stuffbot/pkg/txt"
 )
 
 func init() {
@@ -3246,4 +3247,92 @@ func TestCreateOrAdd_ReplaceEmptyContent(t *testing.T) {
 	storedContent, err := bot.fs.Read(dir, filename)
 	r.NoError(err)
 	r.Equal(newContent, storedContent)
+}
+
+func TestExtractTitleAndContent_EmptyMessage(t *testing.T) {
+	r := require.New(t)
+
+	bot := NewBot(-1, nil, nil, nil, nil)
+
+	title, content, err := bot.extractTitleAndContent("")
+	r.Error(err)
+	r.Contains(err.Error(), "extract title: empty msg")
+	r.Equal("", title)
+	r.Equal("", content)
+}
+
+func TestExtractTitleAndContent_SimpleMessage(t *testing.T) {
+	r := require.New(t)
+
+	bot := NewBot(-1, nil, nil, nil, nil)
+
+	msg := "Simple Title"
+	title, content, err := bot.extractTitleAndContent(msg)
+	r.NoError(err)
+	r.Equal("Simple Title", title)
+	r.Equal("", content)
+}
+
+func TestExtractTitleAndContent_MultilineMessage(t *testing.T) {
+	r := require.New(t)
+
+	bot := NewBot(-1, nil, nil, nil, nil)
+
+	msg := "Title Line\nThis is the content"
+	title, content, err := bot.extractTitleAndContent(msg)
+	r.NoError(err)
+	r.Equal("Title Line", title)
+	r.Equal("This is the content", content)
+}
+
+func TestExtractTitleAndContent_TitleExceedsMaxLength(t *testing.T) {
+	r := require.New(t)
+
+	bot := NewBot(-1, nil, nil, nil, nil)
+
+	longTitle := strings.Repeat("a", maxTitleLength+10)
+	msg := longTitle + "\nContent below"
+	expectedTitle := txt.Substr(txt.Ucfirst(longTitle), 0, maxTitleLength) + "..."
+
+	title, content, err := bot.extractTitleAndContent(msg)
+	r.NoError(err)
+	r.Equal(expectedTitle, title)
+	r.Equal("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\nContent below", content)
+}
+
+func TestExtractTitleAndContent_TitleSameAsContent(t *testing.T) {
+	r := require.New(t)
+
+	bot := NewBot(-1, nil, nil, nil, nil)
+
+	msg := "Identical Title"
+	title, content, err := bot.extractTitleAndContent(msg)
+	r.NoError(err)
+	r.Equal("Identical Title", title)
+	r.Equal("", content)
+}
+
+func TestExtractTitleAndContent_ContentStartsWithTitle(t *testing.T) {
+	r := require.New(t)
+
+	bot := NewBot(-1, nil, nil, nil, nil)
+
+	msg := "Title Line\nTitle Line\nAdditional content"
+	title, content, err := bot.extractTitleAndContent(msg)
+	r.NoError(err)
+	r.Equal("Title Line", title)
+	r.Equal("Title Line\nAdditional content", content)
+}
+
+func TestExtractTitleAndContent_TitleNeedsSanitization(t *testing.T) {
+	r := require.New(t)
+
+	bot := NewBot(-1, nil, nil, nil, nil)
+
+	msg := "Invalid/Title?Name\nContent here"
+
+	title, content, err := bot.extractTitleAndContent(msg)
+	r.NoError(err)
+	r.Equal("Invalid{|}Title?Name", title)
+	r.Equal("Invalid/Title?Name\nContent here", content)
 }
