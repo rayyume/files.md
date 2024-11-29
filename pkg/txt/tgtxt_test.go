@@ -218,6 +218,19 @@ func TestExtractTextImgsLinks_WithMultipleLinks(t *testing.T) {
 	}, links)
 }
 
+func TestExtractTextImgsLinks_WithMultipleWikiLinks(t *testing.T) {
+	text := "Multiple links: [[/path/to/doc1.md|Doc1]], [[/path/to/doc2.md|Doc2]]."
+
+	resultText, images, links := ExtractTextImgsLinks(text)
+
+	require.Equal(t, "Multiple links: `doc1`, `doc2`.", resultText)
+	require.Empty(t, images)
+	require.Equal(t, map[string]string{
+		"doc1": "/path/to/doc1.md",
+		"doc2": "/path/to/doc2.md",
+	}, links)
+}
+
 func TestExtractTextImgsLinks_WithBottomLink(t *testing.T) {
 	text := `Text with a bottom link.
 	[Document](/path/to/doc.md)`
