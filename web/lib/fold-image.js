@@ -63,7 +63,8 @@
                     collapsed: true,
                     replacedWith: wrapper,
                 });
-                img.addEventListener('click', function () {
+                img.addEventListener('click', function (e) {
+                    e.stopPropagation();
                     let modal = document.createElement("div");
                     modal.style.position = "fixed";
                     modal.style.top = "0";
