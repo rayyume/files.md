@@ -81,7 +81,7 @@
                     fullSizeImg.src = img.src;
                     fullSizeImg.style.maxWidth = "90%";
                     fullSizeImg.style.maxHeight = "90%";
-                    fullSizeImg.style.border = "2px solid #E6E4DA";
+                    fullSizeImg.style.border = "1px solid #E6E4DA";
                     fullSizeImg.style.borderRadius = "8px";
 
                     modal.appendChild(fullSizeImg);
