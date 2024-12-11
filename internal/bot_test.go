@@ -3447,7 +3447,8 @@ func FuzzSaveFromTextMsg(f *testing.F) {
 		// Because in that case file won't be created in "today" folder
 		shortcuts := []string{"jj", "жж", "++"}
 		for _, shortcut := range shortcuts {
-			if strings.HasPrefix(input, shortcut) || strings.HasSuffix(input, shortcut) {
+			lowerInput := strings.ToLower(input)
+			if strings.HasPrefix(lowerInput, shortcut) || strings.HasSuffix(lowerInput, shortcut) {
 				return
 			}
 		}
