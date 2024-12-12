@@ -60,7 +60,7 @@ async function init(el) {
             }
 
             files = newFiles;
-        }, 1000)
+        }, 3000)
         buildSidebar();
         await showRandomFile();
     } else {
@@ -73,13 +73,15 @@ function initEditor(el) {
         mode: "hypermd", lineNumbers: false, extraKeys: {
             // "Shift-Space": "autocomplete",
             'Cmd-[': false, 'Cmd-]': false,
-        }, hintOptions: {
+        },
+        hintOptions: {
             hint: CompleteEmoji.createHintFunc(),
             closeCharacters: /$^/,
             closeOnUnfocus: false,
             completeSingle: false,
             alignWithWord: false
-        }, hmdFoldEmoji: {
+        },
+        hmdFoldEmoji: {
             myEmoji: createAutocompleteDict
         }
     });
