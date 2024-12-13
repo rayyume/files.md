@@ -1726,10 +1726,9 @@ func (b *Bot) moveToJournal(params []string) error {
 	}
 
 	msg := txt.Emoji(i18n.Emoji("journal"), fmt.Sprintf(i18n.Tr("Saved to <b>journal</b>")))
-	// Just an informative messages
 	_, _ = b.tg.Send(b.userID, msg, nil, tg.MarkupHTML)
 
-	return b.ShowToday(nil)
+	return nil
 }
 
 func (b *Bot) addToJournalFromShortcut(params []string) error {
