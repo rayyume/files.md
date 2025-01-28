@@ -251,7 +251,7 @@ function buildSidebar() {
         }
     }
 
-    new TreeView(root, "#editor-sidebar", {
+    new TreeView(root, "#sidebar", {
         show_root: false,
     });
 }
@@ -345,7 +345,7 @@ async function showFile(dir, filename, saveToHistory = true) {
 }
 
 function updateFocusedItem(resultsList) {
-    document.querySelectorAll('#goToFileResults li').forEach(li => li.classList.remove('focused'));
+    document.querySelectorAll('#search-results li').forEach(li => li.classList.remove('focused'));
     resultsList.forEach((item, index) => {
         if (index === focusedItemIndex) {
             item.classList.add('focused');
@@ -357,12 +357,12 @@ function updateFocusedItem(resultsList) {
 }
 
 function openSearchModal() {
-    document.getElementById('goToFile').style.display = 'block';
-    const inputField = document.getElementById('goToFileInput');
+    document.getElementById('search').style.display = 'block';
+    const inputField = document.getElementById('search-input');
     inputField.focus();
 
     focusedItemIndex = -1;
-    const goToFileResults = document.getElementById('goToFileResults');
+    const goToFileResults = document.getElementById('search-results');
     goToFileResults.innerHTML = '';
     loadRecentFiles();
 }
@@ -370,19 +370,19 @@ function openSearchModal() {
 document.addEventListener('keydown', (event) => {
     if (event.metaKey && event.key === 'p') {
         event.preventDefault();
-        document.getElementById('goToFileInput').value = ''
+        document.getElementById('search-input').value = ''
         openSearchModal();
     }
 
     if (event.metaKey && event.key === 'k') {
         event.preventDefault();
-        document.getElementById('goToFileInput').value = ''
+        document.getElementById('search-input').value = ''
         openSearchModal();
     }
 });
 
 function closeSearchModal() {
-    document.getElementById('goToFile').style.display = 'none';
+    document.getElementById('search').style.display = 'none';
 }
 
 function loadRecentFiles() {
@@ -403,13 +403,13 @@ function loadRecentFiles() {
 }
 
 function search() {
-    const search = document.getElementById('goToFileInput').value.toLowerCase();
+    const search = document.getElementById('search-input').value.toLowerCase();
     if (search.trim() === '') {
         loadRecentFiles();
         return;
     }
 
-    const list = document.getElementById('goToFileResults');
+    const list = document.getElementById('search-results');
     list.innerHTML = '';
 
 
@@ -465,7 +465,7 @@ function search() {
 }
 
 function showSearchResults(results) {
-    const list = document.getElementById('goToFileResults');
+    const list = document.getElementById('search-results');
     results.forEach(({dir, filename}, index) => {
         const listItem = document.createElement('li');
         let title = filename.replace(/\.md$/, "")
@@ -481,7 +481,7 @@ function showSearchResults(results) {
             closeSearchModal();
         };
         listItem.onmouseenter = () => {
-            document.querySelectorAll('#goToFileResults li').forEach(li => li.classList.remove('focused'));
+            document.querySelectorAll('#search-results li').forEach(li => li.classList.remove('focused'));
             listItem.classList.add('focused');
             focusedItemIndex = index;
         };
@@ -493,7 +493,7 @@ function showSearchResults(results) {
 }
 
 function closeGoToFile() {
-    document.getElementById('goToFile').style.display = 'none';
+    document.getElementById('search').style.display = 'none';
 }
 
 document.addEventListener('keydown', (event) => {
@@ -506,7 +506,7 @@ document.addEventListener('keydown', (event) => {
 document.addEventListener('keydown', function (event) {
     if ((event.altKey || event.metaKey) && event.key === 'Enter') {
         event.preventDefault();
-        const sidebar = document.getElementById('editor-sidebar');
+        const sidebar = document.getElementById('sidebar');
         if (sidebar.style.display === 'none') {
             sidebar.style.display = 'block';
         } else {
@@ -527,8 +527,8 @@ window.addEventListener('beforeunload', function () {
     clearInterval(queueWorkerInterval);
 });
 
-document.getElementById('goToFile').addEventListener('keydown', (event) => {
-    const resultsList = document.getElementById('goToFileResults').querySelectorAll('li');
+document.getElementById('search').addEventListener('keydown', (event) => {
+    const resultsList = document.getElementById('search-results').querySelectorAll('li');
 
     if (event.key === 'Enter') {
         event.preventDefault();
@@ -669,6 +669,38 @@ async function getImageUrl(fileHandle) {
     return URL.createObjectURL(file);
 }
 
+function initDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('files', 1);
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve(request.result);
+        request.onupgradeneeded = () => {
+            const db = request.result;
+            if (!db.objectStoreNames.contains('handles')) {
+                db.createObjectStore('handles');
+            }
+        };
+    });
+}
+
+async function saveDirectoryHandle(directoryHandle) {
+    const db = await initDB();
+    const transaction = db.transaction('handles', 'readwrite');
+    const store = transaction.objectStore('handles');
+    await store.put(directoryHandle, 'savedDirectoryHandle');
+}
+
+async function getSavedDirectoryHandle() {
+    const db = await initDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction('handles', 'readonly');
+        const store = transaction.objectStore('handles');
+        const request = store.get('savedDirectoryHandle');
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
 // Worker to process the saving queue
 let isProcessing = false;
 queueWorkerInterval = setInterval(async function processSaveQueue() {
@@ -689,7 +721,7 @@ queueWorkerInterval = setInterval(async function processSaveQueue() {
 }, 50);
 
 document.addEventListener('mousedown', (event) => {
-    const goToFile = document.getElementById('goToFile');
+    const goToFile = document.getElementById('search');
     if (goToFile.style.display === 'block' &&
         !goToFile.contains(event.target)) {
         closeSearchModal();

@@ -24,7 +24,6 @@
     --line-height: 1.5;
 }
 
-
 @media (min-width: 1441px) {
     .container {
         --wide-width: 1000px;
@@ -46,6 +45,8 @@ body {
     font-size: calc(1.5rem + 0.2vw);
     font-family: var(--font);
     text-rendering: optimizeLegibility;
+    display: flex;
+    height: 100vh; /* Full viewport height */
 }
 
 .CodeMirror-wrap {
@@ -59,14 +60,9 @@ body {
     font-family: var(--font) !important;
 }
 
-#editor {
-    display: flex;
-    height: 100vh; /* Full viewport height */
-}
-
-#editor-sidebar {
+#sidebar {
     display: block;
-    width: 400px;
+    width: 400px !important;
     overflow: auto;
     height: 100%;
     background: var(--color-bg-alt);
@@ -75,22 +71,21 @@ body {
     padding-left: 5px;
 }
 
-#editor-sidebar > ul {
+#sidebar > ul {
     margin: 8px;
 }
 
-#editor-sidebar li {
+#sidebar li {
     margin: 3px 0;
 }
 
-#editor-content {
+#content, CodeMirror-wrap {
     box-sizing: border-box;
     overflow: auto;
     width: 100%;
 }
 
-
-#editor-content table, th, td {
+#content table, th, td {
     border-collapse: collapse;
     border: 1px solid #878787;
 }
@@ -116,7 +111,7 @@ a:hover {
     color: var(--color-tx-hover);
 }
 
-#goToFile {
+#search {
     position: fixed;
     top: 30%;
     left: 50%;
@@ -130,7 +125,7 @@ a:hover {
     flex-direction: column;
 }
 
-#goToFileInput {
+#search-input {
     width: 100%;
     padding: 8px;
     font-size: 16px;
@@ -141,11 +136,11 @@ a:hover {
     background: var(--color-bg);
 }
 
-#goToFileInput:focus {
+#search-input:focus {
     outline: none;
 }
 
-#goToFileResults {
+#search-results {
     list-style: none;
     padding: 0;
     margin: 0;
@@ -153,12 +148,12 @@ a:hover {
     overflow-y: auto;
 }
 
-#goToFileResults li {
+#search-results li {
     padding: 8px;
     cursor: pointer;
 }
 
-#goToFileResults .focused {
+#search-results .focused {
     background-color: var(--color-tx-sel);
 }
 
@@ -274,3 +269,6 @@ a:hover {
     display: none;
 }
 
+.hmd-image {
+    border-radius: 8px;
+}

@@ -29,26 +29,23 @@
     <script src="lib/codemirror-shell.js"></script>
     <script src="lib/similarity.js"></script>
     <script src="files.js"></script>
-    <script src="db.js"></script>
 </head>
 <body>
-<div id="editor">
-    <div id="editor-sidebar">
-    </div>
-    <div id="editor-content">
-        <textarea id="editor-textarea"></textarea>
-    </div>
-    <div id="goToFile" style="display: none;">
-        <form autocomplete="off">
-            <input type="text" id="goToFileInput" placeholder="Go to file..." oninput="search()">
-        </form>
-        <ul id="goToFileResults"></ul>
-    </div>
+<div id="sidebar">
+</div>
+<div id="content">
+    <textarea id="editor"></textarea>
+</div>
+<div id="search" style="display: none;">
+    <form autocomplete="off">
+        <input type="text" id="search-input" placeholder="Go to file..." oninput="search()">
+    </form>
+    <ul id="search-results"></ul>
 </div>
 <div id="welcome"><p>100% local, we don't process your files: <button onClick="openDir()" id="openDirectory">Open directory with *.md files</button></p></div>
 <script src="app.js"></script>
 <script>
-    init(document.getElementById("editor-textarea"));
+    init(document.getElementById("editor"));
 </script>
 </body>
 </html>
