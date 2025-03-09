@@ -45,28 +45,42 @@ func (tg *TG) Send(userID int64, text string, kb *Keyboard, markup string) (int,
 }
 
 func (tg *TG) SendImages(userID int64, photos []string) ([]int, error) {
-	var files []interface{}
+	var photoFiles []any
+	var documentFiles []any
 	for _, img := range photos {
-		// It seems like file_ids of images begin with "AgACA" pattern
+		// It seems like file_ids of images begin with "AgACA" pattern.
+		// I don't want to do extra getFileMeta request.
 		isPhoto := strings.HasPrefix(img, "AgACA")
 		if isPhoto {
-			files = append(files, tgbotapi.NewInputMediaPhoto(tgbotapi.FileID(img)))
+			photoFiles = append(photoFiles, tgbotapi.NewInputMediaPhoto(tgbotapi.FileID(img)))
 		} else {
-			files = append(files, tgbotapi.NewInputMediaDocument(tgbotapi.FileID(img)))
+			documentFiles = append(documentFiles, tgbotapi.NewInputMediaDocument(tgbotapi.FileID(img)))
 		}
 	}
 
-	msg := tgbotapi.NewMediaGroup(userID, files)
-
-	responses, err := tg.api.SendMediaGroup(msg)
-	if err != nil {
-		js, _ := json.Marshal(msg)
-		return nil, fmt.Errorf("tg send photos: can't send json %s: %w", js, err)
-	}
-
+	// Sending by groups. We send all photos as one group, and the documents as another group
 	var msgIDs []int
-	for _, resp := range responses {
-		msgIDs = append(msgIDs, resp.MessageID)
+	if len(photoFiles) > 0 {
+		msg := tgbotapi.NewMediaGroup(userID, photoFiles)
+		responses, err := tg.api.SendMediaGroup(msg)
+		if err != nil {
+			js, _ := json.Marshal(msg)
+			return nil, fmt.Errorf("tg send photos: can't send json %s: %w", js, err)
+		}
+		for _, resp := range responses {
+			msgIDs = append(msgIDs, resp.MessageID)
+		}
+	}
+	if len(documentFiles) > 0 {
+		msg := tgbotapi.NewMediaGroup(userID, documentFiles)
+		responses, err := tg.api.SendMediaGroup(msg)
+		if err != nil {
+			js, _ := json.Marshal(msg)
+			return nil, fmt.Errorf("tg send documents: can't send json %s: %w", js, err)
+		}
+		for _, resp := range responses {
+			msgIDs = append(msgIDs, resp.MessageID)
+		}
 	}
 
 	return msgIDs, nil
