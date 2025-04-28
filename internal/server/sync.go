@@ -17,10 +17,10 @@ const (
 	AuthToken  = "your-really-secret-token-2"
 )
 
-type FileInfo struct {
+type File struct {
 	Path         string `json:"path"`
 	LastModified int64  `json:"last_modified"`
-	IsDirectory  bool   `json:"is_directory"`
+	IsDir        bool   `json:"is_directory"`
 	Content      string `json:"content,omitempty"`
 }
 
@@ -29,7 +29,7 @@ type syncRequest struct {
 }
 
 type syncResponse struct {
-	Files      []FileInfo       `json:"files"`       // Files with content that need syncing
+	Files      []File           `json:"files"`       // Files with content that need syncing
 	Timestamps map[string]int64 `json:"timestamps"`  // Current server timestamps in Unix format
 	ServerTime int64            `json:"server_time"` // Current server time in Unix format
 }
@@ -98,32 +98,17 @@ func Sync(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	missingFiles := make([]FileInfo, 0)
+	missingFiles := make([]File, 0)
 	for path, serverTime := range serverTimestamps {
-		requestTime, exists := request.Timestamps[path]
+		requestTime, exists := request.Timestamps[filepath.Base(path)]
 		if !exists || serverTime > requestTime {
-				content, err := os.ReadFile(path)
-				if err != nil {
-					log.Printf("Error reading file %s: %v", relPath, err)
-					return nil
-				}
-
-				// Add the file to the response
-				filesToSync = append(filesToSync, FileInfo{
-					Path:         relPath,
-					LastModified: info.ModTime().Unix(),
-					IsDirectory:  false,
-					Content:      string(content),
-				})
-			missingFiles = append(missingFiles, FileInfo{
-
-			}
+			missingFiles = append(missingFiles, File{path, 0, false, "content"})
 		}
 	}
 
 	response := syncResponse{
-		Files:      nil,
-		Timestamps: nil,
+		Files:      missingFiles,
+		Timestamps: serverTimestamps,
 		ServerTime: time.Now().Unix(),
 	}
 
@@ -137,8 +122,6 @@ func Sync(w http.ResponseWriter, r *http.Request) {
 // for directories only (including root directory) as Unix timestamps
 func timestamps(rootPath string) (map[string]int64, error) {
 	timestamps := make(map[string]int64)
-	timeObjects := make(map[string]time.Time) // Used for comparing times
-
 	realPath, err := filepath.EvalSymlinks(rootPath)
 	if err != nil {
 		log.Printf("Warning: Could not resolve symlink: %v. Using original path.", err)
@@ -169,29 +152,9 @@ func timestamps(rootPath string) (map[string]int64, error) {
 			relPath = "."
 		}
 
-		if info.IsDir() {
-			modTime := info.ModTime()
-			timeObjects[relPath] = modTime
-			timestamps[relPath] = modTime.Unix()
-			return nil
-		}
-
-		// Skip non-markdown files for file processing
-		if !strings.HasSuffix(strings.ToLower(path), ".md") {
-			return nil
-		}
-
-		// For files, only update the parent directory's timestamp if needed
-		dirPath := filepath.Dir(relPath)
-		if dirPath == "" {
-			dirPath = "."
-		}
-
+		// Record timestamp for all directories and files
 		modTime := info.ModTime()
-		if dirTime, exists := timeObjects[dirPath]; !exists || modTime.After(dirTime) {
-			timeObjects[dirPath] = modTime
-			timestamps[dirPath] = modTime.Unix()
-		}
+		timestamps[relPath] = modTime.Unix()
 
 		return nil
 	})
