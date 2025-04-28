@@ -125,7 +125,7 @@ func Sync(w http.ResponseWriter, r *http.Request) {
 
 	response := syncResponse{
 		Files:      missingFiles,
-		Timestamps: serverTimestamps,
+		Timestamps: dirTimestamps,
 		ServerTime: time.Now().Unix(),
 	}
 
