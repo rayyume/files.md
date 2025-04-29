@@ -64,7 +64,7 @@ async function syncWithServer() {
         const server = await response.json();
         for (const fileInfo of server.files) {
             console.log(`Syncing file: ${fileInfo.path}`);
-            const { path, content, last_modified } = fileInfo;
+            const { path, content, lastModified } = fileInfo;
 
             let dir, filename;
             if (path.includes('/')) {
@@ -83,7 +83,7 @@ async function syncWithServer() {
             if (!files[dir][filename] || !files[dir][filename].handle) {
                 files[dir][filename] = {
                     content,
-                    lastModified: last_modified || Date.now()
+                    lastModified: lastModified
                 };
             } else {
                 // For files with handles, we would write to the file
