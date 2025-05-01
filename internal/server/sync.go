@@ -9,7 +9,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
+
+	"github.com/spf13/afero"
+
+	"zakirullin/stuffbot/internal/fs"
 )
 
 // Configuration
@@ -28,19 +31,13 @@ type File struct {
 }
 
 type syncRequest struct {
-	Timestamps map[string]int64      `json:"timestamps"`
-	Files      map[string]ClientFile `json:"files"` // New files from client
-}
-
-type ClientFile struct {
-	Content          string `json:"content"`
-	LastServerUpdate int64  `json:"last_server_update"` // Last timestamp the client saw from server
+	Timestamps map[string]int64 `json:"timestamps"`
+	Files      []File           `json:"files"` // New or modified files from client
 }
 
 type syncResponse struct {
-	Files      []File           `json:"files"`       // Files with content that need syncing
-	Timestamps map[string]int64 `json:"timestamps"`  // Current server timestamps in Unix format
-	ServerTime int64            `json:"server_time"` // Current server time in Unix format
+	Files      []File           `json:"files"`      // Files with content that need syncing
+	Timestamps map[string]int64 `json:"timestamps"` // Current server timestamps in Unix format
 }
 
 // validateAuthToken checks if the request has a valid auth token
@@ -113,6 +110,53 @@ func Sync(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	_, _ = fs.NewFS(StorageDir, afero.NewOsFs())
+
+	// 1) Save client-modified files to the server
+	// 2) In case of conflict, merge the files and include them in the response
+	// 3) Based on known client dirs timestamps, send newly updated or created files
+	// 4) Respond with last modification timestamps for every dir
+
+	// Save client-modified files to the server
+	var mergedFiles []string
+	for _, clientFile := range request.Files {
+		fullPath := filepath.Join(StorageDir, clientFile.Path)
+
+		serverModTime := int64(0)
+		// Check for any .../ attacks
+		info, err := os.Stat(fullPath)
+		if err == nil {
+			serverModTime = info.ModTime().Unix()
+		}
+		var clientContent string
+
+		if err != nil && !os.IsNotExist(err) {
+			log.Printf("Error reading file %s: %v", fullPath, err)
+			// All-or-nothing sync?
+			continue
+		} else if os.IsNotExist(err) {
+			clientContent = clientFile.Content
+		} else {
+			// File locks?
+			fileWasModifiedOnServer := serverModTime > clientFile.LastModified
+			if fileWasModifiedOnServer {
+				serverContent, err := ioutil.ReadFile(fullPath)
+				if err != nil {
+					log.Printf("Error reading file %s: %v", fullPath, err)
+					continue
+				}
+				clientContent = Merge(string(serverContent), clientFile.Content)
+				mergedFiles = append(mergedFiles, clientFile.Path)
+			} else {
+				// Server file hasn't changed since client's last sync
+				clientContent = clientFile.Content
+			}
+		}
+
+		//// Write the content to the server
+		_ = clientContent
+	}
+
 	serverTimestamps, err := timestamps(StorageDir)
 	if err != nil {
 		log.Printf("Error getting server timestamps: %v", err)
@@ -120,48 +164,10 @@ func Sync(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Apply updated files from the client
-	for path, clientFile := range request.Files {
-		fullPath := filepath.Join(StorageDir, path)
-
-		serverModTime := int64(0)
-		// Check for any .../ attacks
-		if info, err := os.Stat(fullPath); err == nil {
-			serverModTime = info.ModTime().Unix()
-		}
-		var contentToWrite string
-
-		if err != nil && !os.IsNotExist(err) {
-			log.Printf("Error reading file %s: %v", fullPath, err)
-			continue
-		} else if os.IsNotExist(err) {
-			contentToWrite = clientFile.Content
-		} else {
-			fileWasModifiedOnServer := serverModTime > clientFile.LastServerUpdate
-			if fileWasModifiedOnServer {
-				serverContent, err := ioutil.ReadFile(fullPath)
-				if err != nil {
-					log.Printf("Error reading file %s: %v", fullPath, err)
-					continue
-				}
-				contentToWrite = Merge(string(serverContent), clientFile.Content)
-			} else {
-				// Server file hasn't changed since client's last sync
-				contentToWrite = clientFile.Content
-			}
-		}
-
-		//// Write the content to the file
-		_ = contentToWrite
-
-		serverTimestamps[path] = time.Now().Unix()
-	}
-
 	// Prepare the list of files to send to the client
+	files := make([]File, 0)
 	dirTimestamps := make(map[string]int64)
-	missingFiles := make([]File, 0)
-
-	for path, serverTime := range serverTimestamps {
+	for path, serverFileTime := range serverTimestamps {
 		parts := strings.Split(path, string(os.PathSeparator))
 		dir := parts[0]
 		isInRoot := len(parts) == 1
@@ -169,8 +175,8 @@ func Sync(w http.ResponseWriter, r *http.Request) {
 			dir = "."
 		}
 
-		requestTime, exists := request.Timestamps[dir]
-		if !exists || serverTime > requestTime {
+		requestDirTime, exists := request.Timestamps[dir]
+		if !exists || serverFileTime > requestDirTime {
 			// Client needs this file - read its content
 			fullPath := filepath.Join(StorageDir, path)
 			content, err := ioutil.ReadFile(fullPath)
@@ -179,28 +185,26 @@ func Sync(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 
-			missingFiles = append(missingFiles, File{
+			files = append(files, File{
 				Path:         path,
-				LastModified: serverTime,
+				LastModified: serverFileTime,
 				Content:      string(content),
 			})
 		}
 
 		existingTimestamp, exists := dirTimestamps[dir]
 		if !exists {
-			dirTimestamps[dir] = serverTime
+			dirTimestamps[dir] = serverFileTime
 			continue
 		}
-
-		if serverTime > existingTimestamp {
-			dirTimestamps[dir] = serverTime
+		if serverFileTime > existingTimestamp {
+			dirTimestamps[dir] = serverFileTime
 		}
 	}
 
 	response := syncResponse{
-		Files:      missingFiles,
+		Files:      files,
 		Timestamps: dirTimestamps,
-		ServerTime: time.Now().Unix(),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
