@@ -111,7 +111,7 @@ async function syncWithServer() {
                 }
             }
 
-            // todo create dirs if not exist
+            // TODO create dirs if not exist
             console.log("Syncing " +filename);
             let fileHandle;
             try {
@@ -145,37 +145,4 @@ async function syncWithServer() {
     } catch (error) {
         console.error("Sync failed:", error);
     }
-}
-
-// Modify your init function to call sync after loading files
-async function init(el) {
-    initEditor(el);
-
-    const savedDirectoryHandle = await getSavedDirectoryHandle();
-    const userHasOpenedDirectory = savedDirectoryHandle instanceof FileSystemDirectoryHandle;
-    if (!userHasOpenedDirectory) {
-        document.getElementById('welcome').style.display = 'block';
-        files = defaultFiles;
-        buildSidebar();
-        await showFile("", "Welcome.md");
-        return;
-    }
-
-    const permission = await savedDirectoryHandle.queryPermission({mode: 'read'});
-    if (permission !== 'granted') {
-        document.getElementById('welcome').style.display = 'block';
-    }
-
-    files = await loadFiles(savedDirectoryHandle);
-
-    // Initialize server file states and sync
-    await initFilesMetadata();
-    await syncWithServer();
-
-    changesPollingInterval = setInterval(async function() {
-        // Existing code...
-    }, 3000);
-
-    buildSidebar();
-    await showRandomFile();
 }
