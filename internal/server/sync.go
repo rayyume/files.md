@@ -178,6 +178,89 @@ func Sync(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func SyncFile(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var file File
+	if err := json.NewDecoder(r.Body).Decode(&file); err != nil {
+		log.Printf("Error parsing request JSON: %v", err)
+		http.Error(w, "Invalid request JSON", http.StatusBadRequest)
+		return
+	}
+
+	// 1) Save client-modified file to the server
+	// 2) In case of conflict (server has a newer modification), merge the file and include them in the response
+
+	// Save client-modified file to the server
+	logSync(fmt.Sprintf("Got one client file: '%s'", file.Path))
+	fullPath := filepath.Join(StorageDir, file.Path)
+
+	serverModTime := int64(0)
+	// Check for any .../ attacks
+	info, err := os.Stat(fullPath)
+	if err == nil {
+		serverModTime = info.ModTime().Unix()
+	}
+
+	var content string
+	if err != nil && !os.IsNotExist(err) {
+		log.Printf("Error reading one file '%s': %v", fullPath, err)
+		logSync(fmt.Sprintf("Error reading one file '%s': %v", fullPath, err))
+	} else if os.IsNotExist(err) {
+		logSync(fmt.Sprintf("Creating one file: '%s'", file.Path))
+		content = file.Content
+	} else {
+		fileWasModifiedOnServer := serverModTime > file.LastModified
+		if fileWasModifiedOnServer {
+			serverContent, err := ioutil.ReadFile(fullPath)
+			if err != nil {
+				log.Printf("Error reading one file '%s': %v", fullPath, err)
+			}
+			logSync(fmt.Sprintf("Merging and writing one file: '%s'", file.Path))
+			content = Merge(string(serverContent), file.Content)
+			logSync(fmt.Sprintf("Diff one file: %s", Diff(string(serverContent), file.Content)))
+		} else {
+			// Server file hasn't changed since client's last sync
+			logSync(fmt.Sprintf("Writing only one file: '%s'", file.Path))
+			content = file.Content
+		}
+	}
+
+	if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
+		log.Printf("Error creating directory for file '%s': %v", fullPath, err)
+		logSync(fmt.Sprintf("Error creating directory for file '%s': %v", fullPath, err))
+	}
+
+	// Write the content to the server at path
+	err = os.WriteFile(fullPath, []byte(content), 0644)
+	if err != nil {
+		log.Printf("Error writing file '%s': %v", fullPath, err)
+		logSync(fmt.Sprintf("Error writing file '%s': %v", fullPath, err))
+	}
+
+	// Get file timestamp
+	info, err = os.Stat(fullPath)
+	if err != nil {
+		log.Printf("Error getting one file '%s' timestamp: %v", fullPath, err)
+		logSync(fmt.Sprintf("Error getting one file '%s' timestamp: %v", fullPath, err))
+		return
+	}
+
+	response := File{
+		Content:      content,
+		Path:         file.Path,
+		LastModified: info.ModTime().Unix(),
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		log.Printf("Error encoding sync response: %v", err)
+	}
+}
+
 // validateAuthToken checks if the request has a valid auth token
 func validateAuthToken(r *http.Request) bool {
 	token := r.Header.Get("Authorization")
