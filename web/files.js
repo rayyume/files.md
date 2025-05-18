@@ -3,6 +3,7 @@ const loaderInterval = 3000; // ms, how often to load current file from local fi
 
 let hasUnsavedChanges = false;
 let isSaving = false;
+let isSyncing = false
 
 // Files structure:
 // {
@@ -111,6 +112,10 @@ async function loadLocalFiles(rootDirHandle) {
 }
 
 async function syncAllWithServer() {
+    if (isSyncing) return;
+
+    isSyncing = true;
+
     const startTime = performance.now();
     console.log("Starting sync with server...");
 
@@ -160,6 +165,8 @@ async function syncAllWithServer() {
     filesMetadata['timestamps'] = server.timestamps;
     saveMetadata();
     console.log("Sync completed in " + (performance.now() - startTime) + "ms");
+
+    isSyncing = false;
 }
 
 async function syncFileWithServer(dir, filename) {
@@ -206,6 +213,8 @@ async function syncFileWithServer(dir, filename) {
 }
 
 async function syncMediaFilesFromServer() {
+    // TODO skip if already syncing
+
     console.log(`Starting media sync from img folder...`);
     const startTime = performance.now();
 
@@ -294,7 +303,7 @@ async function saveMediaFile(path, blob, lastModified) {
         await writable.close();
         console.log(`Successfully wrote media file: ${path}`);
         // TODO we assume that we got no fails. Instead save filenames hashes, same for text
-        if (lastModified > (filesMetadata['mediaTimestamp'] || 0)) {
+        if (lastModified > filesMetadata['mediaTimestamp']) {
             filesMetadata['mediaTimestamp'] = lastModified;
             saveMetadata();
         }
