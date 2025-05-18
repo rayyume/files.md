@@ -1,4 +1,4 @@
-const saverInterval = 50; // ms, how often to save currently open file
+const saverInterval = 500; // ms, how often to save currently open file
 const loaderInterval = 3000; // ms, how often to load current file from local file system
 
 let hasUnsavedChanges = false;
@@ -165,9 +165,9 @@ async function syncFileWithServer(dir, filename) {
             method: 'POST',
             headers: {'Content-Type': 'application/json', 'Authorization': localStorage.getItem('token')},
             body: JSON.stringify({
-                Path: `${dir}/${filename}`,
-                LastModified: serverTimestamp,
-                Content: content,
+                path: `${dir}/${filename}`,
+                lastModified: serverTimestamp,
+                content: content,
             })
         });
         if (!response.ok) {

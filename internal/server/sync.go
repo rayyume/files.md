@@ -205,6 +205,7 @@ func SyncFile(w http.ResponseWriter, r *http.Request) {
 		serverModTime = info.ModTime().Unix()
 	}
 
+	// TODO if no file, severContent = ""
 	serverContent, err := ioutil.ReadFile(fullPath)
 	if err != nil && !os.IsNotExist(err) {
 		log.Printf("Error reading one file '%s': %v", fullPath, err)
