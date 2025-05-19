@@ -244,7 +244,6 @@ func SyncText(w http.ResponseWriter, r *http.Request) {
 			logSync(fmt.Sprintf("Server clientFile '%s' was modified at %d, client timestamp is %d", fullPath, serverModTime, clientFile.LastModified))
 			logSync(fmt.Sprintf("Merging and writing one clientFile: '%s'", clientFile.Path))
 			content = Merge(string(serverContent), clientFile.Content)
-			logSync(fmt.Sprintf("Diff one clientFile: %s", Diff(string(serverContent), clientFile.Content)))
 		} else {
 			// Server clientFile hasn't changed since client's last sync
 			logSync(fmt.Sprintf("Writing only one clientFile: '%s'", clientFile.Path))
