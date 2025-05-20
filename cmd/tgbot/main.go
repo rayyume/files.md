@@ -72,9 +72,9 @@ func main() {
 
 	// TODO apphost?
 	// Launch habits server if needed
-	if config.BotCfg.HabitsHost != "" {
+	if config.BotCfg.ApiHost != "" {
 		go server.Serve(
-			config.BotCfg.HabitsHost,
+			config.BotCfg.ApiHost,
 			config.BotCfg.AppHost,
 			config.BotCfg.ServerCertDir,
 			config.BotCfg.ServerLogFile,
