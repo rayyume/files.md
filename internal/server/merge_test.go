@@ -97,10 +97,26 @@ func TestMergeHeaders(t *testing.T) {
 	r.Equal([]string{"#### 23 May, Friday 🤸‍🍽💪💧"}, merged)
 }
 
+func TestMergeHeadersReversed(t *testing.T) {
+	r := require.New(t)
+
+	headers := []string{"#### 23 May, Friday 🤸‍", "#### 23 May, Friday 🤸‍🍽💪", "#### 23 May, Friday 🤸‍🍽💪💧"}
+	merged := mergeHeaders(headers)
+	r.Equal([]string{"#### 23 May, Friday 🤸‍🍽💪💧"}, merged)
+}
+
 func TestMergeHeadersWithDifferentEmojis(t *testing.T) {
 	r := require.New(t)
 
 	headers := []string{"#### 23 May, Friday 🤸‍🍽💪💧", "#### 23 May, Friday 🤸‍🍽💪📵"}
 	merged := mergeHeaders(headers)
 	r.Equal([]string{"#### 23 May, Friday 🤸‍🍽💪💧📵"}, merged)
+}
+
+func TestMergeHeadersNoEmoji(t *testing.T) {
+	r := require.New(t)
+
+	headers := []string{"#### 23 May, Friday", "#### 23 May, Friday 💪"}
+	merged := mergeHeaders(headers)
+	r.Equal([]string{"#### 23 May, Friday 💪"}, merged)
 }

@@ -1,6 +1,9 @@
 package server
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 // Merge combines two strings (s1 and s2) by identifying longest sequences of common lines.
 //
@@ -72,9 +75,11 @@ func backtrack(lines1, lines2 []string, lcsLength [][]int, i, j int) []string {
 }
 
 // Headers like this should be merged:
-// #### 23 May, Friday 🤸‍🍽💪💧
-// #### 23 May, Friday 🤸‍🍽💪
+// #### 23 May, Friday
+// #### 23 May, Friday 🤸‍
 // #### 23 May, Friday 🤸‍🍽
+// #### 23 May, Friday 🤸‍🍽💪
+// #### 23 May, Friday 🤸‍🍽💪💧
 func mergeHeaders(lines []string) []string {
 	var result []string
 
@@ -101,6 +106,7 @@ func mergeHeaders(lines []string) []string {
 		for _, r := range chars {
 			if !seen[r] {
 				seen[r] = true
+				fmt.Println(string(r))
 				unique.WriteRune(r)
 			}
 		}
