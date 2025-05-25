@@ -577,7 +577,6 @@ async function initFiles() {
     console.log(`Files loaded in ${performance.now() - startTime}ms`);
     await syncAllWithServer();
     await syncMediaFilesFromServer();
-    await syncCurrentFile();
 }
 
 window.addEventListener('beforeunload', function () {
