@@ -527,7 +527,6 @@ async function syncCurrentFile() {
                 let content = getCurrentContent();
                 if (hasUnsavedChanges && contentWasModifiedLocally) {
                     // Changes from both sides: editor and local fs, need merging
-                    alert('Merging is needed! For now I use editor content');
 
                 }
                 // We need to atomically reset the flag once we captured a snapshot of particular version of the content.
