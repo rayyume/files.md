@@ -247,10 +247,6 @@ a:hover {
     color: #4D978A !important;
 }
 
-.cm-formatting-list {
-    margin-left: 5px !important;
-}
-
 #welcome {
     position: absolute;
     bottom: 0;
@@ -267,6 +263,18 @@ a:hover {
 }
 
 
-.CodeMirror .HyperMD-list-line {
-    padding-left: 5px !important;
+.CodeMirror .cm-formatting-list-ul {
+    justify-content: center;
+    align-items: center;
+    width: 24px;
+    height: 32px;
+    display: flex
 }
+
+.CodeMirror .HyperMD-list-line {
+    align-items: flex-start;
+    display: flex;
+
+    padding-left: 20px !important;
+}
+
