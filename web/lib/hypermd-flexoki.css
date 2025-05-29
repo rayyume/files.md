@@ -426,7 +426,8 @@
   padding-left: 285px;
 }
 .cm-s-hypermd-light span.cm-formatting-list {
-  margin-left: -30px;
+  /*CHANGED*/
+  margin-left: 0px;
   /*font-family: "HyperMD-Bullets";*/
   color: #666;
 }
@@ -839,3 +840,4 @@ li.CodeMirror-hint-active {
   background: #08f;
   color: white;
 }
+
