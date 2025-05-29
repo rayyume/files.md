@@ -3298,7 +3298,7 @@
           let firstVisualLine = getVisualLines(cm, firstLine)[0];
           let firstLineRight = wrapXObj(cm, lineObj, firstVisualLine.startChar, dir, "before");
           let firstLineLeft = wrapXObj(cm, lineObj, firstVisualLine.endChar, dir, "after");
-          drawRect(fromPos.left, fromPos.top, (firstLineRight - firstLineLeft), fromPos.bottom);
+          drawRect(fromPos.left, fromPos.top, firstLineRight - firstLineLeft, fromPos.bottom);
 
           // Draw in-between lines
           let areThereInBetweenLines = fromPos.bottom < toPos.top
@@ -3370,7 +3370,6 @@
 
       let hasLinesInBetween = leftEnd.bottom < rightStart.top;
       if (hasLinesInBetween) {
-        // console.log(sFrom, sTo);
         let startLine = sFrom.line;
         let endLine = sTo.line;
         // start and end lines are handled already, so we exclude them
@@ -3383,8 +3382,8 @@
             // TODO we only support LTR here
             let left = wrapXObj(cm, line, visualLine.startChar, 'ltr', "before");
             let right = wrapXObj(cm, line, visualLine.endChar, 'ltr', "after");
-            let width = left - right;
-            drawRect(leftSide, firstCharPos.top, width, firstCharPos.bottom);
+            let width = left - right ;
+            drawRect(right, firstCharPos.top, width, firstCharPos.bottom);
           });
         }
       }
