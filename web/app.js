@@ -292,6 +292,15 @@ async function showFile(dir, filename, saveToHistory = true) {
     editor.getDoc().setValue(content);
     editor.clearHistory();
 
+    const scrollInfo = editor.getScrollInfo();
+
+    // If scroll height equals client height, content fits in one screen
+    const viewport = editor.getViewport();
+    const totalLines = editor.lineCount();
+    const lastLine = totalLines - 1;
+
+    // Check if the last line is visible in the viewport
+    console.log(viewport.to >= totalLines);
 
     if (cursorPos !== null) {
         setTimeout(() => {
