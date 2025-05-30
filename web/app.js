@@ -92,13 +92,6 @@ function initEditor(el) {
         }
     })
 
-    editor.on("change", async function (cm, changeObj) {
-        // Save on user input only
-        if (changeObj.origin && changeObj.origin !== "setValue") {
-            hasUnsavedChanges = true
-        }
-    });
-
     editor.setOption("viewportMargin", Infinity);
     initAutoscroll(editor);
 
@@ -261,7 +254,6 @@ async function showRandomFile() {
 }
 
 async function showFile(dir, filename, saveToHistory = true) {
-    console.log(editor.getCursor());
     filename = filename.normalize("NFC");
     const fileData = files[dir][filename];
 
@@ -292,7 +284,7 @@ async function showFile(dir, filename, saveToHistory = true) {
 
     editor.getDoc().setValue(content);
     editor.clearHistory();
-
+    editor.markClean();
 
     if (cursorPos !== null) {
         setTimeout(() => {

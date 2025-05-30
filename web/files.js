@@ -2,7 +2,6 @@
 const saverInterval = 1000; // ms, how often to save currently open file
 const loaderInterval = 3000; // ms, how often to load current file from local file system
 
-let hasUnsavedChanges = false;
 let isSaving = false;
 let isSyncing = false
 
@@ -42,7 +41,7 @@ const SYNC_STORAGE_KEY = 'files';
 // The code is quite messy. We have to make lots of optimizations,
 // otherwise it's going to be slow even with 5K files.
 async function loadLocalFiles(rootDirHandle) {
-    while (hasUnsavedChanges) {
+    while (!editor.isClean()) {
         await new Promise(r => setTimeout(r, 50));
     }
 
@@ -537,6 +536,7 @@ async function syncCurrentFile() {
     }
 
     // Wait until not saving
+    // TODO what if lots of saving calls are stuck?
     while (isSaving) {
         await new Promise(r => setTimeout(r, 50));
     }
@@ -550,10 +550,10 @@ async function syncCurrentFile() {
     // If fs has fresher change, merge.
     // Sync with server.
 
-    if (contentWasModifiedLocally && !hasUnsavedChanges) {
+    if (contentWasModifiedLocally && editor.isClean()) {
         // Changes only from local system
         await showFile(editor.currentDir, editor.currentFile);
-    } else if (hasUnsavedChanges) {
+    } else if (!editor.isClean()) {
         isSaving = true;
         try {
             const dir = editor.currentDir;
@@ -561,7 +561,7 @@ async function syncCurrentFile() {
             const fileData = files[dir][filename];
             if (fileData && fileData.handle) {
                 let content = getCurrentContent();
-                if (hasUnsavedChanges && contentWasModifiedLocally) {
+                if (!editor.isClean() && contentWasModifiedLocally) {
                     // Changes from both sides: editor and local fs, need merging
 
                 }
@@ -570,7 +570,7 @@ async function syncCurrentFile() {
                 // of our saving process. The new unsaved changes would be then handled by a subsequent saveCurrentFile() call.
                 // Initially, this flag assignment was erroneously placed at the end of the function, resulting in a race condition.
                 // If we override flag in the end, we would lose any changes that occurred during the 3 await calls.
-                hasUnsavedChanges = false
+                editor.markClean();
 
                 const writable = await fileData.handle.createWritable();
                 await writable.write(content);
@@ -585,7 +585,9 @@ async function syncCurrentFile() {
         } catch (error) {
             console.error("Error during save:", error);
             isSaving = false;
-            hasUnsavedChanges = true;
+            // Revert doc back to dirty state
+            editor.replaceRange(' ', editor.getCursor());
+            editor.undo();
             return;
         }
         isSaving = false;
