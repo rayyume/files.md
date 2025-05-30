@@ -132,7 +132,7 @@ func TestPre(t *testing.T) {
 	}
 
 	md := TelegramEntitiesToMarkdown(text, messageEntities)
-	r.Equal("```line1\nline2```", md)
+	r.Equal("```\nline1\nline2\n```", md)
 }
 
 func TestDoesntEscapeMD(t *testing.T) {

@@ -51,8 +51,8 @@ func TelegramEntitiesToMarkdown(text string, messageEntities []tgbotapi.MessageE
 			after = "`"
 			stopEscape(&e)
 		} else if e.IsPre() {
-			before = "```" + e.Language
-			after = "```"
+			before = "```" + e.Language + "\n"
+			after = "\n```"
 			eatNewlines = true // For preformatted code, we will eat the newlines
 			stopEscape(&e)
 		} else if e.IsTextLink() {
