@@ -599,7 +599,7 @@ async function syncCurrentFile() {
         isSaving = false;
     }
 
-    await syncFileWithServer(editor.currentDir, editor.currentFile);
+    // await syncFileWithServer(editor.currentDir, editor.currentFile);
 }
 
 function hash(str) {
