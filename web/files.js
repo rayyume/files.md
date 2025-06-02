@@ -600,6 +600,7 @@ async function syncCurrentFile() {
         isSaving = false;
     }
 
+    // TODO add exceptions?
     await syncFileWithServer(editor.currentDir, editor.currentFile);
     isSyncingCurrent = false;
 }

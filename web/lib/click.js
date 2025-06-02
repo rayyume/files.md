@@ -27,7 +27,8 @@
                     text = text.slice(0, -2); // remove [] of [foot][]
                 type = "footref";
             }
-            else if ((info.ctrlKey || info.altKey) && url) {
+            // CHANGED add meta key
+            else if ((info.ctrlKey || info.altKey || info.metaKey) && url) {
                 // just open URL
                 window.open(url, "_blank");
             }
@@ -38,7 +39,8 @@
             text_1 = (text_1 === '[ ]') ? '[x]' : '[ ]';
             cm.replaceRange(text_1, from, to);
         }
-        if (type === 'footref' && (info.ctrlKey || info.altKey)) {
+        // CHANGED add meta key
+        if (type === 'footref' && (info.ctrlKey || info.altKey || info.metaKey)) {
             // Jump to FootNote
             var footnote_name = text.slice(1, -1);
             var footnote = cm.hmdReadLink(footnote_name, pos.line);
@@ -126,24 +128,25 @@
                 var _this = this;
                 this.cm = cm;
                 /** remove modifier className to editor DOM */
-                this._mouseMove_keyDetect = function (ev) {
-                    var el = _this.el;
-                    var className = el.className, newClassName = className;
-                    var altClass = "HyperMD-with-alt";
-                    var ctrlClass = "HyperMD-with-ctrl";
-                    if (!ev.altKey && className.indexOf(altClass) >= 0) {
-                        newClassName = className.replace(altClass, "");
-                    }
-                    if (!ev.ctrlKey && className.indexOf(ctrlClass) >= 0) {
-                        newClassName = className.replace(ctrlClass, "");
-                    }
-                    if (!ev.altKey && !ev.ctrlKey) {
-                        _this._KeyDetectorActive = false;
-                        el.removeEventListener('mousemove', _this._mouseMove_keyDetect, false);
-                    }
-                    if (className != newClassName)
-                        el.className = newClassName.trim();
-                };
+                // CHANGED, by commenting this out hover on regular https-links would show pointer
+                // this._mouseMove_keyDetect = function (ev) {
+                //     var el = _this.el;
+                //     var className = el.className, newClassName = className;
+                //     var altClass = "HyperMD-with-alt";
+                //     var ctrlClass = "HyperMD-with-ctrl";
+                //     if (!ev.altKey && className.indexOf(altClass) >= 0) {
+                //         newClassName = className.replace(altClass, "");
+                //     }
+                //     if (!ev.ctrlKey && className.indexOf(ctrlClass) >= 0) {
+                //         newClassName = className.replace(ctrlClass, "");
+                //     }
+                //     if (!ev.altKey && !ev.ctrlKey) {
+                //         _this._KeyDetectorActive = false;
+                //         el.removeEventListener('mousemove', _this._mouseMove_keyDetect, false);
+                //     }
+                //     if (className != newClassName)
+                //         el.className = newClassName.trim();
+                // };
                 /** add modifier className to editor DOM */
                 this._keyDown = function (ev) {
                     var kc = ev.keyCode || ev.which;
@@ -177,7 +180,8 @@
                  * Try to construct ClickInfo and bind _mouseUp
                  */
                 this._mouseDown = function (ev) {
-                    var button = ev.button, clientX = ev.clientX, clientY = ev.clientY, ctrlKey = ev.ctrlKey, altKey = ev.altKey, shiftKey = ev.shiftKey;
+                    // CHANGED add metakey
+                    var button = ev.button, clientX = ev.clientX, clientY = ev.clientY, ctrlKey = ev.ctrlKey, altKey = ev.altKey, shiftKey = ev.shiftKey, metaKey = ev.metaKey;
                     var cm = _this.cm;
                     if (ev.target.tagName === "PRE")
                         return;
@@ -265,7 +269,7 @@
                         _this._cinfo = {
                             type: type, text: text, url: url, pos: pos,
                             button: button, clientX: clientX, clientY: clientY,
-                            ctrlKey: ctrlKey, altKey: altKey, shiftKey: shiftKey,
+                            ctrlKey: ctrlKey, altKey: altKey, shiftKey: shiftKey, metaKey: metaKey
                         };
                         _this.lineDiv.addEventListener('mouseup', _this._mouseUp, false);
                     }
