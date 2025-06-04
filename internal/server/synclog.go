@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"path"
 	"sync"
@@ -34,7 +35,7 @@ func LogRename(oldPath, newPath string) {
 	}
 	defer file.Close()
 
-	record := fmt.Sprintf("%d\t%s\t%s\n", entry.Timestamp, entry.OldPath, entry.NewPath)
+	record := fmt.Sprintf("%d %s %s\n", entry.Timestamp, url.QueryEscape(entry.OldPath), url.QueryEscape(entry.NewPath))
 
 	_, err = file.WriteString(record)
 	if err != nil {
