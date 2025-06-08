@@ -293,7 +293,11 @@ async function openFile(dir, filename, saveToHistory = true) {
         history.pushState(state, '');
     }
 
-    editor.swapDoc(new CodeMirror.Doc(content, "hypermd"));
+    try {
+        editor.getDoc().setValue(content);
+    } catch (error) {
+        console.warn("Errors during content change:", error);
+    }
     editor.clearHistory();
     editor.markClean();
     // editor.focus();
