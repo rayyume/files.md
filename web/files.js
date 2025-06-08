@@ -235,7 +235,7 @@ async function syncFileWithServer(dir, filename) {
     console.log(serverFile);
     await saveTextFile(path, serverFile.content);
     console.log('showing file sync one');
-    await showFile(dir, filename);
+    await openFile(dir, filename);
     console.log("File synced with server");
 }
 
@@ -666,7 +666,7 @@ async function syncCurrentFile() {
     if (contentWasModifiedLocally && editor.isClean()) {
         console.log("WAS MODIFIED LOCALLY");
         // Changes only from local system
-        await showFile(editor.currentDir, editor.currentFile);
+        await openFile(editor.currentDir, editor.currentFile);
     } else if (!editor.isClean()) {
         isSaving = true;
         try {

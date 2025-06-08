@@ -13,7 +13,7 @@ async function init(el) {
         document.getElementById('welcome').style.display = 'block';
         files = defaultFiles;
         buildSidebar();
-        await showFile("", "Welcome.md");
+        await openFile("", "Welcome.md");
         return;
     }
 
@@ -57,10 +57,10 @@ function initEditor(el) {
         if (/^(?!http|https|\[).+\.md$/.test(path)) {
             let parts = path.split('/');
             if (parts.length === 1) {
-                showFile("", path);
+                openFile("", path);
                 return;
             }
-            showFile(parts[0], parts[1]);
+            openFile(parts[0], parts[1]);
             return path;
         }
 
@@ -78,11 +78,11 @@ function initEditor(el) {
         path = path.replace('[', '').replace(']', '');
         let parts = path.split('/');
         if (parts.length === 1) {
-            await showFile("", path + '.md');
+            await openFile("", path + '.md');
             return;
         }
 
-        await showFile(parts[0], parts[1] + '.md');
+        await openFile(parts[0], parts[1] + '.md');
     };
 
     editor.on("inputRead", async function (cm, change) {
@@ -128,12 +128,6 @@ function initEditor(el) {
             cm.focus();
         },
         'Ctrl-Y': function (cm) {
-            var cursor = cm.getCursor();
-            var lineStart = {line: cursor.line, ch: 0};
-            cm.replaceRange('✅ ', lineStart);
-            cm.focus();
-        },
-        'Alt-Y': function (cm) {
             var cursor = cm.getCursor();
             var lineStart = {line: cursor.line, ch: 0};
             cm.replaceRange('✅ ', lineStart);
@@ -219,7 +213,7 @@ function buildSidebar() {
         for (let file in files[dir]) {
             let fileNode = new TreeNode(file.replace(/\.md$/, ''), {expanded: false});
             fileNode.on('click', async function (n, node) {
-                await showFile(node.parent.toString(), node.toString() + ".md");
+                await openFile(node.parent.toString(), node.toString() + ".md");
             });
             dirNode.addChild(fileNode);
         }
@@ -231,7 +225,7 @@ function buildSidebar() {
         for (let file in files[""]) {
             let fileNode = new TreeNode(file.replace(/\.md$/, ''), {expanded: false});
             fileNode.on('click', async function (n, node) {
-                await showFile("", node.toString() + ".md");
+                await openFile("", node.toString() + ".md");
             });
             root.addChild(fileNode)
         }
@@ -244,7 +238,7 @@ function buildSidebar() {
 
 async function showRandomFile() {
     if (debug) {
-        await showFile(debug.dir, debug.file);
+        await openFile(debug.dir, debug.file);
         return;
     }
 
@@ -263,13 +257,13 @@ async function showRandomFile() {
     const randomFile = allFiles[Math.floor(Math.random() * allFiles.length)];
 
     try {
-        await showFile(randomFile.dir, randomFile.file);
+        await openFile(randomFile.dir, randomFile.file);
     } catch (error) {
         console.error("Failed to open random file:", error);
     }
 }
 
-async function showFile(dir, filename, saveToHistory = true) {
+async function openFile(dir, filename, saveToHistory = true) {
     filename = filename.normalize("NFC");
     const fileData = files[dir][filename];
 
@@ -304,6 +298,7 @@ async function showFile(dir, filename, saveToHistory = true) {
     editor.focus();
 
     if (cursorPos !== null) {
+        console.log('cursor not null');
         setTimeout(() => {
             editor.setCursor(cursorPos);
             editor.scrollIntoView(cursorPos, 500);
@@ -322,12 +317,13 @@ async function showFile(dir, filename, saveToHistory = true) {
         // We need to execute this code after some rendering loop. If we don't do that,
         // Images and other heavy stuff won't be loaded
         // P.S. Is it try after we set infinite loading?
-        setTimeout(() => {
+        // setTimeout(() => {
             focusLastLine();
-        }, 300);
+        // }, 300);
     }
 }
 
+// Focus last line before the links.
 function focusLastLine() {
     const lastLine = editor.lastLine();
     let targetLine = lastLine;
@@ -341,8 +337,9 @@ function focusLastLine() {
     const targetChar = editor.getLine(targetLine).length;
     editor.setCursor({line: targetLine, ch: targetChar});
     // Why doing scroll to 0 line?
-    editor.scrollTo(null, 0);
+    // editor.scrollTo(null, 0);
     // TODO only focus if there's no quick dialogue
+    console.log('focusing last line');
     editor.focus();
 }
 
@@ -536,7 +533,7 @@ function showSearchResults(results) {
         listItem.setAttribute('data-path', `${dir}/${filename}`);
         listItem.setAttribute('data-index', index);
         listItem.onclick = () => {
-            showFile(dir, filename);
+            openFile(dir, filename);
             closeSearchModal();
         };
         listItem.onmouseenter = () => {
@@ -606,7 +603,7 @@ document.addEventListener('keydown', function (event) {
 window.addEventListener('popstate', (event) => {
     const state = event.state;
     if (state) {
-        showFile(state['dir'], state['file'], false);
+        openFile(state['dir'], state['file'], false);
     }
 });
 
@@ -617,7 +614,7 @@ document.getElementById('search').addEventListener('keydown', (event) => {
         event.preventDefault();
         if (resultsList[focusedItemIndex]) {
             const [dir, filename] = resultsList[focusedItemIndex].getAttribute('data-path').split('/');
-            showFile(dir, filename);
+            openFile(dir, filename);
             closeSearchModal();
         }
     }
