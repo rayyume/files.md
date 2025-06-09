@@ -342,6 +342,7 @@ async function newFile() {
     };
 
     await openFile(dir, filename);
+    await buildSidebar();
 }
 
 // Focus last line before the links.
