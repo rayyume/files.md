@@ -33,7 +33,12 @@ async function init(el) {
 function initEditor(el) {
     editor = HyperMD.fromTextArea(el, {
         dragDrop: false,
-        mode: "hypermd", lineNumbers: false, extraKeys: {
+        mode: {
+            name: "hypermd",
+            math: false, // disable $syntax$
+        },
+        lineNumbers: false,
+        extraKeys: {
             // "Shift-Space": "autocomplete",
             'Cmd-[': false, 'Cmd-]': false,
         },
@@ -46,6 +51,8 @@ function initEditor(el) {
         },
         hmdFoldEmoji: {
             myEmoji: createAutocompleteDict
+        },
+        hmdModeLoader: {
         }
     });
     editor.setSize(null, "100%");
@@ -484,10 +491,6 @@ window.addEventListener('keydown', async (event) => {
     }
 }, true);
 
-window.addEventListener('focus', () => {
-    console.log('got focus');
-});
-
 function closeSearchModal() {
     document.getElementById('search').style.display = 'none';
 }
@@ -843,6 +846,8 @@ document.addEventListener('mousedown', (event) => {
 
 // Reload files once the app gains focus
 window.addEventListener("focus", async () => {
+    editor.focus();
+
     // Sync media first, so that new images for current file would be loaded
     await syncMediaFilesFromServer();
     await syncCurrentFile();
