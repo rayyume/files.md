@@ -461,9 +461,13 @@ window.addEventListener('keydown', async (event) => {
         event.stopPropagation();
 
         let path = toPath(editor.currentDir, editor.currentFile);
+        let dir = editor.currentDir;
+        let filename = editor.currentFile;
         editor.currentDir = undefined;
         editor.currentFile = undefined;
         await removeFile(path);
+        // Remove from files object
+        delete files[dir][filename];
         await showRandomFile();
         await buildSidebar();
     }

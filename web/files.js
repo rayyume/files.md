@@ -585,7 +585,6 @@ async function removeFile(path) {
 async function moveCurrentFile(toDir) {
     isSyncingCurrent = true;
 
-    console.log(toDir);
     // TODO add prevent syncing?
     const oldPath = toPath(editor.currentDir, editor.currentFile);
     const newPath = toPath(toDir, editor.currentFile);
