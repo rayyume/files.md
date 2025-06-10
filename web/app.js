@@ -311,7 +311,8 @@ async function openFile(dir, filename, saveToHistory = true) {
     editor.clearHistory();
     editor.markClean();
 
-    console.log(editor.getLineTokens(4));
+    console.log('TOKENS', editor.getLineTokens(4));
+    console.log('TOKENS', editor.getLineTokens(5));
 
     if (cursorPos !== null) {
         console.log('cursor not null');

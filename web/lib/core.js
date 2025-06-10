@@ -801,6 +801,7 @@
         });
     };
     LineSpanExtractor.prototype.getTokenTypes = function (token, prevToken) {
+        console.log(prevToken, token);
         var prevState = prevToken ? prevToken.state : {};
         var state = token.state;
         var styles = ' ' + token.type + ' ';
@@ -817,10 +818,6 @@
             // code
             code: (state.code ? 1 /* IS_THIS_TYPE */
                 : prevState.code ? 2 /* LEAVING_THIS_TYPE */ : 0 /* NOTHING */),
-            // linkText
-            linkText: (state.linkText ?
-                (state.hmdLinkType === 3 /* NORMAL */ || state.hmdLinkType === 6 /* BARELINK2 */ ? 1 /* IS_THIS_TYPE */ : 0 /* NOTHING */) :
-                (prevState.linkText ? 2 /* LEAVING_THIS_TYPE */ : 0 /* NOTHING */)),
             // linkHref
             linkHref: ((state.linkHref && !state.linkText) ?
                 1 /* IS_THIS_TYPE */ :
@@ -833,6 +830,39 @@
             hashtag: (state.hmdHashtag ? 1 /* IS_THIS_TYPE */ :
                 prevState.hmdHashtag ? 2 /* LEAVING_THIS_TYPE */ : 0 /* NOTHING */),
         };
+
+        let linkText;
+        if (state.linkText) {
+            if (state.hmdLinkType === 3 /* NORMAL */ || state.hmdLinkType === 6 /* BARELINK2 */ ) {
+                linkText = 1 /* IS_THIS_TYPE */;
+            } else {
+                linkText = 0 /* NOTHING */;
+            }
+        } else {
+            if (prevState.linkText) {
+               linkText = 2 /* LEAVING_THIS_TYPE */;
+            } else {
+                linkText = 0 /* NOTHING */;
+            }
+        }
+        ans.linkText = linkText;
+
+        let linkHref;
+        if (state.linkHref && !state.linkText) {
+            linkHref = 1 /* IS_THIS_TYPE */;
+        } else {
+            if (!state.linkHref && !state.linkText && prevState.linkHref && !prevState.linkText) {
+                linkHref = 2 /* LEAVING_THIS_TYPE */;
+            } else {
+                linkHref = 0 /* NOTHING */;
+            }
+        }
+
+
+
+
+        // if (state)
+        console.log("ANswer", state.linkHref, state.linkText, ans);
         return ans;
     };
     /** get spans from a line and update the cache */
@@ -852,9 +882,10 @@
         for (var i = 0; i < tokens.length; i++) {
             var token = tokens[i];
             var types = this$1.getTokenTypes(token, tokens[i - 1]);
+            console.log('TYPEAS', types);
             for (var type in types) {
                 var span = unclosed[type];
-                if (types[type] & 1 /* IS_THIS_TYPE */ || lineText === '```') { // style is active CUSTOMIZED
+                if (types[type] & 1 /* IS_THIS_TYPE */ || lineText === '```') { // style is active PATCHED
                     if (!span) { // create a new span if needed
                         span = {
                             type: type,
@@ -879,6 +910,7 @@
                         unclosed[type] = null;
                     }
                 }
+                console.log('ANS', ans);
             }
         }
         this.caches[lineNo] = ans;
