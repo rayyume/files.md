@@ -934,6 +934,11 @@ function stopResize() {
 }
 
 document.addEventListener('keydown', (e) => {
+    // If search or move dialog is focused - return
+    if (document.getElementById('search').style.display === 'block' ||
+        document.getElementById('move').style.display === 'block') {
+        return;
+    }
     if (isModifierKey(e) && e.key === 'a') {
         e.preventDefault();
         e.stopPropagation();
