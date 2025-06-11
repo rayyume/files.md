@@ -72,7 +72,7 @@
 
 .tj_container span.tj_description.selected{
 	background-color: var(--color-bg-active);
-	color: var(--color-tx-muted);
+	/*color: var(--color-tx-muted);*/
 }
 
 .tj_container span.tj_description.selected:hover{

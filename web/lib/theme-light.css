@@ -2,6 +2,7 @@
     :root {
         --font: Rubik, Cambria, "Times New Roman", Times, serif;
         --color-tx: #100F0F;
+        --color-tx-alt: #878787;
         --color-bg: #FFF;
         --color-bg-alt: #F9F9F9;
         --color-inline-code: #657b83;
