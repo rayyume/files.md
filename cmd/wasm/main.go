@@ -3,18 +3,12 @@ package main
 import (
 	"fmt"
 	"log/slog"
-	"os"
-	"path/filepath"
 	"runtime/debug"
 	"syscall/js"
-
-	"github.com/joho/godotenv"
-	"github.com/lmittmann/tint"
 
 	"github.com/spf13/afero"
 
 	"zakirullin/stuffbot/config"
-	"zakirullin/stuffbot/i18n"
 	"zakirullin/stuffbot/internal"
 	"zakirullin/stuffbot/internal/db"
 	"zakirullin/stuffbot/internal/fs"
@@ -26,6 +20,31 @@ var (
 	reply func(u internal.Update)
 	chat  *tg.FakeTG
 )
+
+type Update struct {
+	Message string
+	Command *tg.Cmd
+}
+
+type Response struct {
+	Messages []tg.Message
+}
+
+func Reply(_ js.Value, args []js.Value) interface{} {
+	//callAsync("hi", func(result js.Value, err error) {
+	//	if err != nil {
+	//		sendToJS(fmt.Sprintf("Error: %v\n", err))
+	//		return
+	//	}
+	//	sendToJS(result.String())
+	//})
+	//upd := tg.NewUpd(-1, args[0].String())
+	//go reply(upd)
+	//sendToJS(args)
+	go readFile("file.md")
+
+	return nil
+}
 
 func callAsync(funcName string, callback func(js.Value, error), args ...any) {
 	promise := js.Global().Call(funcName, args)
@@ -49,40 +68,17 @@ func callAsync(funcName string, callback func(js.Value, error), args ...any) {
 	promise.Call("then", successFunc).Call("catch", errorFunc)
 }
 
-func read(path string) (string, error) {
-	resultChan := make(chan string, 1)
-	errorChan := make(chan error, 1)
-
-	callAsync("read", func(result js.Value, err error) {
-		if err != nil {
-			errorChan <- err
-			return
-		}
-		resultChan <- result.String()
-	}, path)
-
-	select {
-	case result := <-resultChan:
-		sendToJS(result)
-		return result, nil
-	case err := <-errorChan:
-		return "", err
+func sendDueResponsesToJS() {
+	var r Response
+	r.Messages = chat.Messages
+	if chat.EditedMessages != nil {
+		r.Messages = append(r.Messages, chat.EditedMessages...)
 	}
-}
 
-func Reply(_ js.Value, args []js.Value) interface{} {
-	//callAsync("hi", func(result js.Value, err error) {
-	//	if err != nil {
-	//		sendToJS(fmt.Sprintf("Error: %v\n", err))
-	//		return
-	//	}
-	//	sendToJS(result.String())
-	//})
-	//upd := tg.NewUpd(-1, args[0].String())
-	//go reply(upd)
-	go read("")
+	chat.Messages = nil
+	chat.EditedMessages = nil
 
-	return nil
+	sendToJS(r)
 }
 
 func sendToJS(vals ...any) {
@@ -91,7 +87,6 @@ func sendToJS(vals ...any) {
 
 func main() {
 	//initBot()
-
 	js.Global().Set("reply", js.FuncOf(Reply))
 
 	select {}
@@ -99,24 +94,24 @@ func main() {
 }
 
 func initBot() {
-	opts := &tint.Options{
-		Level: slog.LevelDebug,
-	}
-	logger := slog.New(tint.NewHandler(os.Stderr, opts))
-	slog.SetDefault(logger)
+	//opts := &tint.Options{
+	//	Level: slog.LevelDebug,
+	//}
+	//logger := slog.New(tint.NewHandler(os.Stderr, opts))
+	//slog.SetDefault(logger)
 
 	// For GUI app we don't have required .env params
-	_ = godotenv.Load()
-	err := config.LoadGUIConfig()
-	if err != nil {
-		panic(fmt.Sprintf("Error loading cfg: %s\n", err))
-	}
+	//_ = godotenv.Load()
+	//err := config.LoadGUIConfig()
+	//if err != nil {
+	//	panic(fmt.Sprintf("Error loading cfg: %s\n", err))
+	//}
 
 	// TODO move to embed
-	err = i18n.LoadLangFile("i18n/ru.json")
-	if err != nil {
-		panic(fmt.Sprintf("Error loading i18n: %s\n", err))
-	}
+	//err = i18n.LoadLangFile("i18n/ru.json")
+	//if err != nil {
+	//	panic(fmt.Sprintf("Error loading i18n: %s\n", err))
+	//}
 
 	reply = func(u internal.Update) {
 		defer func() {
@@ -129,29 +124,21 @@ func initBot() {
 
 		userID := u.UserID()
 
-		userPath := config.GUICfg.GUIUserStoragePath
-		userPath, err = filepath.Abs(userPath)
-		if err != nil {
-			slog.Error("Bot error: can't get absolute path for curent dir", "err", err)
-			//return err
-		}
+		userPath := ""
 		userFS, err := fs.NewFS(userPath, afero.NewOsFs())
 		if err != nil {
-			slog.Error("Bot error: can't create fs", "err", err)
-			//return err
+			sendToJS(fmt.Sprintf("Bot error: can't create fs: %v", err))
 		}
 		err = userFS.CreateDirsIfNotExist()
 		if err != nil {
-			slog.Error("Bot error: can't create user dirs", "err", err)
-			//return err
+			sendToJS("Bot error: can't create user dirs", "err")
 		}
 
 		confFilename := config.GUICfg.ConfigFilename
 		userconf := userconfig.NewConfig(userFS, userID, confFilename)
 		err = userconf.CreateDefaultIfNotExists()
 		if err != nil {
-			slog.Error("Bot error: can't create default user config", "err", err)
-			//return err
+			sendToJS("Bot error: can't create default user config")
 		}
 
 		if chat == nil {
@@ -159,10 +146,9 @@ func initBot() {
 		}
 		bot := internal.NewBot(userID, chat, userFS, db.NewDB(userID), userconf)
 		if err := bot.Reply(u); err != nil {
-			slog.Error("Bot error", "err", err)
+			sendToJS("Bot error", "err", err)
 		}
-
-		//return nil
+		sendDueResponsesToJS()
 	}
 }
 

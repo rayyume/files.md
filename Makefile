@@ -89,7 +89,7 @@ watch: # watch for changes and rebuild wasm
 	@echo "👀 Watching for changes in ./*.(js|go)..."
 	@fswatch -r internal pkg cmd | while read f; do \
 		echo "Rebuilding WASM..."; \
-		GOOS=js GOARCH=wasm go build -o web/chat/main.wasm cmd/wasm/main.go && \
+		GOOS=js GOARCH=wasm go build -o web/chat/main.wasm ./cmd/wasm && \
 		cp /usr/local/go/misc/wasm/wasm_exec.js web/chat/ && \
 		echo "✅ WASM rebuilt at $$(date)"; \
 	done

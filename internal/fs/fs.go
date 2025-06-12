@@ -27,6 +27,7 @@ var (
 	NewUserFS = newUserFS
 	Exists    = exists
 	ReadFile  = readFile
+	ReadDir   = readDir
 
 	LogRename = func(time int64, oldPath, newPath string) {} // callback that can be used to track renames
 
@@ -305,13 +306,12 @@ func (fs FS) FilesAndDirs(dir string) ([]File, error) {
 		return nil, fmt.Errorf("can't get files for '%s': %w", path.Join(fs.RootPath, dir), errUnsafePath)
 	}
 
-	entries, err := afero.ReadDir(fs.backend, userPath)
+	entries, err := ReadDir(fs.backend, userPath)
 	if err != nil {
 		return nil, fmt.Errorf("can't get files for '%s': %w", path.Join(fs.RootPath, dir), err)
 	}
 
 	var files []File
-	// TODO remove gitignore
 	ignoredFiles := []string{".", "..", ".obsidian", ".gitignore", ".DS_Store", ".git"}
 	for _, entry := range entries {
 		if slices.Contains(ignoredFiles, entry.Name()) {
@@ -581,4 +581,8 @@ func exists(backend afero.Fs, path string) (bool, error) {
 
 func readFile(backend afero.Fs, path string) ([]byte, error) {
 	return afero.ReadFile(backend, path)
+}
+
+func readDir(backend afero.Fs, path string) ([]os.FileInfo, error) {
+	return afero.ReadDir(backend, path)
 }

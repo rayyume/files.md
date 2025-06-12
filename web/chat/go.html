@@ -52,6 +52,22 @@
         return await file.text();
     }
 
+    async function exists(path) {
+        try {
+            const root = await getRootDirHandle();
+            if (root === undefined) {
+                return false;
+            }
+
+            await root.getFileHandle(path);
+            return true;
+        } catch (error) {
+            console.log(error);
+            // TODO Naive implementation, add error
+            return false;
+        }
+    }
+
     function receive(val) {
         console.log(val);
     }
@@ -63,7 +79,7 @@
     const wasmFile = await fetch("main.wasm");
     const wasmModule = await WebAssembly.instantiateStreaming(wasmFile, go.importObject);
     go.run(wasmModule.instance);
-    console.log(reply());
+    console.log(reply('file.md'));
 </script>
 <script src="wasm_exec.js"></script>
 <button onclick="openDir()">open</button>
