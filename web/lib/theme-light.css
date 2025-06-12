@@ -10,7 +10,7 @@
         --color-link: #3A9AE5;
         --color-link-hover: #68B5ED;
         --color-url: #706f6b;
-        --color-tx-sel: rgba(101, 123, 131, 0.2);
+        --color-tx-sel: color-mix(in srgb, var(--color-link), transparent 40%) !important;
         --color-bg-active: #EFEFEF;
         --color-border: #e0e0e0;
     }
