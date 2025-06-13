@@ -719,19 +719,19 @@ document.addEventListener('keydown', function (event) {
     if (isModifierKey(event) && event.key === 'Enter') {
         event.preventDefault();
         // Check for Cmd+Enter (Mac) or Ctrl+Enter (Windows/Linux)
-        if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
-            event.preventDefault(); // Prevent default behavior
+        const currentPath = window.location.pathname;
 
-            const currentPath = window.location.pathname;
-
-            if (currentPath === '/' || currentPath === '') {
-                // Navigate to /chat
-                window.location.href = '/chat';
-            } else if (currentPath === '/chat') {
-                // Navigate to /
-                window.location.href = '/';
-            }
-            // For any other path, you could add more conditions or do nothing
+        if (currentPath === '/' || currentPath === '') {
+            window.location.href = '/chat';
+            // setTimeout(() => {
+                window.resizeTo(500, 500);
+            // }, 100);
+        } else if (currentPath === '/chat') {
+            window.location.href = '/';
+            // setTimeout(() => {
+                window.resizeTo(screen.availWidth, screen.availHeight);
+                window.moveTo(0, 0);
+            // }, 100);
         }
         // const sidebar = document.getElementById('sidebar');
         // if (sidebar.style.display === 'none') {
