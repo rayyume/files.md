@@ -562,12 +562,6 @@ input.addEventListener('paste', async (event) => {
             const fileName = generateSafeFileName(file.name);
             const isImage = file.type.startsWith('image/');
 
-            const loadingSpan = document.createElement('span');
-            loadingSpan.textContent = '⏳';
-            loadingSpan.style.color = '#999';
-
-            // Always append to input
-            input.appendChild(loadingSpan);
 
             const saved = await saveFile(fileName, file);
             if (saved) {
@@ -577,20 +571,21 @@ input.addEventListener('paste', async (event) => {
 
                 const fileElement = createFileElement(fileName, isImage, markdownText, file);
 
-                // Replace loading span with file element
-                input.replaceChild(fileElement, loadingSpan);
+                if (input.children.length === 1 && input.children[0].tagName === 'BR') {
+                    input.children[0].remove();
+                }
 
-                // If it's an image, insert two <br> tags and place cursor
+                input.appendChild(fileElement);
+
                 if (isImage) {
                     const br1 = document.createElement('br');
-                    const br2 = document.createElement('br'); // A second BR for a clear new line
+                    const br2 = document.createElement('br');
 
                     input.appendChild(br1);
                     input.appendChild(br2);
 
-                    // Move cursor after the second <br>
                     const range = document.createRange();
-                    range.setStartAfter(br2); // Place cursor after the second BR
+                    range.setStartAfter(br2);
                     range.collapse(true);
                     const selection = window.getSelection();
                     selection.removeAllRanges();
