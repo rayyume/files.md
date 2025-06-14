@@ -294,12 +294,12 @@ async function syncMedia() {
             });
 
             if (!response.ok) {
-                console.error(`Failed to sync media file ${mediaFile.filename}:`, response.statusText);
+                console.error(`Failed to sync media file ${mediaFile}:`, response.statusText);
             } else {
-                console.log(`Successfully synced media file: ${mediaFile.filename}`);
+                console.log(`Successfully synced media file: ${mediaFile}`);
             }
         } catch (error) {
-            console.error(`Error syncing media file ${mediaFile.filename}:`, error);
+            console.error(`Error syncing media file ${mediaFile}:`, error);
         }
     }
 
