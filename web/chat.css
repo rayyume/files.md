@@ -18,11 +18,6 @@
     overflow: hidden;
 }
 
-#app {
-    height: 100vh;
-    text-align: center;
-}
-
 #messages {
     flex: 1;
     padding: 10px;
