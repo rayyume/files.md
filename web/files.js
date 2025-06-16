@@ -191,7 +191,10 @@ async function syncTextsWithServer() {
                 saveMetadata();
             } catch (error) {
                 console.error(`Error saving file ${path}:`, error);
-                failedAtLeastOnce = true;
+                // Don't treat malformed filenames as sync error.
+                if (error.name !== 'TypeMismatchError') {
+                    failedAtLeastOnce = true;
+                }
             }
         }
         // Only move timestamp pointers when we were able to sync all the files.
