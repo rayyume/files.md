@@ -319,8 +319,9 @@ async function syncMedia() {
                 if (!response.ok) {
                     console.error(`Failed to sync media file ${mediaFilename}:`, response.statusText, response.text(), mediaFilename, base64String);
                 } else {
+                    let json = await response.json();
                     serverFiles['media'][mediaFilename] = {
-                        lastModified
+                        lastModified: json.lastModified,
                     };
                     saveMetadata();
                     console.log(`Successfully synced media file: ${mediaFilename}`);
