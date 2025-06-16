@@ -43,8 +43,6 @@ function processResponse(response) {
 }
 
 function attachKeyboard(buttons) {
-    console.log(JSON.stringify(buttons));
-
     const buttonContainer = document.createElement('div');
     buttonContainer.classList.add('button-container');
 

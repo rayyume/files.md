@@ -935,16 +935,6 @@ function hash(str) {
     return hash;
 }
 
-async function initFiles() {
-    const rootDirHandle = await getRootDirHandle();
-
-    const startTime = performance.now();
-    files = await loadLocalFiles(rootDirHandle);
-    console.log(`Files loaded in ${performance.now() - startTime}ms`);
-    await syncTextsWithServer();
-    await syncMedia();
-}
-
 window.addEventListener('beforeunload', function () {
     // clearInterval(window.loader);
     clearInterval(window.saver);

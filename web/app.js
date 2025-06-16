@@ -979,12 +979,35 @@ document.addEventListener('mousedown', (event) => {
 });
 
 // Reload files once the app gains focus
-window.addEventListener("focus", async () => {
+window.addEventListener('focus', async () => {
+
     if (editor.currentFile === undefined) {
         return;
     }
 
     editor.focus();
+
+    // Sync media first, so that new images for current file would be loaded
+    await syncMedia();
+    await syncCurrentFile();
+
+    const savedDirectoryHandle = await getRootDirHandle();
+
+    // Benchmark time took
+    const start = performance.now();
+    files = await loadLocalFiles(savedDirectoryHandle);
+    const end = performance.now();
+    console.log(`Files loaded in: ${(end - start).toFixed(3)} milliseconds`);
+    await syncTextsWithServer()
+    console.log("Sync completed");
+});
+
+// Sync files on chat focus lose.
+window.addEventListener('blur', async function() {
+    console.log('Window lost focus');
+    if (!isChat) {
+        return;
+    }
 
     // Sync media first, so that new images for current file would be loaded
     await syncMedia();
