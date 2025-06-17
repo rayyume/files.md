@@ -165,61 +165,6 @@ window.addEventListener("focus", async () => {
     input.focus();
 });
 
-function isModifierKey(event) {
-    return event.metaKey || event.ctrlKey || event.altKey;
-}
-
-document.addEventListener('keydown', function (event) {
-
-    // if (isModifierKey(event) && event.key === 'Enter') {
-    //     event.preventDefault();
-    //
-    //     window.location.href = '/';
-    //     window.resizeTo(screen.availWidth, screen.availHeight);
-    //     window.moveTo(0, 0);
-    // }
-});
-
-function initDB() {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open('files', 1);
-        request.onerror = () => reject(request.error);
-        request.onsuccess = () => resolve(request.result);
-        request.onupgradeneeded = () => {
-            const db = request.result;
-            if (!db.objectStoreNames.contains('handles')) {
-                db.createObjectStore('handles');
-            }
-        };
-    });
-}
-
-async function openDir() {
-    let dirHandle = await window.showDirectoryPicker();
-    await saveDirectoryHandle(dirHandle);
-    await dirHandle.getFileHandle('test.txt', {
-        create: true
-    });
-}
-
-async function getRootDirHandle() {
-    const db = await initDB();
-    return new Promise((resolve, reject) => {
-        const transaction = db.transaction('handles', 'readonly');
-        const store = transaction.objectStore('handles');
-        const request = store.get('savedDirectoryHandle');
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-    });
-}
-
-async function saveDirectoryHandle(directoryHandle) {
-    const db = await initDB();
-    const transaction = db.transaction('handles', 'readwrite');
-    const store = transaction.objectStore('handles');
-    await store.put(directoryHandle, 'savedDirectoryHandle');
-}
-
 async function read(args) {
     let path = args[0];
     let fileHandle = await getFileHandle(path)

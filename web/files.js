@@ -481,7 +481,7 @@ async function collectModifiedAndDeletedFiles() {
 
     await Promise.all(promises);
 
-    // Find deleted files that are in files metadata but not in existing files
+    // Find deleted files that are in server files but not in existing files.
     let deleted = [];
     for (const dir in serverFiles.files) {
         for (const file in serverFiles.files[dir]) {
