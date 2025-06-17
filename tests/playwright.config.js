@@ -1,5 +1,6 @@
 // tests/e2e/playwright.config.js
 const { defineConfig, devices } = require('@playwright/test');
+const path = require('path');
 
 module.exports = defineConfig({
     testDir: '.',
@@ -10,7 +11,7 @@ module.exports = defineConfig({
     reporter: 'html',
 
     use: {
-        baseURL: 'http://app.localhost:8080',
+        baseURL: `file://${path.resolve('./../web/app.html')}`,
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
         video: 'retain-on-failure',
