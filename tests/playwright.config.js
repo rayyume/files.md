@@ -12,6 +12,7 @@ module.exports = defineConfig({
 
     use: {
         baseURL: `file://${path.resolve('../web/app.html')}`,
+        // baseUrl: 'http://app.localhost:8080',
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
         video: 'retain-on-failure',
