@@ -503,6 +503,6 @@ body.dragging * {
 @media (max-width: 670px) {
     .cm-s-hypermd-light img.hmd-image {
         max-width: 300px;
-        margin-left: 15%;
+        margin-left: 17%;
     }
 }

@@ -802,7 +802,7 @@ function openChat() {
     input.focus();
     isChat = true;
 
-    window.resizeTo(550, 530);
+    window.resizeTo(520, 530);
     const left = (screen.availWidth - 500) / 2;
     const top = (screen.availHeight - 500) / 2;
     window.moveTo(left, top);
