@@ -2,7 +2,7 @@ const {test, expect} = require('@playwright/test');
 
 test.describe('Files.md Text Editor Sync Tests', () => {
     test.beforeEach(async ({page}) => {
-        await page.goto('');
+        await page.goto('/app.html');
 
         await page.waitForSelector('.CodeMirror', {timeout: 10000});
         await page.waitForSelector('#sidebar-tree', {timeout: 5000});

@@ -11,11 +11,17 @@ module.exports = defineConfig({
     reporter: 'html',
 
     use: {
-        baseURL: `file://${path.resolve('../web/app.html')}`,
-        // baseUrl: 'http://app.localhost:8080',
+        // baseURL: `file://${path.resolve('../web/app.html')}`,
+        baseUrl: 'http://app.localhost:3000',
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
         video: 'retain-on-failure',
+    },
+
+    webServer: {
+        command: 'npx http-server ../web -p 3000',
+        port: 3000,
+        reuseExistingServer: !process.env.CI,
     },
 
     projects: [
@@ -32,12 +38,4 @@ module.exports = defineConfig({
         //     use: { ...devices['Desktop Safari'] },
         // },
     ],
-
-    webServer: {
-        command: '../your-server-binary', // Adjust path to your Go binary
-        port: 8080,
-        reuseExistingServer: !process.env.CI,
-        stdout: 'pipe',
-        stderr: 'pipe',
-    },
 });

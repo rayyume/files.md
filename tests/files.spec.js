@@ -1,7 +1,7 @@
 const {test, expect} = require('@playwright/test');
 
 test('should load files from OPFS', async ({ page }) => {
-    await page.goto('http://app.localhost:8080/');
+    await page.goto('/app.html');
 
     await page.evaluate(() => {
         window.getRootDirHandle = async function() {
