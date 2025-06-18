@@ -6,6 +6,7 @@ let isSaving = false;
 let isSyncing = false;
 let isSyncingMedia = false;
 let isSyncingCurrent = false;
+let isLoadingLocalFiles = false;
 
 // In-memory mapping of local file system:
 // {
@@ -43,10 +44,15 @@ const CONFIG_FILENAME = 'config.json';
 // The code is quite messy. We have to make lots of optimizations,
 // otherwise it's going to be slow even with 5K files.
 async function loadLocalFiles(rootDirHandle) {
+    if (isLoadingLocalFiles) {
+        return;
+    }
+
     while (!editor.isClean()) {
         await new Promise(r => setTimeout(r, 50));
     }
 
+    isLoadingLocalFiles = true;
     let newFiles = {};
 
     // Loads files recursively
@@ -106,7 +112,13 @@ async function loadLocalFiles(rootDirHandle) {
         ));
     }
 
-    await loadDir(rootDirHandle);
+    try {
+        await loadDir(rootDirHandle);
+    } catch (error) {
+        console.log(error);
+        isLoadingLocalFiles = false;
+        return;
+    }
 
     // Remove empty dirs
     for (const dir in newFiles) {
@@ -120,6 +132,8 @@ async function loadLocalFiles(rootDirHandle) {
     if (savedMetadata) {
         serverFiles = JSON.parse(savedMetadata);
     }
+
+    isLoadingLocalFiles = false;
 
     return newFiles;
 }
