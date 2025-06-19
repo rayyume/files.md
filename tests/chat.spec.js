@@ -127,7 +127,6 @@ test('send chat message and verify task in today folder', async ({ page }) => {
     await chatInput.click();
     await chatInput.fill('Task2');
 
-    // Send the message by pressing Enter or clicking send button
     await page.keyboard.press('Enter');
     await page.waitForTimeout(500);
 
@@ -135,20 +134,11 @@ test('send chat message and verify task in today folder', async ({ page }) => {
     await page.keyboard.press('Meta+Enter');
     await page.waitForTimeout(200);
 
-    // Verify we're back in editor mode
     expect(await page.isVisible('#content')).toBe(true);
     expect(await page.isVisible('#chat-container')).toBe(false);
 
-    // Reload files to get any updates from chat
-    await page.evaluate(async () => {
-        const rootDirHandle = await getRootDirHandle();
-        files = await loadLocalFiles(rootDirHandle);
-        buildSidebar();
-    });
-
     await page.waitForTimeout(200);
 
-    // Navigate to today folder and check for any new content
     await page.click('#sidebar >> text=today');
     await page.waitForTimeout(100);
     await page.click('#sidebar >> text=Task2');

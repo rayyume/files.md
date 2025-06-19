@@ -77,9 +77,47 @@
 
 .tj_container span.tj_description.selected{
 	background-color: var(--color-bg-active);
-	/*color: var(--color-tx-muted);*/
 }
 
 .tj_container span.tj_description.selected:hover{
 	background-color: var(--color-bg-active);
 }
+
+/*Drag'n'drop styles*/
+.tj_dragging {
+	opacity: 0.5;
+	/*transform: rotate(2deg);*/
+	transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.tj_drop_indicator {
+	position: absolute;
+	height: 2px;
+	background-color: var(--color-tx-alt);
+	opacity: 0;
+	transition: opacity 0.2s ease;
+	pointer-events: none;
+}
+
+.tj_drop_indicator.active {
+	opacity: 1;
+}
+
+.tj_drop_target {
+	background-color: var(--color-bg-active) !important;
+	/*border: 2px solid var(--color-border) !important;*/
+	border-radius: 5px;
+}
+
+.tj_description[draggable="true"] {
+	cursor: grab;
+}
+
+.tj_description[draggable="true"]:active {
+	cursor: grabbing;
+}
+
+/*.tj_container .tj_description[draggable="true"]:hover {*/
+/*	background-color: var(--color-bg-active);*/
+/*	!*border: 1px solid transparent;*!*/
+/*}*/

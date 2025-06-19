@@ -5,280 +5,6 @@
  * @author Matthias Thalmann
  */
 
-function TreeView(root, container, options) {
-    var self = this;
-
-    if (typeof root === "undefined") {
-        throw new Error("Parameter 1 must be set (root)");
-    }
-
-    if (!(root instanceof TreeNode)) {
-        throw new Error("Parameter 1 must be of type TreeNode");
-    }
-
-    if (container) {
-        if (!TreeUtil.isDOM(container)) {
-            container = document.querySelector(container);
-
-            if (container instanceof Array) {
-                container = container[0];
-            }
-
-            if (!TreeUtil.isDOM(container)) {
-                throw new Error("Parameter 2 must be either DOM-Object or CSS-QuerySelector (#, .)");
-            }
-        }
-    } else {
-        container = null;
-    }
-
-    if (!options || typeof options !== "object") {
-        options = {};
-    }
-
-    /*
-    * Methods
-    */
-    this.setRoot = function (_root) {
-        if (root instanceof TreeNode) {
-            root = _root;
-        }
-    }
-
-    this.getRoot = function () {
-        return root;
-    }
-
-    this.expandAllNodes = function () {
-        root.setExpanded(true);
-
-        root.getChildren().forEach(function (child) {
-            TreeUtil.expandNode(child);
-        });
-    }
-
-    this.expandPath = function (path) {
-        if (!(path instanceof TreePath)) {
-            throw new Error("Parameter 1 must be of type TreePath");
-        }
-
-        path.getPath().forEach(function (node) {
-            node.setExpanded(true);
-        });
-    }
-
-    this.collapseAllNodes = function () {
-        root.setExpanded(false);
-
-        root.getChildren().forEach(function (child) {
-            TreeUtil.collapseNode(child);
-        });
-    }
-
-    this.setContainer = function (_container) {
-        if (TreeUtil.isDOM(_container)) {
-            container = _container;
-        } else {
-            _container = document.querySelector(_container);
-
-            if (_container instanceof Array) {
-                _container = _container[0];
-            }
-
-            if (!TreeUtil.isDOM(_container)) {
-                throw new Error("Parameter 1 must be either DOM-Object or CSS-QuerySelector (#, .)");
-            }
-        }
-    }
-
-    this.getContainer = function () {
-        return container;
-    }
-
-    this.setOptions = function (_options) {
-        if (typeof _options === "object") {
-            options = _options;
-        }
-    }
-
-    this.changeOption = function (option, value) {
-        options[option] = value;
-    }
-
-    this.getOptions = function () {
-        return options;
-    }
-
-    // TODO: set selected key: up down; expand right; collapse left; enter: open;
-    this.getSelectedNodes = function () {
-        return TreeUtil.getSelectedNodesForNode(root);
-    }
-
-    this.reload = function () {
-        if (container == null) {
-            console.warn("No container specified");
-            return;
-        }
-
-        container.classList.add("tj_container");
-
-        var cnt = document.createElement("ul");
-
-        if (TreeUtil.getProperty(options, "show_root", true)) {
-            cnt.appendChild(renderNode(root));
-        } else {
-            root.getChildren().forEach(function (child) {
-                cnt.appendChild(renderNode(child));
-            });
-        }
-
-        container.innerHTML = "";
-        container.appendChild(cnt);
-    }
-
-    function renderNode(node) {
-        var li_outer = document.createElement("li");
-        var span_desc = document.createElement("span");
-        span_desc.className = "tj_description";
-        span_desc.tj_node = node;
-
-        if (!node.isEnabled()) {
-            li_outer.setAttribute("disabled", "");
-            node.setExpanded(false);
-            node.setSelected(false);
-        }
-
-        if (node.isSelected()) {
-            span_desc.classList.add("selected");
-        }
-
-        span_desc.addEventListener("click", function (e) {
-            var cur_el = e.target;
-
-            while (typeof cur_el.tj_node === "undefined" || cur_el.classList.contains("tj_container")) {
-                cur_el = cur_el.parentElement;
-            }
-
-            var node_cur = cur_el.tj_node;
-
-            if (typeof node_cur === "undefined") {
-                return;
-            }
-
-            if (node_cur.isEnabled()) {
-                if (e.ctrlKey == false) {
-                    if (!node_cur.isLeaf()) {
-                        node_cur.toggleExpanded();
-                        self.reload();
-                    } else {
-                        node_cur.open();
-                    }
-
-                    node_cur.on("click")(e, node_cur);
-                }
-
-
-                if (e.ctrlKey == true) {
-                    node_cur.toggleSelected();
-                    self.reload();
-                } else {
-                    var rt = node_cur.getRoot();
-
-                    if (rt instanceof TreeNode) {
-                        TreeUtil.getSelectedNodesForNode(rt).forEach(function (_nd) {
-                            _nd.setSelected(false);
-                        });
-                    }
-                    node_cur.setSelected(true);
-
-                    self.reload();
-                }
-            }
-        });
-
-        span_desc.addEventListener("contextmenu", function (e) {
-            var cur_el = e.target;
-
-            while (typeof cur_el.tj_node === "undefined" || cur_el.classList.contains("tj_container")) {
-                cur_el = cur_el.parentElement;
-            }
-
-            var node_cur = cur_el.tj_node;
-
-            if (typeof node_cur === "undefined") {
-                return;
-            }
-
-            if (typeof node_cur.getListener("contextmenu") !== "undefined") {
-                node_cur.on("contextmenu")(e, node_cur);
-                e.preventDefault();
-            } else if (typeof TreeConfig.context_menu === "function") {
-                TreeConfig.context_menu(e, node_cur);
-                e.preventDefault();
-            }
-        });
-
-        if (node.isLeaf() && !TreeUtil.getProperty(node.getOptions(), "forceParent", false)) {
-            var ret = '';
-            var icon = TreeUtil.getProperty(node.getOptions(), "icon", "");
-            if (icon != "") {
-                ret += '<span class="tj_icon">' + icon + '</span>';
-            } else if ((icon = TreeUtil.getProperty(options, "leaf_icon", "")) != "") {
-                ret += '<span class="tj_icon">' + icon + '</span>';
-            } else {
-                ret += '<span class="tj_icon">' + TreeConfig.leaf_icon + '</span>';
-            }
-
-            span_desc.innerHTML = ret + node.toString() + "</span>";
-            span_desc.classList.add("tj_leaf");
-
-            li_outer.appendChild(span_desc);
-        } else {
-            var ret = '';
-            if (node.isExpanded()) {
-                ret += '<span class="tj_mod_icon">' + TreeConfig.open_icon + '</span>';
-            } else {
-                if (node.toString().startsWith('_')) {
-                    ret += '<span class="tj_mod_icon">' + TreeConfig.checklists_icon + '</span>';
-                } else if (node.toString() === 'today' || node.toString() === 'later') {
-                    ret += '<span class="tj_mod_icon">' + TreeConfig.tasks_icon + '</span>';
-                } else {
-                    ret += '<span class="tj_mod_icon">' + TreeConfig.close_icon + '</span>';
-                }
-            }
-
-            var icon = TreeUtil.getProperty(node.getOptions(), "icon", "");
-            icon = '';
-            if (icon != "") {
-                ret += '<span class="tj_icon">' + icon + '</span>';
-            } else if ((icon = TreeUtil.getProperty(options, "parent_icon", "")) != "") {
-                ret += '<span class="tj_icon">' + icon + '</span>';
-            } else {
-                ret += '<span class="tj_icon">' + TreeConfig.parent_icon + '</span>';
-            }
-
-            span_desc.innerHTML = ret + node.toString() + '</span>';
-
-            li_outer.appendChild(span_desc);
-
-            if (node.isExpanded()) {
-                var ul_container = document.createElement("ul");
-
-                node.getChildren().forEach(function (child) {
-                    ul_container.appendChild(renderNode(child));
-                });
-
-                li_outer.appendChild(ul_container)
-            }
-        }
-
-        return li_outer;
-    }
-
-    if (typeof container !== "undefined")
-        this.reload();
-}
-
 function TreeNode(userObject, options) {
     var children = new Array();
     var self = this;
@@ -588,6 +314,450 @@ function TreePath(root, node) {
     }
 }
 
+function TreeView(root, container, options) {
+    var self = this;
+    var draggedNode = null;
+    var draggedElement = null;
+    var dropIndicator = null;
+
+    if (typeof root === "undefined") {
+        throw new Error("Parameter 1 must be set (root)");
+    }
+
+    if (!(root instanceof TreeNode)) {
+        throw new Error("Parameter 1 must be of type TreeNode");
+    }
+
+    if (container) {
+        if (!TreeUtil.isDOM(container)) {
+            container = document.querySelector(container);
+
+            if (container instanceof Array) {
+                container = container[0];
+            }
+
+            if (!TreeUtil.isDOM(container)) {
+                throw new Error("Parameter 2 must be either DOM-Object or CSS-QuerySelector (#, .)");
+            }
+        }
+    } else {
+        container = null;
+    }
+
+    if (!options || typeof options !== "object") {
+        options = {};
+    }
+
+
+
+    function createDropIndicator() {
+        const indicator = document.createElement('div');
+        indicator.className = 'tj_drop_indicator';
+        return indicator;
+    }
+
+    function findNodeElement(element) {
+        while (element && !element.tj_node) {
+            element = element.parentElement;
+        }
+        return element;
+    }
+
+    function getDropPosition(e, element) {
+        const rect = element.getBoundingClientRect();
+        const y = e.clientY - rect.top;
+        const height = rect.height;
+
+        if (y < height * 0.25) return 'before';
+        if (y > height * 0.75) return 'after';
+        return 'inside';
+    }
+
+    this.setRoot = function (_root) {
+        if (root instanceof TreeNode) {
+            root = _root;
+        }
+    }
+
+    this.getRoot = function () {
+        return root;
+    }
+
+    this.expandAllNodes = function () {
+        root.setExpanded(true);
+        root.getChildren().forEach(function (child) {
+            TreeUtil.expandNode(child);
+        });
+    }
+
+    this.expandPath = function (path) {
+        if (!(path instanceof TreePath)) {
+            throw new Error("Parameter 1 must be of type TreePath");
+        }
+        path.getPath().forEach(function (node) {
+            node.setExpanded(true);
+        });
+    }
+
+    this.collapseAllNodes = function () {
+        root.setExpanded(false);
+        root.getChildren().forEach(function (child) {
+            TreeUtil.collapseNode(child);
+        });
+    }
+
+    this.setContainer = function (_container) {
+        if (TreeUtil.isDOM(_container)) {
+            container = _container;
+        } else {
+            _container = document.querySelector(_container);
+            if (_container instanceof Array) {
+                _container = _container[0];
+            }
+            if (!TreeUtil.isDOM(_container)) {
+                throw new Error("Parameter 1 must be either DOM-Object or CSS-QuerySelector (#, .)");
+            }
+        }
+    }
+
+    this.getContainer = function () {
+        return container;
+    }
+
+    this.setOptions = function (_options) {
+        if (typeof _options === "object") {
+            options = _options;
+        }
+    }
+
+    this.changeOption = function (option, value) {
+        options[option] = value;
+    }
+
+    this.getOptions = function () {
+        return options;
+    }
+
+    this.getSelectedNodes = function () {
+        return TreeUtil.getSelectedNodesForNode(root);
+    }
+
+    this.reload = function () {
+        if (container == null) {
+            console.warn("No container specified");
+            return;
+        }
+
+        container.classList.add("tj_container");
+        var cnt = document.createElement("ul");
+
+        if (TreeUtil.getProperty(options, "show_root", true)) {
+            cnt.appendChild(renderNode(root));
+        } else {
+            root.getChildren().forEach(function (child) {
+                cnt.appendChild(renderNode(child));
+            });
+        }
+
+        container.innerHTML = "";
+        container.appendChild(cnt);
+        setupContainerDropZone();
+    }
+
+    function setupContainerDropZone() {
+        container.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        });
+
+        container.addEventListener('drop', function(e) {
+            e.preventDefault();
+            if (dropIndicator) {
+                dropIndicator.remove();
+                dropIndicator = null;
+            }
+
+            if (e.dataTransfer.files.length > 0) {
+                handleExternalFileDrop(e);
+            }
+        });
+    }
+
+    function handleExternalFileDrop(e) {
+        const files = Array.from(e.dataTransfer.files);
+        files.forEach(file => {
+            if (file.type === 'text/plain' || file.name.endsWith('.md')) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const content = event.target.result;
+                    const fileName = file.name.replace(/\.[^/.]+$/, "");
+
+                    if (typeof window.handleDroppedFile === 'function') {
+                        window.handleDroppedFile(fileName, content);
+                    } else {
+                        console.log('Dropped file:', fileName, content);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+    }
+
+    function renderNode(node) {
+        var li_outer = document.createElement("li");
+        var span_desc = document.createElement("span");
+        span_desc.className = "tj_description";
+        span_desc.tj_node = node;
+
+        if (node.isLeaf()) {
+            span_desc.draggable = true;
+        }
+
+        if (!node.isEnabled()) {
+            li_outer.setAttribute("disabled", "");
+            node.setExpanded(false);
+            node.setSelected(false);
+        }
+
+        if (node.isSelected()) {
+            span_desc.classList.add("selected");
+        }
+
+        span_desc.addEventListener("dragstart", function(e) {
+            if (!node.isLeaf()) return;
+
+            draggedNode = node;
+            draggedElement = span_desc;
+            span_desc.classList.add("tj_dragging");
+
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', node.toString());
+            e.dataTransfer.setDragImage(span_desc, -10, span_desc.offsetHeight / 2);
+        });
+
+        span_desc.addEventListener("dragend", function(e) {
+            span_desc.classList.remove("tj_dragging");
+            if (dropIndicator) {
+                dropIndicator.remove();
+                dropIndicator = null;
+            }
+            draggedNode = null;
+            draggedElement = null;
+        });
+
+        span_desc.addEventListener("dragover", function(e) {
+            e.preventDefault();
+            if (!draggedNode || draggedNode === node) return;
+
+            const position = getDropPosition(e, span_desc);
+
+            if (dropIndicator) dropIndicator.remove();
+            dropIndicator = createDropIndicator();
+
+            if (position === 'before') {
+                const rect = li_outer.getBoundingClientRect();
+                dropIndicator.style.top = rect.top + 'px';
+                dropIndicator.style.left = rect.left + 'px';
+                dropIndicator.style.width = rect.width + 'px';
+                document.body.appendChild(dropIndicator);
+            } else if (position === 'after') {
+                const rect = li_outer.getBoundingClientRect();
+                dropIndicator.style.top = rect.bottom + 'px';
+                dropIndicator.style.left = rect.left + 'px';
+                dropIndicator.style.width = rect.width + 'px';
+                document.body.appendChild(dropIndicator);
+            } else if (position === 'inside' && !node.isLeaf()) {
+                span_desc.classList.add("tj_drop_target");
+                return;
+            }
+
+            dropIndicator.classList.add("active");
+        });
+
+        span_desc.addEventListener("dragleave", function(e) {
+            span_desc.classList.remove("tj_drop_target");
+        });
+
+        span_desc.addEventListener("drop", function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            span_desc.classList.remove("tj_drop_target");
+
+            if (!draggedNode || draggedNode === node) return;
+
+            const position = getDropPosition(e, span_desc);
+
+            if (typeof window.handleNodeMove === 'function') {
+                const sourceDir = draggedNode.parent ? draggedNode.parent.toString() : '';
+                const sourceFile = draggedNode.toString() + '.md';
+
+                let targetDir = '';
+                if (position === 'inside' && !node.isLeaf()) {
+                    targetDir = node.toString();
+                } else {
+                    targetDir = node.parent ? node.parent.toString() : '';
+                }
+
+                window.handleNodeMove(sourceDir, sourceFile, targetDir);
+            }
+
+            if (dropIndicator) {
+                dropIndicator.remove();
+                dropIndicator = null;
+            }
+        });
+
+        span_desc.addEventListener("click", function (e) {
+            var cur_el = e.target;
+
+            while (typeof cur_el.tj_node === "undefined" || cur_el.classList.contains("tj_container")) {
+                cur_el = cur_el.parentElement;
+            }
+
+            var node_cur = cur_el.tj_node;
+
+            if (typeof node_cur === "undefined") {
+                return;
+            }
+
+            if (node_cur.isEnabled()) {
+                if (e.ctrlKey == false) {
+                    if (!node_cur.isLeaf()) {
+                        node_cur.toggleExpanded();
+                        self.reload();
+                    } else {
+                        node_cur.open();
+                    }
+
+                    node_cur.on("click")(e, node_cur);
+                }
+
+                if (e.ctrlKey == true) {
+                    node_cur.toggleSelected();
+                    self.reload();
+                } else {
+                    var rt = node_cur.getRoot();
+
+                    if (rt instanceof TreeNode) {
+                        TreeUtil.getSelectedNodesForNode(rt).forEach(function (_nd) {
+                            _nd.setSelected(false);
+                        });
+                    }
+                    node_cur.setSelected(true);
+
+                    self.reload();
+                }
+            }
+        });
+
+        span_desc.addEventListener("contextmenu", function (e) {
+            var cur_el = e.target;
+
+            while (typeof cur_el.tj_node === "undefined" || cur_el.classList.contains("tj_container")) {
+                cur_el = cur_el.parentElement;
+            }
+
+            var node_cur = cur_el.tj_node;
+
+            if (typeof node_cur === "undefined") {
+                return;
+            }
+
+            if (typeof node_cur.getListener("contextmenu") !== "undefined") {
+                node_cur.on("contextmenu")(e, node_cur);
+                e.preventDefault();
+            } else if (typeof TreeConfig.context_menu === "function") {
+                TreeConfig.context_menu(e, node_cur);
+                e.preventDefault();
+            }
+        });
+
+        if (node.isLeaf() && !TreeUtil.getProperty(node.getOptions(), "forceParent", false)) {
+            var ret = '';
+            var icon = TreeUtil.getProperty(node.getOptions(), "icon", "");
+            if (icon != "") {
+                ret += '<span class="tj_icon">' + icon + '</span>';
+            } else if ((icon = TreeUtil.getProperty(options, "leaf_icon", "")) != "") {
+                ret += '<span class="tj_icon">' + icon + '</span>';
+            } else {
+                ret += '<span class="tj_icon">' + TreeConfig.leaf_icon + '</span>';
+            }
+
+            span_desc.innerHTML = ret + node.toString() + "</span>";
+            span_desc.classList.add("tj_leaf");
+
+            li_outer.appendChild(span_desc);
+        } else {
+            var ret = '';
+            if (node.isExpanded()) {
+                ret += '<span class="tj_mod_icon">' + TreeConfig.open_icon + '</span>';
+            } else {
+                if (node.toString().startsWith('_')) {
+                    ret += '<span class="tj_mod_icon">' + TreeConfig.checklists_icon + '</span>';
+                } else if (node.toString() === 'today' || node.toString() === 'later') {
+                    ret += '<span class="tj_mod_icon">' + TreeConfig.tasks_icon + '</span>';
+                } else {
+                    ret += '<span class="tj_mod_icon">' + TreeConfig.close_icon + '</span>';
+                }
+            }
+
+            var icon = TreeUtil.getProperty(node.getOptions(), "icon", "");
+            icon = '';
+            if (icon != "") {
+                ret += '<span class="tj_icon">' + icon + '</span>';
+            } else if ((icon = TreeUtil.getProperty(options, "parent_icon", "")) != "") {
+                ret += '<span class="tj_icon">' + icon + '</span>';
+            } else {
+                ret += '<span class="tj_icon">' + TreeConfig.parent_icon + '</span>';
+            }
+
+            span_desc.innerHTML = ret + node.toString() + '</span>';
+
+            li_outer.appendChild(span_desc);
+
+            if (node.isExpanded()) {
+                var ul_container = document.createElement("ul");
+
+                node.getChildren().forEach(function (child) {
+                    ul_container.appendChild(renderNode(child));
+                });
+
+                li_outer.appendChild(ul_container)
+            }
+        }
+
+        return li_outer;
+    }
+
+    if (typeof container !== "undefined")
+        this.reload();
+}
+
+window.handleNodeMove = async function(sourceDir, sourceFile, targetDir) {
+    console.log(`Moving ${sourceDir}/${sourceFile} to ${targetDir}/`);
+
+    if (typeof moveCurrentFileToDir === 'function') {
+        await moveCurrentFileToDir(sourceDir, sourceFile, targetDir);
+    }
+
+    if (typeof buildSidebar === 'function') {
+        buildSidebar();
+    }
+};
+
+window.handleDroppedFile = async function(fileName, content) {
+    console.log(`Creating new file: ${fileName}`, content);
+
+    if (typeof createFileFromContent === 'function') {
+        await createFileFromContent(fileName + '.md', content);
+    }
+
+    if (typeof buildSidebar === 'function') {
+        buildSidebar();
+    }
+};
+
 /*
 * Util-Methods
 */
@@ -665,6 +835,30 @@ const TreeUtil = {
         });
 
         return ret;
+    }
+};
+
+window.handleNodeMove = async function(sourceDir, sourceFile, targetDir) {
+    console.log(`Moving ${sourceDir}/${sourceFile} to ${targetDir}/`);
+
+    if (typeof moveCurrentFileToDir === 'function') {
+        await moveCurrentFileToDir(sourceDir, sourceFile, targetDir);
+    }
+
+    if (typeof buildSidebar === 'function') {
+        buildSidebar();
+    }
+};
+
+window.handleDroppedFile = async function(fileName, content) {
+    console.log(`Creating new file: ${fileName}`, content);
+
+    if (typeof createFileFromContent === 'function') {
+        await createFileFromContent(fileName + '.md', content);
+    }
+
+    if (typeof buildSidebar === 'function') {
+        buildSidebar();
     }
 };
 
