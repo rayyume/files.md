@@ -25,7 +25,7 @@ let isLoadingLocalFiles = false;
 //     ...
 //   ]
 // }
-let files = [];
+let files = []; // In-memory representation of files.
 let serverFiles = {files: {}, media: {}, timestamps: {}, mediaTimestamp: 0};
 const SERVER_STORAGE_KEY = 'files';
 const SUPPORTED_EXTENSIONS = ['md', 'txt', 'png', 'jpg', 'jpeg', 'webp', 'gif',];
@@ -758,6 +758,30 @@ async function moveCurrentFile(toDir) {
     isSyncingCurrent = false;
 }
 
+// TODO lock on files modification?
+function addFileToMemory(dir, filename, fileData) {
+    // Ensure directory exists
+    if (!files[dir]) {
+        files[dir] = {};
+    }
+
+    files[dir][filename] = fileData;
+    const sortedFiles = {};
+    const sortedKeys = Object.keys(files[dir]).sort((a, b) => a.localeCompare(b));
+    for (const key of sortedKeys) {
+        sortedFiles[key] = files[dir][key];
+    }
+    files[dir] = sortedFiles;
+
+    const sortedDirs = {};
+    const sortedDirKeys = Object.keys(files).sort((a, b) => a.localeCompare(b));
+    for (const dirKey of sortedDirKeys) {
+        sortedDirs[dirKey] = files[dirKey];
+    }
+
+    files = sortedDirs;
+}
+
 async function moveFile(oldPath, newPath) {
     const oldParts = oldPath.split('/');
     const oldFilename = oldParts.pop();
@@ -773,11 +797,11 @@ async function moveFile(oldPath, newPath) {
         await saveTextFile(newPath, content);
 
         console.log('saving ' + newDir + '/' + newFilename);
-        files[newDir][newFilename] = {
+        addFileToMemory(newDir, newFilename,  {
             content: content,
             lastModified: 0,
             handle: await getFileHandle(newPath),
-        }
+        });
         setServerFile(newPath, content, 0);
         saveServerFiles();
 
@@ -880,11 +904,11 @@ async function syncCurrentFile() {
             delete files[editor.currentDir][editor.currentFile];
             console.log('Removed', `${editor.currentDir}/${editor.currentFile}`);
             // TODO Way to verbose, to we want to mess with it like this?
-            files[editor.currentDir][newFilename] = {
+            addFileToMemory(editor.currentDir, newFilename, {
                 content: getCurrentContent(),
                 lastModified: 0,
                 handle: await getFileHandle(toPath(editor.currentDir, newFilename), true),
-            }
+            });
             editor.currentFile = newFilename;
 
             const path = `${editor.currentDir}/${editor.currentFile}`;

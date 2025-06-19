@@ -428,12 +428,12 @@ async function newFile() {
     }
 
     let handle = await getFileHandle(toPath(dir, filename), true);
-    files[dir][filename] = {
+    addFileToMemory(dir, filename, {
         content: "",
         lastModified: 0,
         handle: handle,
         imageUrl: null
-    };
+    });
 
     await openFile(dir, filename);
     editor.setCursor({line: 0, ch: 0});

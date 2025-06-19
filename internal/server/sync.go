@@ -205,6 +205,7 @@ func SyncTexts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Calculate deletions for client (files that exist on client but not on server)
+	// NO real delete yet
 	deletions := make([]string, 0)
 	for clientPath := range request.Timestamps {
 		if _, existsOnServer := serverTimestamps[clientPath]; !existsOnServer {
