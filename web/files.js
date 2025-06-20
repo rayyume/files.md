@@ -867,7 +867,8 @@ function getUserId() {
 // 1) Save current content to local filesystem
 // 2) Sync it with the server
 // TODO add hash of last read file comparison, merge on conflict (in which scenarious in can happen tho?)
-async function syncCurrentFile() {
+// TODO add lock / RC for currentFile change
+async function syncCurrentFile(syncWithServer = true) {
     if (debug) {
         return;
     }
@@ -895,6 +896,7 @@ async function syncCurrentFile() {
     }
     isSyncingCurrent = true;
 
+    // Track renaming.
     try {
         // TODO track if no first line?
         const firstLine = editor.getValue().split('\n')[0];
@@ -982,6 +984,8 @@ async function syncCurrentFile() {
                 }
             }
         } catch (error) {
+            // TODO We might switch to another current file.
+
             console.error("Error during save:", error);
             isSaving = false;
             // Revert doc back to dirty state
@@ -993,11 +997,14 @@ async function syncCurrentFile() {
         isSaving = false;
     }
 
-    try {
-        await syncLocalFileWithServer(editor.currentDir, editor.currentFile);
-    } catch (error) {
-        console.error("Error during sync with server:", error);
+    if (syncWithServer) {
+        try {
+            await syncLocalFileWithServer(editor.currentDir, editor.currentFile);
+        } catch (error) {
+            console.error("Error during sync with server:", error);
+        }
     }
+
     isSyncingCurrent = false;
 }
 

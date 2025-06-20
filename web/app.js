@@ -362,6 +362,8 @@ async function showRandomFile() {
 }
 
 async function openFile(dir, filename, saveToHistory = true) {
+    await syncCurrentFile(false);
+
     const start = performance.now();
     filename = filename.normalize("NFC");
     const fileData = files[dir][filename];

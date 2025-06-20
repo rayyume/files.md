@@ -213,10 +213,10 @@ test('create dirs and move', async ({ page }) => {
     await page.click('#new-file');
     await page.waitForTimeout(100);
     await page.keyboard.type('file1');
-    await page.waitForTimeout(200);
+    // await page.waitForTimeout(500); // TODO shoudln't be rc, maybe save file on focus out or something
     await page.keyboard.press('Enter');
     await page.keyboard.type('content');
-    await page.waitForTimeout(300);
+    // await page.waitForTimeout(300);
 
     await page.click('#new-folder');
     await page.waitForTimeout(100);
