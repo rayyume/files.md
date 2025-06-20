@@ -235,6 +235,8 @@ async function syncTextsWithServer() {
     console.log("Sync completed in " + (performance.now() - startTime) + "ms");
 
     isSyncing = false;
+
+    updateSidebar();
 }
 
 async function syncLocalFileWithServer(dir, filename) {

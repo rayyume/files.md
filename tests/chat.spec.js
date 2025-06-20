@@ -139,8 +139,6 @@ test('send chat message and verify task in today folder', async ({ page }) => {
 
     await page.waitForTimeout(200);
 
-    await page.click('#sidebar >> text=today');
-    await page.waitForTimeout(100);
     await page.click('#sidebar >> text=Task2');
     await page.waitForTimeout(200);
 

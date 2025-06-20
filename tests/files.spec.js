@@ -244,7 +244,7 @@ test('create dirs and move', async ({ page }) => {
     await page.waitForTimeout(500);
 
 
-    await page.click('#sidebar-tree li:has-text("dir1")');
+    // await page.click('#sidebar-tree li:has-text("dir1")');
     await page.click('#sidebar-tree li:has-text("dir1") ul li:has-text("File1")')
 
     await page.click('#sidebar-tree li:has-text("File2")');
