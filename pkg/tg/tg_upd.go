@@ -3,6 +3,7 @@ package tg
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"slices"
 	"strconv"
 	"strings"
@@ -51,7 +52,8 @@ func (u *TGUpd) UserID() int64 {
 	case u.raw.InlineQuery != nil && u.raw.InlineQuery.From != nil:
 		return u.raw.InlineQuery.From.ID
 	default:
-		panic(errNoUserID)
+		jsonData, _ := json.Marshal(u.raw)
+		panic(fmt.Sprintf("%v: %s", errNoUserID, string(jsonData)))
 	}
 }
 
