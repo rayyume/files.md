@@ -63,6 +63,14 @@ async function init(el) {
 }
 
 function initEditor(el) {
+    if (editor !== undefined) {
+        editor.off();
+        const wrapper = editor.getWrapperElement();
+        if (wrapper && wrapper.parentNode) {
+            wrapper.parentNode.removeChild(wrapper);
+        }
+    }
+
     editor = HyperMD.fromTextArea(el, {
         dragDrop: false,
         viewportMargin: Infinity,
@@ -382,12 +390,6 @@ async function openFile(dir, filename, saveToHistory = true) {
     if (saveToHistory) {
         const state = {dir: dir, file: filename};
         history.pushState(state, '');
-    }
-
-    editor.off();
-    const wrapper = editor.getWrapperElement();
-    if (wrapper && wrapper.parentNode) {
-        wrapper.parentNode.removeChild(wrapper);
     }
 
     initEditor(document.getElementById('editor'));

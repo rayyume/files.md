@@ -42,9 +42,8 @@ test('should load files', async ({ page }) => {
 test('create new in subfolder', async ({ page }) => {
     await page.evaluate(() => {
         window.getRootDirHandle = async function() {
-            // Your mock code here
-            const opfsRoot = await navigator.storage.getDirectory();
-            const testDir = await opfsRoot.getDirectoryHandle('dir', { create: true });
+            const root = await navigator.storage.getDirectory();
+            const subDir = await root.getDirectoryHandle('dir', { create: true });
 
             const testFiles = [
                 { name: 'README.md', content: 'Hello world' },
@@ -53,16 +52,16 @@ test('create new in subfolder', async ({ page }) => {
 
             for (const fileData of testFiles) {
                 try {
-                    await testDir.getFileHandle(fileData.name);
+                    await subDir.getFileHandle(fileData.name);
                 } catch (error) {
-                    const fileHandle = await testDir.getFileHandle(fileData.name, { create: true });
+                    const fileHandle = await subDir.getFileHandle(fileData.name, { create: true });
                     const writable = await fileHandle.createWritable();
                     await writable.write(fileData.content);
                     await writable.close();
                 }
             }
 
-            return opfsRoot;
+            return root;
         };
     });
 
