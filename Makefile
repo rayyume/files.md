@@ -60,7 +60,7 @@ deploy: # deploy as systemd service
 	GOOS=linux GOARCH=amd64 go build -o /tmp/bot ./cmd/tgbot && \
 	printf "$${GREEN}Build Completed$${RESET}\n" && \
 	scp /tmp/bot $(host):/app/bot.new && printf "$${GREEN}The binary is copied on the server$${RESET}\n" && \
-	ssh $(host) "mv /app/bot.new /app/bot && systemctl restart bot.service" && \
+	ssh $(host) "mv /app/bot.new /app/bot && systemctl daemon-reload && systemctl restart bot.service" && \
 	rm /tmp/bot && \
 	tar --no-xattrs --disable-copyfile --no-fflags -czf web.tar.gz web && \
     scp web.tar.gz files:/app/ && \
@@ -80,7 +80,7 @@ deploy_binary: # deploy as regular binary
 	printf "$${GREEN}Build Completed$${RESET}\n" && \
 	ssh $(host) "killall bot || true" && \
 	scp /tmp/bot $(host):/app/bot && printf "$${GREEN}The binary is copied on the server$${RESET}\n" && \
-  ssh $(host) "sudo setcap 'cap_net_bind_service=+ep' /app/bot" && \
+  	ssh $(host) "sudo setcap 'cap_net_bind_service=+ep' /app/bot" && \
 	ssh $(host) "su -c \"cd /app && nohup ./bot >> /app/log 2>>/app/err &\" -s /bin/sh www-data" && \
 	rm /tmp/bot && \
 	printf "$${GREEN}Successfully deployed!$${RESET}\n"

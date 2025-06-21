@@ -130,5 +130,17 @@ func SyncMedia(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.ServeFile(w, r, filepath.Join(StorageDir, fs.DirMedia, clientMedia.Path))
+	path := filepath.Join(userFS.RootPath, fs.DirMedia, clientMedia.Path)
+	isSafe, err := userFS.IsSafe(path)
+	if err != nil {
+		log.Printf("Error checking if path is safe: %v", err)
+		http.Error(w, "Error checking path safety", http.StatusInternalServerError)
+		return
+	}
+	if !isSafe {
+		http.Error(w, "Unsafe path", http.StatusBadRequest)
+		return
+	}
+
+	http.ServeFile(w, r, path)
 }

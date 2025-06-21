@@ -348,10 +348,10 @@ func TestFSPathTraversalAttack(t *testing.T) {
 	fs, _ := NewFS("/", afero.NewMemMapFs())
 	fs.RootPath = "/"
 
-	path := fs.UnsafePath("../root/.ssh/", "authorized_keys")
+	path := fs.unsafePath("../root/.ssh/", "authorized_keys")
 	r.Equal("/root/.ssh/authorized_keys", path)
 
-	path = fs.UnsafePath("note", "../root/.ssh/authorized_keys")
+	path = fs.unsafePath("note", "../root/.ssh/authorized_keys")
 	r.Equal("/root/.ssh/authorized_keys", path)
 }
 
@@ -381,25 +381,25 @@ func TestIsSafeWrongRoot(t *testing.T) {
 	r := require.New(t)
 
 	fs, _ := NewFS("/a", afero.NewMemMapFs())
-	r.False(fs.isSafe("/b"))
+	r.False(fs.IsSafe("/b"))
 }
 
 func TestIsSafePathTraversalAttack(t *testing.T) {
 	r := require.New(t)
 
 	fs, _ := NewFS("/a", afero.NewMemMapFs())
-	r.False(fs.isSafe("/a/../b"))
-	r.False(fs.isSafe("/a/../../b"))
-	r.False(fs.isSafe("./a/../b"))
-	r.False(fs.isSafe("./a/../../b"))
+	r.False(fs.IsSafe("/a/../b"))
+	r.False(fs.IsSafe("/a/../../b"))
+	r.False(fs.IsSafe("./a/../b"))
+	r.False(fs.IsSafe("./a/../../b"))
 }
 
 func TestIsSafePathTraversalAttackWithRelativePaths(t *testing.T) {
 	r := require.New(t)
 
 	fs, _ := NewFS(".", afero.NewMemMapFs())
-	r.False(fs.isSafe("./a/../b"))
-	r.False(fs.isSafe("./a/../../b"))
+	r.False(fs.IsSafe("./a/../b"))
+	r.False(fs.IsSafe("./a/../../b"))
 }
 
 func TestUnhashRootDirectory(t *testing.T) {
@@ -566,10 +566,10 @@ func TestUnsafePathSanitization(t *testing.T) {
 
 	fs, _ := NewFS("/1", afero.NewMemMapFs())
 
-	unsafePath := fs.UnsafePath("../", "test.md")
+	unsafePath := fs.unsafePath("../", "test.md")
 	r.Equal("/test.md", unsafePath)
 
-	unsafePath = fs.UnsafePath("safe", "../unsafe.md")
+	unsafePath = fs.unsafePath("safe", "../unsafe.md")
 	r.Equal("/1/unsafe.md", unsafePath)
 }
 
@@ -689,7 +689,7 @@ func FuzzWrite(f *testing.F) {
 
 		r.NoError(err, "Unexpected error for valid inputs dir: '%s', filename: '%s'", dir, filename)
 
-		filePath := userFS.UnsafePath(dir, filename)
+		filePath := userFS.unsafePath(dir, filename)
 		actualContent, readErr := afero.ReadFile(userFS.backend, filePath)
 		r.NoError(readErr, "Error reading file: %s", filePath)
 		r.Equal(content, string(actualContent), "Content mismatch for file: %s", filePath)
