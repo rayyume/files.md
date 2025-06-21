@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 	"sync"
@@ -56,6 +57,13 @@ func UserID(token string) (int64, bool) {
 }
 
 func IssueToken(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("PANIC in IssueToken: %v", r)
+			http.Error(w, "Internal server error", 500)
+		}
+	}()
+
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return

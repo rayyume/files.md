@@ -37,8 +37,8 @@ func NewCmd(name string, params []string) Cmd {
 	return Cmd{name, params, "cmd"}
 }
 
-func NewURLCmd(name string, url string) Cmd {
-	return Cmd{name, []string{url}, CmdTypeURL}
+func NewURLCmd(url string) Cmd {
+	return Cmd{"", []string{url}, CmdTypeURL}
 }
 
 func NewCustomCmd(name string, params []string, cmdType string) Cmd {
