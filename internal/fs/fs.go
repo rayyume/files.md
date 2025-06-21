@@ -559,7 +559,7 @@ func (fs FS) Ctimes(root, extension string) (map[string]int64, error) {
 		}
 
 		// Only process specified file extension.
-		if extension != "" && !strings.HasSuffix(strings.ToLower(path), extension) {
+		if !info.IsDir() && extension != "" && !strings.HasSuffix(strings.ToLower(path), extension) {
 			return nil
 		}
 
