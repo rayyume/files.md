@@ -558,8 +558,12 @@ func (fs FS) Ctimes(root, extension string) (map[string]int64, error) {
 			return nil
 		}
 
+		if info.IsDir() {
+			return nil
+		}
+
 		// Only process specified file extension.
-		if !info.IsDir() && extension != "" && !strings.HasSuffix(strings.ToLower(path), extension) {
+		if extension != "" && !strings.HasSuffix(strings.ToLower(path), extension) {
 			return nil
 		}
 
