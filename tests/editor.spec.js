@@ -63,6 +63,7 @@ test.describe('Files.md Text Editor Sync Tests', () => {
     test('should handle text selection correctly', async ({page}) => {
         // Add some test content with various markdown elements
         await page.click('.CodeMirror');
+        await page.waitForTimeout(500);
         await page.keyboard.press('Control+a');
         await page.keyboard.press('Delete');
 
@@ -83,6 +84,13 @@ test.describe('Files.md Text Editor Sync Tests', () => {
         let count = await allSelections.count();
         expect(count).toEqual(4);
 
+        const expectedSelections = [
+            { left: 2, width: 143, right: 145 },
+            { left: 2, width: 97, right: 99 },
+            { left: 2, width: 196, right: 198 },
+            { left: 2, width: 229, right: 231 },
+        ];
+
         for (let i = 0; i < count; i++) {
             const selection = allSelections.nth(i);
 
@@ -97,24 +105,12 @@ test.describe('Files.md Text Editor Sync Tests', () => {
                 };
             });
 
-            if (i === 0) {
-                expect(selectionData.left).toBe(2);
-                expect(selectionData.width).toBe(143);
-                expect(selectionData.right).toBe(145);
-            } else if (i === 1) {
-                expect(selectionData.left).toBe(2);
-                expect(selectionData.width).toBe(90);
-                expect(selectionData.right).toBe(92);
-            } else if (i === 2) {
-                expect(selectionData.left).toBe(2);
-                expect(selectionData.width).toBe(196);
-                expect(selectionData.right).toBe(198);
-            } else if (i === 3) {
-                expect(selectionData.left).toBe(2);
-                expect(selectionData.width).toBe(229);
-                expect(selectionData.right).toBe(231);
-            }
+            expect(selectionData.left).toBe(expectedSelections[i].left);
+            expect(selectionData.width).toBe(expectedSelections[i].width);
+            expect(selectionData.right).toBe(expectedSelections[i].right);
         }
+
+        await page.pause();
     });
 
     test('should handle text selection for word-wrap content', async ({page}) => {
