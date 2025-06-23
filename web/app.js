@@ -526,10 +526,14 @@ async function openFile(dir, filename, saveToHistory = true) {
 
 async function newFile() {
     let dir = editor.currentDir || '';
-    // let selectedDirs = tree.getSelectedNodes();
-    // if (selectedDirs.length > 0) {
-    //     dir = selectedDirs[0].toString();
-    // }
+    let selectedDirs = tree.getSelectedNodes();
+    if (selectedDirs.length > 0 &&
+        selectedDirs[0].getOptions &&
+        typeof selectedDirs[0].getOptions === 'function' &&
+        selectedDirs[0].getOptions()['dir'] === true)
+    {
+        dir = selectedDirs[0].toString();
+    }
     // TODO don't create on disk?
     let filename = "New file.md";
 
