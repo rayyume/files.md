@@ -296,12 +296,10 @@ function initEditor(el) {
     });
 
     editor.getWrapperElement().addEventListener('mousedown', function(e) {
+        if (!isMetaKey(e)) return;
+
         const code = e.target.closest('.cm-inline-code');
         if (!code) return;
-
-        const parent = code.parentElement;
-        const hasHiddenBackticks = parent.querySelector('.cm-formatting-code.hmd-hidden-token');
-        if (!hasHiddenBackticks) return;
 
         const text = code.textContent;
         navigator.clipboard.writeText(text);
@@ -671,27 +669,27 @@ function openMoveModal() {
     showMoveResults(getMoveDestinations());
 }
 
-function isModifierKey(event) {
+function isMetaKey(event) {
     return event.metaKey || event.ctrlKey || event.altKey;
 }
 
 // Hotkeys
 window.addEventListener('keydown', async (event) => {
-    if (isModifierKey(event) && event.key === 'p') {
+    if (isMetaKey(event) && event.key === 'p') {
         event.preventDefault();
         event.stopPropagation();
         document.getElementById('search-input').value = ''
         openSearchModal();
     }
 
-    if (isModifierKey(event) && event.key === 'm') {
+    if (isMetaKey(event) && event.key === 'm') {
         event.preventDefault();
         event.stopPropagation();
         document.getElementById('move-input').value = ''
         openMoveModal();
     }
 
-    if (isModifierKey(event) && event.key === 'd') {
+    if (isMetaKey(event) && event.key === 'd') {
         event.preventDefault();
         event.stopPropagation();
 
@@ -707,14 +705,14 @@ window.addEventListener('keydown', async (event) => {
         await updateSidebar();
     }
 
-    if (isModifierKey(event) && event.key === 'k') {
+    if (isMetaKey(event) && event.key === 'k') {
         event.preventDefault();
         event.stopPropagation();
         document.getElementById('search-input').value = ''
         openSearchModal();
     }
 
-    if (isModifierKey(event) && event.key === 'n') {
+    if (isMetaKey(event) && event.key === 'n') {
         event.preventDefault();
         event.stopPropagation();
         event.stopImmediatePropagation();
@@ -1000,7 +998,7 @@ async function switchChat() {
 
 // Toggle focus mode
 document.addEventListener('keydown', function (event) {
-    if (isModifierKey(event) && event.key === 'Enter') {
+    if (isMetaKey(event) && event.key === 'Enter') {
         event.preventDefault();
         switchChat();
 
@@ -1263,7 +1261,7 @@ document.addEventListener('keydown', (e) => {
     if (isChat) {
         return;
     }
-    if (isModifierKey(e) && e.key === 'a') {
+    if (isMetaKey(e) && e.key === 'a') {
         e.preventDefault();
         e.stopPropagation();
         editor.execCommand('selectAll');
