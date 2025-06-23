@@ -140,6 +140,7 @@ async function loadLocalFiles(rootDirHandle) {
 
 // TODO add support for config.json
 async function syncTextsWithServer() {
+    console.log("FILES", files);
     if (localStorage.getItem('token') === null) {
         return;
     }
@@ -306,6 +307,7 @@ async function syncLocalFileWithServer(dir, filename) {
 }
 
 async function syncMedia() {
+    return;
     if (isSyncingMedia) {
         return;
     }
@@ -877,6 +879,7 @@ function saveServerFiles() {
 // TODO add hash of last read file comparison, merge on conflict (in which scenarious in can happen tho?)
 // TODO add lock / RC for currentFile change
 async function syncCurrentFile(syncWithServer = true) {
+    return;
     if (debug) {
         return;
     }
