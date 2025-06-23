@@ -545,3 +545,70 @@ test('move file using keyboard navigation', async ({ page }) => {
     const workFiles = await page.locator('#sidebar >> text=work').locator('..').locator('text=Meeting Notes');
     expect(await workFiles.count()).toBe(1);
 });
+
+test('create file in selected folder', async ({ page }) => {
+    await page.evaluate(() => {
+        window.getRootDirHandle = async function() {
+            const root = await navigator.storage.getDirectory();
+            const testDir = await root.getDirectoryHandle('files', { create: true });
+            await testDir.getDirectoryHandle('projects', { create: true });
+            const rootFiles = [
+                { name: 'README.md', content: 'Hello world' }
+            ];
+
+            for (const fileData of rootFiles) {
+                try {
+                    await root.getFileHandle(fileData.name);
+                } catch (error) {
+                    const fileHandle = await testDir.getFileHandle(fileData.name, { create: true });
+                    const writable = await fileHandle.createWritable();
+                    await writable.write(fileData.content);
+                    await writable.close();
+                }
+            }
+
+            return root;
+        };
+    });
+
+    await page.evaluate(() => {
+        init(document.getElementById("editor"));
+    });
+
+    await page.waitForTimeout(500);
+
+    await page.click('#sidebar >> text=projects');
+    await page.waitForTimeout(100);
+
+    await page.click('#new-file');
+    await page.waitForTimeout(100);
+    await page.keyboard.type('Project file');
+    await page.waitForTimeout(100);
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('File created in projects folder');
+    await page.waitForTimeout(200);
+
+    await page.click('#sidebar >> text=projects');
+    await page.waitForTimeout(200);
+
+    await page.click('#sidebar >> text=files');
+    await page.waitForTimeout(100);
+
+    const projectFileAtRoot = page.locator('#sidebar >> text=Project file');
+    expect(await projectFileAtRoot.count()).toBe(0);
+
+    await page.click('#sidebar >> text=projects');
+    await page.waitForTimeout(200);
+
+    await page.click('#sidebar >> text=Project file');
+    await page.waitForTimeout(100);
+
+    const codeMirrorContent = await page.evaluate(() => {
+        const cm = document.querySelector('.CodeMirror').CodeMirror;
+        return cm.getValue();
+    });
+    expect(codeMirrorContent).toBe("# Project file\nFile created in projects folder\n");
+
+    const projectFiles = await page.locator('#sidebar >> text=projects').locator('..').locator('text=Project file');
+    expect(await projectFiles.count()).toBe(1);
+});
