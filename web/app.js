@@ -67,7 +67,8 @@ async function init(el) {
         document.getElementById('chat').style.display = 'inline';
     }
 
-    const permission = await savedDirHandle.queryPermission({mode: 'read'});
+    const permission = await savedDirHandle.queryPermission({mode: 'readwrite'});
+    console.log('PERMISSION', permission);
     if (permission !== 'granted') {
         document.getElementById('open-folder').style.display = 'inline';
         document.getElementById('new-file').style.display = 'none';
@@ -1057,7 +1058,7 @@ function excludeDirs(excludedDirs) {
 }
 
 async function openDir() {
-    let dirHandle = await window.showDirectoryPicker();
+    let dirHandle = await window.showDirectoryPicker({'mode': 'readwrite'});
     document.getElementById('open-folder').style.display = 'none';
     document.getElementById('new-file').style.display = 'inline';
     document.getElementById('new-folder').style.display = 'inline';
