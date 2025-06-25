@@ -180,6 +180,16 @@ function initEditor(el) {
         await openFile(parts[0], parts[1] + '.md');
     };
 
+    // Make sure '#' is always at the start of the first line.
+    editor.on('beforeChange', function(cm, change) {
+        if (change.from.line === 0 && change.from.ch === 0) {
+            let newText = change.text.join('\n');
+            if (!newText.startsWith('# ')) {
+                change.update(change.from, change.to, ['# ' + newText.replace(/^#*\s*/, '')]);
+            }
+        }
+    });
+
     editor.on('inputRead', async function (cm, change) {
         if (change.text.length === 1 && change.text[0] === '[') {
             editor.showHint({
@@ -187,6 +197,15 @@ function initEditor(el) {
             })
         }
     })
+
+    // Remove '# ' from selection.
+    editor.on('cursorActivity', function(cm) {
+        const doc = cm.getDoc();
+        if (doc.getCursor('from').line === 0 && doc.getCursor('from').ch < 2) {
+            const to = doc.getCursor('to');
+            editor.setSelection({line: 0, ch: 2}, to);
+        }
+    }, true);
 
     initAutoscroll(editor);
 
@@ -833,6 +852,17 @@ function search() {
         }
     }
 
+    // If search is equal to directory
+    if (files[search]) {
+        for (const filename in files[search]) {
+            results.push({
+                filename: filename,
+                dir: search,
+                score: 100
+            });
+        }
+    }
+
     // Substring matching
     for (const dir in files) {
         // If dir is not in search dirs, skip
@@ -853,17 +883,6 @@ function search() {
 
             results.push({
                 filename: filename, dir: dir, score: Math.round(matchedPercent)
-            });
-        }
-    }
-
-    // If search is equal to directory
-    if (files[search]) {
-        for (const filename in files[search]) {
-            results.push({
-                filename: filename,
-                dir: search,
-                score: 100
             });
         }
     }
