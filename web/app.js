@@ -864,6 +864,26 @@ function search() {
         }
     }
 
+    // Check for "dir file" pattern (space separated)
+    const spaceIndex = search.indexOf(' ');
+    if (spaceIndex !== -1) {
+        const dirName = search.substring(0, spaceIndex);
+        const fileName = search.substring(spaceIndex + 1);
+
+        if (files[dirName]) {
+            for (const filename in files[dirName]) {
+                const potentialMatch = filename.replace(/\.md$/, '');
+                if (potentialMatch.toLowerCase().includes(fileName.toLowerCase())) {
+                    results.push({
+                        filename: filename,
+                        dir: dirName,
+                        score: 95
+                    });
+                }
+            }
+        }
+    }
+
     // Substring matching
     for (const dir in files) {
         // If dir is not in search dirs, skip
