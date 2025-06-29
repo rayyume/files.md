@@ -1,4 +1,6 @@
 class SearchModal {
+    static RECENT_RESULTS = 8;
+
     constructor() {
         this.messageIndex = null;
         this.focusedIndex = 0;
@@ -29,6 +31,14 @@ class SearchModal {
                 closeMove();
             }
         });
+
+        // Close on outside click
+        document.addEventListener('click', (event) => {
+            const searchModal = document.getElementById('search');
+            if (searchModal.style.display === 'block' && !searchModal.contains(event.target)) {
+                this.close();
+            }
+        });
     }
 
     open(text = '', messageIndex = null) {
@@ -43,9 +53,12 @@ class SearchModal {
         const goToFileResults = document.getElementById('search-results');
         goToFileResults.innerHTML = '';
 
-        if (text === '') {
-            this.loadRecentFiles();
-        } else {
+        if (text === '' && this.messageIndex === null) {
+            console.log("here");
+            this.showRecentFiles();
+        } else if (text === '') {
+            this.showRootFiles();
+        } {
             search();
         }
     }
@@ -57,15 +70,16 @@ class SearchModal {
 
     showResults(results) {
         const list = document.getElementById('search-results');
-        list.innerHTML = ''; // Clear previous results
+        list.innerHTML = '';
 
+        console.log(results);
         results.forEach(({dir, filename}, index) => {
             if (filename === CONFIG_FILENAME) {
                 return;
             }
 
             const listItem = document.createElement('li');
-            let title = filename.replace(/\.md$/, '')
+            let title = filename.replace(/\.md$/, '').replace(/\.txt$/, '')
             if (dir !== '') {
                 listItem.textContent = `${dir}/${title}`;
             } else {
@@ -83,6 +97,7 @@ class SearchModal {
             };
             list.appendChild(listItem);
         });
+        console.log(list);
 
         this.focusedIndex = 0;
         this.updateFocusedItem();
@@ -122,7 +137,7 @@ class SearchModal {
         });
     }
 
-    loadRecentFiles() {
+    showRecentFiles() {
         let results = [];
         for (const dir of Object.keys(excludeDirs(SYSTEM_DIRS))) {
             for (const filename of Object.keys(files[dir])) {
@@ -134,7 +149,25 @@ class SearchModal {
 
         results = results
             .sort((a, b) => b.lastModified - a.lastModified)
-            .slice(0, 8);
+            .slice(0, SearchModal.RECENT_RESULTS);
+
+        this.showResults(results);
+    }
+
+    showRootFiles() {
+        let results = [];
+        for (const filename of Object.keys(files[''])) {
+            if (filename === CONFIG_FILENAME) {
+                continue;
+            }
+            results.push({
+                dir: '', filename, lastModified: files[''][filename].lastModified,
+            });
+        }
+
+        results = results
+            .sort((a, b) => b.lastModified - a.lastModified)
+            .slice(0, SearchModal.RECENT_RESULTS);
 
         this.showResults(results);
     }

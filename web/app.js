@@ -743,10 +743,10 @@ function getMoveDestinations() {
 
 function search() {
     let search = document.getElementById('search-input').value.toLowerCase();
-    if (search.trim() === '') {
-        loadRecentFiles();
-        return;
-    }
+    // if (search.trim() === '') {
+    //     loadRecentFiles();
+    //     return;
+    // }
 
     const list = document.getElementById('search-results');
     list.innerHTML = '';
@@ -1159,13 +1159,13 @@ async function getRootDirHandle() {
     });
 }
 
-document.addEventListener('mousedown', (event) => {
-    const goToFile = document.getElementById('search');
-    if (goToFile.style.display === 'block' &&
-        !goToFile.contains(event.target)) {
-        closeSearchModal();
-    }
-});
+// document.addEventListener('mousedown', (event) => {
+//     const goToFile = document.getElementById('search');
+//     if (goToFile.style.display === 'block' &&
+//         !goToFile.contains(event.target)) {
+//         closeSearchModal();
+//     }
+// });
 
 // Reload files once the app gains focus.
 window.addEventListener('focus', async () => {
