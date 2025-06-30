@@ -370,21 +370,19 @@ function attachEventListeners() {
         btn.addEventListener('click', function (e) {
             e.stopPropagation();
             const selectedMessages = document.querySelectorAll('.message.selected');
-
-            let messagesToRemove;
+            let indices = [];
+            let messagesToRemove = [];
             if (selectedMessages.length > 0) {
-                const indices = Array.from(selectedMessages).map(msg => msg.dataset.index);
-                sendCmd('mv_to_journal', indices);
+                indices = Array.from(selectedMessages).map(msg => msg.dataset.index);
                 messagesToRemove = selectedMessages;
             } else {
-                sendCmd('mv_to_journal', [btn.dataset.index]);
+                indices = [btn.dataset.index];
                 messagesToRemove = [btn.closest('.message')];
             }
 
+            sendCmd('mv_to_journal', indices);
             messagesToRemove.forEach(message => {
                 message.classList.add('removing');
-
-                // Remove from DOM after animation completes
                 setTimeout(() => {
                     message.remove();
                 }, 300);

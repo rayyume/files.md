@@ -1672,9 +1672,15 @@ func (b *Bot) moveToNewDir(params []string) error {
 func (b *Bot) moveToExistingFile(params []string) error {
 	// TODO Remove input expectations if dir is not today (?)
 	existingFilenameHash := params[0]
-	index, err := strconv.Atoi(params[1])
-	if err != nil {
-		return fmt.Errorf("move to file: can't parse index from params: %w", err)
+
+	var msgIndicies []int
+	msgIndicesStr := strings.Split(params[1], ",")
+	for _, msgIndexStr := range msgIndicesStr {
+		msgIndex, err := strconv.Atoi(msgIndexStr)
+		if err != nil {
+			return fmt.Errorf("move to file: can't parse msgIndex from params: %w", err)
+		}
+		msgIndicies = append(msgIndicies, msgIndex)
 	}
 
 	//fromDirHash := params[1]
@@ -1715,7 +1721,7 @@ func (b *Bot) moveToExistingFile(params []string) error {
 
 	err = b.moveFromChat(func(content string, timestamp time.Time) error {
 		return b.addToFile(fs.DirRoot, existingFilename, content)
-	}, index)
+	}, msgIndicies...)
 	if err != nil {
 		return fmt.Errorf("move to file: can't add to existing file '%s': %w", existingFilename, err)
 	}

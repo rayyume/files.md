@@ -251,7 +251,26 @@ class SearchModal {
 
     handleItemClick(dir, filename) {
         if (this.messageIndex !== null) {
-            sendCmd('mf', [filename, this.messageIndex.toString()]);
+            const selectedMessages = document.querySelectorAll('.message.selected');
+            let indices = [];
+            let messagesToRemove = [];
+            if (selectedMessages.length > 0) {
+                indices = Array.from(selectedMessages).map(msg => msg.dataset.index);
+                messagesToRemove = selectedMessages;
+            } else {
+                indices = [this.messageIndex.toString()];
+                const btn = document.querySelector(`.message[data-index="${this.messageIndex}"] button`);
+                messagesToRemove = [btn.closest('.message')];
+            }
+
+            sendCmd('mf', [filename, indices.join(',')]);
+            messagesToRemove.forEach(message => {
+                message.classList.add('removing');
+                setTimeout(() => {
+                    message.remove();
+                }, 300);
+            });
+            chatInput.focus();
             this.close();
         } else {
             openFile(dir, filename);
