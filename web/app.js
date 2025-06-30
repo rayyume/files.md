@@ -584,12 +584,12 @@ async function newFile() {
     });
 
     await openFile(dir, filename);
-    editor.setCursor({line: 0, ch: 0});
+    editor.setCursor({line: 1, ch: 0});
     editor.focus();
-    editor.setSelection(
-        {line: 0, ch: 2},
-        {line: 0, ch: null}
-    );
+    // editor.setSelection(
+    //     {line: 0, ch: 2},
+    //     {line: 0, ch: null}
+    // );
 
     await updateSidebar();
 }
