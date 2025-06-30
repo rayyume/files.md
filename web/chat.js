@@ -4,27 +4,6 @@ let chatContainer;
 let messageInput;
 const CHAT_FILENAME = 'Chat.txt';
 
-let isBlockSelecting = false;
-let startMessage = null;
-let allMessages = [];
-
-function updateMessageList() {
-    allMessages = Array.from(chatContainer.querySelectorAll('.message'));
-}
-
-function selectRange(start, end) {
-    const startIndex = allMessages.indexOf(start);
-    const endIndex = allMessages.indexOf(end);
-    const minIndex = Math.min(startIndex, endIndex);
-    const maxIndex = Math.max(startIndex, endIndex);
-
-    document.querySelectorAll('.message.selected').forEach(m => m.classList.remove('selected'));
-
-    for (let i = minIndex; i <= maxIndex; i++) {
-        allMessages[i].classList.add('selected');
-    }
-}
-
 function parseFileContent(content) {
     // Normalize line endings
     content = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
@@ -270,30 +249,48 @@ function attachEventListeners() {
             return;
         }
 
-        updateMessageList();
-        startMessage = message;
-    });
-
-    chatContainer.addEventListener('mousemove', function(e) {
-        if (!startMessage) return;
-
-        const currentMessage = e.target.closest('.message');
-        if (currentMessage && currentMessage !== startMessage && allMessages.includes(currentMessage)) {
-            if (!isBlockSelecting) {
-                isBlockSelecting = true;
-                document.getSelection().removeAllRanges();
-                chatContainer.classList.add('block-selecting');
-            }
-            selectRange(startMessage, currentMessage);
+        if (e.ctrlKey || e.metaKey) {
+            message.classList.toggle('selected');
+            return;
         }
+
+        document.querySelectorAll('.message.selected').forEach(m => m.classList.remove('selected'));
+        message.classList.add('selected');
+
+        let startMessage = message;
+        let allMessages = Array.from(chatContainer.querySelectorAll('.message'));
+
+        function handleMouseMove(e) {
+            const currentMessage = e.target.closest('.message');
+            if (currentMessage && currentMessage !== startMessage) {
+                document.getSelection().removeAllRanges();
+
+                const startIndex = allMessages.indexOf(startMessage);
+                const endIndex = allMessages.indexOf(currentMessage);
+                const minIndex = Math.min(startIndex, endIndex);
+                const maxIndex = Math.max(startIndex, endIndex);
+
+                document.querySelectorAll('.message.selected').forEach(m => m.classList.remove('selected'));
+
+                for (let i = minIndex; i <= maxIndex; i++) {
+                    allMessages[i].classList.add('selected');
+                }
+            }
+        }
+
+        function handleMouseUp() {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        }
+
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
     });
 
-    document.addEventListener('mouseup', function() {
-        if (isBlockSelecting) {
-            // Keep the selection when block selecting ends
-            isBlockSelecting = false;
-            startMessage = null;
-            chatContainer.classList.remove('block-selecting');
+    chatContainer.addEventListener('click', function(e) {
+        // Only clear selection if clicking outside messages AND not dragging
+        if (!e.target.closest('.message') && !e.detail > 1) {
+            document.querySelectorAll('.message.selected').forEach(m => m.classList.remove('selected'));
         }
     });
 
@@ -358,38 +355,6 @@ function attachEventListeners() {
             e.stopPropagation();
             deleteNote(btn.dataset.noteId);
         });
-    });
-
-    // Message selection
-    chatContainer.querySelectorAll('.message').forEach(message => {
-        chatContainer.querySelectorAll('.message').forEach(message => {
-            message.addEventListener('click', function(e) {
-                // Don't select if clicking on action buttons or editing content
-                if (e.target.closest('.message-actions') || e.target.classList.contains('editing')) {
-                    return;
-                }
-
-                // Don't handle click if we just finished block selecting
-                if (isBlockSelecting) {
-                    return;
-                }
-
-                if (isMetaKey(e)) {
-                    this.classList.toggle('selected');
-                } else {
-                    // Clear other selections and select this one
-                    document.querySelectorAll('.message.selected').forEach(m => m.classList.remove('selected'));
-                    this.classList.add('selected');
-                }
-            });
-        });
-    });
-
-    // Clear selection when clicking outside
-    chatContainer.addEventListener('click', function(e) {
-        if (!e.target.closest('.message')) {
-            document.querySelectorAll('.message.selected').forEach(m => m.classList.remove('selected'));
-        }
     });
 
     // Enable editing on double-click
