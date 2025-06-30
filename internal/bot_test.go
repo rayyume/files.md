@@ -2913,44 +2913,38 @@ func TestSaveToNewDir(t *testing.T) {
 	err = bot.Reply(tg.NewUpd(-1, "Text"))
 	r.NoError(err)
 
-	err = bot.Reply(tg.NewUpdCmd(-1, tg.NewCmd("mv", []string{"c5e7dfaf771", "0"})))
-	r.NoError(err)
-
 	kb := tg.NewKeyboard([]tg.Row{
 		tg.NewRow(
-			tg.NewBtn("🌚 To tmrw", tg.NewCmd("sc_tmrw", []string{"232004794e5"})),
-			tg.NewBtn("⏳ To later", tg.NewCmd("mv_later", []string{"232004794e5"})),
-			tg.NewBtn("📆 To a day", tg.NewCmd("sc_day", []string{"232004794e5"})),
+			tg.NewBtn("🌚 To tmrw", tg.NewCmd("sc_tmrw", []string{"0"})),
+			tg.NewBtn("⏳ To later", tg.NewCmd("mv_later", []string{"0"})),
+			tg.NewBtn("📆 To a day", tg.NewCmd("sc_day", []string{"0"})),
 		),
 		tg.NewRow(
-			tg.NewBtn("📄 To File", tg.NewCmd("to_file", []string{"232004794e5"})),
-			tg.NewBtn("💚 To Journal", tg.NewCmd("mv_to_journal", []string{"232004794e5"})),
-			tg.NewBtn("➡️ To Today", tg.NewCmd("today", nil)),
+			tg.NewBtn("📄 To File", tg.NewCmd("to_file", []string{"0"})),
+			tg.NewBtn("💚 To Journal", tg.NewCmd("mv_to_journal", []string{"0"})),
+			tg.NewBtn("➡️ To Today", tg.NewCmd("mv", []string{"c5e7dfaf771", "0"})),
 		),
 	})
 	r.Equal(kb, tgram.LastSentKeyboard)
 
-	err = bot.Reply(tg.NewUpdCmd(-1, tg.NewCmd("to_file", []string{"232004794e5"})))
+	err = bot.Reply(tg.NewUpdCmd(-1, tg.NewCmd("to_file", []string{"0"})))
 	r.NoError(err)
 
 	selectFileKB := tg.NewKeyboard([]tg.Row{
-		tg.NewRow(
-			tg.NewBtn("Text", tg.NewCmd("mf", []string{"23200", "/", "23200"})),
-		),
 		tg.NewBtn("Search", tg.NewCustomCmd("search", nil, "iq")),
 		tg.NewRow(
-			tg.NewBtn("🗂️ Habits", tg.NewCmd("mv", []string{"51fc0", "/", "232004794e5"})),
-			tg.NewBtn("🗂 New Dir", tg.NewCmd("new_dir", []string{"232004794e5"})),
+			tg.NewBtn("🗂️ Habits", tg.NewCmd("mv", []string{"51fc0", "0"})),
+			tg.NewBtn("🗂 New Dir", tg.NewCmd("new_dir", []string{"0"})),
 		),
 	})
 	r.Equal(selectFileKB, tgram.LastEditedKeyboard)
 
-	err = bot.Reply(tg.NewUpdCmd(-1, tg.NewCmd("new_dir", []string{"232004794e5"})))
+	err = bot.Reply(tg.NewUpdCmd(-1, tg.NewCmd("new_dir", []string{"0"})))
 	r.NoError(err)
 
 	r.Equal("OK. Send me the name for your new dir", tgram.LastEditedText)
 	r.Nil(tgram.LastEditedKeyboard)
-	r.Equal(tg.NewCmd("mv_to_new_dir", []string{"232004794e5", "%s"}), *database.InputExpectation())
+	r.Equal(tg.NewCmd("mv_to_new_dir", []string{"0", "%s"}), *database.InputExpectation())
 
 	err = bot.Reply(tg.NewUpd(-1, "My dir"))
 	r.NoError(err)
