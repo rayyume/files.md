@@ -677,7 +677,7 @@ func (b *Bot) extractTitleAndContent(msg string) (string, string, error) {
 		return "", "", fmt.Errorf("extract title: empty msg")
 	}
 
-	parts := strings.SplitN(msg, "\n", 2)
+	parts := strings.Split(msg, "\n")
 	title := txt.Ucfirst(strings.TrimSpace(parts[0]))
 	if txt.HasImage(title) {
 		if len(parts) > 1 {
@@ -687,6 +687,7 @@ func (b *Bot) extractTitleAndContent(msg string) (string, string, error) {
 		if title == "" || len(parts) == 1 {
 			title = fmt.Sprintf("Img %s", now().Format("02.01.06 15:04"))
 		}
+		fmt.Println("TIT:", title, "END")
 	}
 
 	if utf8.RuneCountInString(title) > maxTitleLength {

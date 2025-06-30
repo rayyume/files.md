@@ -1673,16 +1673,35 @@ func TestAngerInTodayTasks(t *testing.T) {
 func TestMoveToChecklistSplittable(t *testing.T) {
 	r := require.New(t)
 
+	savedNow := now
+	defer func() {
+		now = savedNow
+	}()
+	now = func() time.Time {
+		return time.Date(2024, 8, 11, 9, 54, 0, 0, time.UTC)
+	}
+
+	mode := userconfig.DefaultConfig.Mode
+	userconfig.DefaultConfig.Mode = userconfig.ModeFull
+	defer func() {
+		userconfig.DefaultConfig.Mode = mode
+	}()
+
 	userFS, err := fs.NewFS("/", afero.NewMemMapFs())
-	r.NoError(err)
-	err = userFS.Write("today", "Item1.md", "Item1\nItem2")
 	r.NoError(err)
 	err = userFS.MakeDir("-checklist-")
 	r.NoError(err)
 
 	tgram := tg.NewFakeTG()
 	bot := NewBot(-1, tgram, userFS, db.NewFakeDB(), fakeConfig())
-	err = bot.moveToChecklist([]string{"Item1.md", "-checklist-"})
+	err = bot.Reply(tg.NewUpd(-1, "item1\nitem2"))
+	r.NoError(err)
+
+	content, err := userFS.Read("/", "Chat.txt")
+	r.NoError(err)
+	r.Equal("#### 11 August, Sunday\n`09:54` Item1\nitem2\n", content)
+
+	err = bot.moveToChecklist([]string{"0", "-checklist-"})
 	r.NoError(err)
 
 	files, err := userFS.FilesAndDirs("-checklist-")
@@ -3476,6 +3495,12 @@ func TestRestoreMsg_WithImageSanitizedFilename(t *testing.T) {
 func TestSaveFromImage_NewFile(t *testing.T) {
 	r := require.New(t)
 
+	mode := userconfig.DefaultConfig.Mode
+	userconfig.DefaultConfig.Mode = userconfig.ModeFull
+	defer func() {
+		userconfig.DefaultConfig.Mode = mode
+	}()
+
 	userFS, err := fs.NewFS("/", afero.NewMemMapFs())
 	r.NoError(err)
 
@@ -3487,6 +3512,9 @@ func TestSaveFromImage_NewFile(t *testing.T) {
 	upd.PhotoCaption = "New Image"
 
 	err = bot.saveFromImage(upd)
+	r.NoError(err)
+
+	err = bot.Reply(tg.NewUpdCmd(-1, tg.NewCmd("mv", []string{"c5e7dfaf771", "0"})))
 	r.NoError(err)
 
 	files, err := bot.fs.FilesAndDirs("today")
@@ -3502,6 +3530,12 @@ func TestSaveFromImage_NewFile(t *testing.T) {
 func TestSaveFromImage_LongCaption(t *testing.T) {
 	r := require.New(t)
 
+	mode := userconfig.DefaultConfig.Mode
+	userconfig.DefaultConfig.Mode = userconfig.ModeFull
+	defer func() {
+		userconfig.DefaultConfig.Mode = mode
+	}()
+
 	userFS, err := fs.NewFS("/", afero.NewMemMapFs())
 	r.NoError(err)
 
@@ -3515,6 +3549,9 @@ func TestSaveFromImage_LongCaption(t *testing.T) {
 	err = bot.saveFromImage(upd)
 	r.NoError(err)
 
+	err = bot.Reply(tg.NewUpdCmd(-1, tg.NewCmd("mv", []string{"c5e7dfaf771", "0"})))
+	r.NoError(err)
+
 	filename := fmt.Sprintf("A%s....md", strings.Repeat("a", 99))
 	content, err := bot.fs.Read("today", filename)
 	r.NoError(err)
@@ -3524,7 +3561,23 @@ func TestSaveFromImage_LongCaption(t *testing.T) {
 func TestSaveFromImage_MultilineCaption(t *testing.T) {
 	r := require.New(t)
 
+	savedNow := now
+	defer func() {
+		now = savedNow
+	}()
+	now = func() time.Time {
+		return time.Date(2024, 8, 11, 9, 54, 0, 0, time.UTC)
+	}
+
+	mode := userconfig.DefaultConfig.Mode
+	userconfig.DefaultConfig.Mode = userconfig.ModeFull
+	defer func() {
+		userconfig.DefaultConfig.Mode = mode
+	}()
+
 	userFS, err := fs.NewFS("/", afero.NewMemMapFs())
+	r.NoError(err)
+	err = userFS.CreateDirsIfNotExist()
 	r.NoError(err)
 
 	tgram := tg.NewFakeTG()
@@ -3537,8 +3590,15 @@ func TestSaveFromImage_MultilineCaption(t *testing.T) {
 	err = bot.saveFromImage(upd)
 	r.NoError(err)
 
+	content, err := userFS.Read("/", "Chat.txt")
+	r.NoError(err)
+	r.Equal("#### 11 August, Sunday\n`09:54` ![center|400](media/tg_PHOTO_ID)\nAbc\ndef\n", content)
+
+	err = bot.Reply(tg.NewUpdCmd(-1, tg.NewCmd("mv", []string{"c5e7dfaf771", "0"})))
+	r.NoError(err)
+
 	filename := fmt.Sprintf("Abc.md")
-	content, err := bot.fs.Read("today", filename)
+	content, err = bot.fs.Read("today", filename)
 	r.NoError(err)
 	r.Equal("![center|400](media/tg_PHOTO_ID)\nAbc\ndef", content)
 }
@@ -3582,6 +3642,12 @@ func TestSaveFromImage_ReplyToExistingFile(t *testing.T) {
 func TestSaveFromImage_EmptyCaption(t *testing.T) {
 	r := require.New(t)
 
+	mode := userconfig.DefaultConfig.Mode
+	userconfig.DefaultConfig.Mode = userconfig.ModeFull
+	defer func() {
+		userconfig.DefaultConfig.Mode = mode
+	}()
+
 	savedNow := now
 	defer func() {
 		now = savedNow
@@ -3600,6 +3666,9 @@ func TestSaveFromImage_EmptyCaption(t *testing.T) {
 	upd.PhotoID = "PHOTO_ID"
 
 	err = bot.saveFromImage(upd)
+	r.NoError(err)
+
+	err = bot.Reply(tg.NewUpdCmd(-1, tg.NewCmd("mv", []string{"c5e7dfaf771", "0"})))
 	r.NoError(err)
 
 	files, err := bot.fs.FilesAndDirs("today")
