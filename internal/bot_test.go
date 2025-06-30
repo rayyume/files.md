@@ -868,16 +868,24 @@ func TestChecklists(t *testing.T) {
 func TestAddSingleItemToChecklist(t *testing.T) {
 	r := require.New(t)
 
+	mode := userconfig.DefaultConfig.Mode
+	userconfig.DefaultConfig.Mode = userconfig.ModeFull
+	defer func() {
+		userconfig.DefaultConfig.Mode = mode
+	}()
+
 	userFS, err := fs.NewFS("/", afero.NewMemMapFs())
 	r.NoError(err)
 	err = userFS.MakeDir("-checklist1-")
 	r.NoError(err)
-	err = userFS.Write("today", "Item.md", "")
-	r.NoError(err)
 
 	tgram := tg.NewFakeTG()
 	bot := NewBot(-1, tgram, userFS, db.NewFakeDB(), fakeConfig())
-	err = bot.Reply(tg.NewUpdCmd(-1, tg.NewCmd("mv_to_chk", []string{"7b72407ca70", "-checklist1-"})))
+
+	err = bot.Reply(tg.NewUpd(-1, "Item"))
+	r.NoError(err)
+
+	err = bot.Reply(tg.NewUpdCmd(-1, tg.NewCmd("mv_to_chk", []string{"0", "-checklist1-"})))
 	r.NoError(err)
 
 	files, err := userFS.FilesAndDirs("-checklist1-")
@@ -893,16 +901,24 @@ func TestAddSingleItemToChecklist(t *testing.T) {
 func TestAddMultipleItemsToChecklist(t *testing.T) {
 	r := require.New(t)
 
+	mode := userconfig.DefaultConfig.Mode
+	userconfig.DefaultConfig.Mode = userconfig.ModeFull
+	defer func() {
+		userconfig.DefaultConfig.Mode = mode
+	}()
+
 	userFS, err := fs.NewFS("/", afero.NewMemMapFs())
 	r.NoError(err)
 	err = userFS.MakeDir("-checklist1-")
 	r.NoError(err)
-	err = userFS.Write("today", "Item.md", "item\nitem2\nitem3\n\n")
-	r.NoError(err)
 
 	tgram := tg.NewFakeTG()
 	bot := NewBot(-1, tgram, userFS, db.NewFakeDB(), fakeConfig())
-	err = bot.Reply(tg.NewUpdCmd(-1, tg.NewCmd("mv_to_chk", []string{"7b72407ca70", "-checklist1-"})))
+
+	err = bot.Reply(tg.NewUpd(-1, "Item\nItem2\nItem3"))
+	r.NoError(err)
+
+	err = bot.Reply(tg.NewUpdCmd(-1, tg.NewCmd("mv_to_chk", []string{"0", "-checklist1-"})))
 	r.NoError(err)
 
 	files, err := userFS.FilesAndDirs("-checklist1-")
