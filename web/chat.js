@@ -300,6 +300,13 @@ function attachEventListeners() {
     document.addEventListener('keydown', function(e) {
         console.log('trying', isMetaKey(e), e.key);
         if (isMetaKey(e) && e.key === 'a') {
+            const searchModal = document.getElementById('search');
+            const moveModal = document.getElementById('move');
+            if ((searchModal && searchModal.style.display !== 'none' && searchModal.style.display !== '') ||
+                (moveModal && moveModal.style.display !== 'none' && moveModal.style.display !== '')) {
+                return;
+            }
+            
             if (e.target.id !== 'chat-input') {
                 e.preventDefault();
                 // Select all messages
