@@ -281,7 +281,7 @@
 #chat-container.modal #close-chat {
     position: absolute;
     top: 3px;
-    right: 2px;
+    right: 1px;
     background: none;
     border: none;
     font-size: 21px;
