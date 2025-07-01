@@ -75,8 +75,6 @@
     color: var(--color-tx-alt) !important;
 }
 
-
-
 .cm-s-hypermd-light .cm-strong {
     font-weight: 600;
 }
@@ -93,4 +91,8 @@
 
 .cm-s-hypermd-light .cm-link, .cm-s-hypermd-light .cm-string.cm-url.cm-hmd-barelink {
     line-height: 1.8 !important;
+}
+
+#open-chat svg {
+    stroke: #F5F5F5 !important;
 }
