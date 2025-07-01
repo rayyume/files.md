@@ -653,30 +653,6 @@ function focusLastLine() {
     editor.focus();
 }
 
-
-function updateMoveFocusedItem(resultsList) {
-    document.querySelectorAll('#move-results li').forEach(li => li.classList.remove('focused'));
-    resultsList.forEach((item, index) => {
-        if (index === focusedMoveItemIndex) {
-            item.classList.add('focused');
-            item.scrollIntoView({block: 'nearest'});
-        } else {
-            item.classList.remove('focused');
-        }
-    });
-}
-
-function openMoveModal() {
-    document.getElementById('move').style.display = 'block';
-    const inputField = document.getElementById('move-input');
-    inputField.focus();
-
-    focusedMoveItemIndex = -1;
-    const goToFileResults = document.getElementById('move-results');
-    goToFileResults.innerHTML = '';
-    showMoveResults(getMoveDestinations());
-}
-
 function isMetaKey(event) {
     return event.metaKey || event.ctrlKey || event.altKey;
 }
@@ -701,7 +677,7 @@ window.addEventListener('keydown', async (event) => {
         event.preventDefault();
         event.stopPropagation();
         document.getElementById('move-input').value = ''
-        openMoveModal();
+        moveModal.open();
     }
 
     if (isMetaKey(event) && event.key === 'd') {
@@ -732,73 +708,6 @@ window.addEventListener('keydown', async (event) => {
         }
     }
 }, true);
-
-function closeMoveModal() {
-    document.getElementById('move').style.display = 'none';
-}
-
-function getMoveDestinations() {
-    let dirs = ['/'];
-    for (const dir of Object.keys(files)) {
-        if (dir === '' || dir === 'media') {
-            continue;
-        }
-        dirs.push(dir);
-    }
-
-    // Place _read_ etc in the end
-    dirs.sort((a, b) => {
-        return a.includes('_') - b.includes('_') || a.localeCompare(b);
-    });
-
-    return dirs;
-}
-
-function suggestMove() {
-    const search = document.getElementById('move-input').value.toLowerCase();
-    if (search.trim() === '') {
-        showMoveResults(getMoveDestinations());
-        return;
-    }
-
-    let dirs = getMoveDestinations();
-    dirs = dirs.filter(dir => dir.toLowerCase().startsWith(search));
-
-    showMoveResults(dirs);
-}
-
-function showMoveResults(dirs) {
-    const list = document.getElementById('move-results');
-    list.innerHTML = '';
-    dirs.forEach((dir, index) => {
-        let dataDir = dir;
-        if (dataDir === '/') {
-            dataDir = '';
-        }
-        const listItem = document.createElement('li');
-        listItem.textContent = dir;
-        listItem.setAttribute('data-path', dataDir);
-        listItem.setAttribute('data-index', index);
-        listItem.onclick = async () => {
-            console.log('CLICKED ON folder to move', dataDir);
-            await moveCurrentFile(dataDir);
-            closeMoveModal();
-        };
-        listItem.onmouseenter = () => {
-            document.querySelectorAll('#move-results li').forEach(li => li.classList.remove('focused'));
-            listItem.classList.add('focused');
-            focusedMoveItemIndex = index;
-        };
-        list.appendChild(listItem);
-    });
-
-    focusedMoveItemIndex = 0;
-    updateMoveFocusedItem(list.querySelectorAll('li'));
-}
-
-function closeMove() {
-    document.getElementById('move').style.display = 'none';
-}
 
 document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {

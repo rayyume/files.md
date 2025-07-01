@@ -336,4 +336,152 @@ class SearchModal {
     }
 }
 
+
+class MoveModal {
+    constructor() {
+        this.focusedIndex = 0;
+        this.init();
+    }
+
+    init() {
+        document.getElementById('move-input').addEventListener('keydown', (event) => {
+            const resultsList = document.getElementById('move-results').querySelectorAll('li');
+
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                this.handleEnterKey();
+            }
+
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                this.focusedIndex = (this.focusedIndex + 1) % resultsList.length;
+                this.updateFocusedItem();
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                this.focusedIndex = (this.focusedIndex - 1 + resultsList.length) % resultsList.length;
+                this.updateFocusedItem();
+            }
+
+            if (event.key === 'Escape') {
+                this.close();
+            }
+        });
+
+        document.getElementById('move-input').addEventListener('input', () => {
+            this.suggestMove();
+        });
+
+        // Close on outside click
+        document.addEventListener('click', (event) => {
+            const moveModal = document.getElementById('move');
+            if (moveModal.style.display === 'block' && !moveModal.contains(event.target)) {
+                this.close();
+            }
+        });
+    }
+
+    open() {
+        document.getElementById('move').style.display = 'block';
+        const inputField = document.getElementById('move-input');
+        inputField.focus();
+
+        this.focusedIndex = 0;
+        const moveResults = document.getElementById('move-results');
+        moveResults.innerHTML = '';
+        this.showResults(this.getMoveDestinations());
+    }
+
+    close() {
+        document.getElementById('move').style.display = 'none';
+    }
+
+    getMoveDestinations() {
+        let dirs = ['/'];
+        for (const dir of Object.keys(files)) {
+            if (dir === '' || dir === 'media') {
+                continue;
+            }
+            dirs.push(dir);
+        }
+
+        // Place _read_ etc in the end
+        dirs.sort((a, b) => {
+            return a.includes('_') - b.includes('_') || a.localeCompare(b);
+        });
+
+        return dirs;
+    }
+
+    suggestMove() {
+        const search = document.getElementById('move-input').value.toLowerCase();
+        if (search.trim() === '') {
+            this.showResults(this.getMoveDestinations());
+            return;
+        }
+
+        let dirs = this.getMoveDestinations();
+        dirs = dirs.filter(dir => dir.toLowerCase().startsWith(search));
+
+        this.showResults(dirs);
+    }
+
+    showResults(dirs) {
+        const list = document.getElementById('move-results');
+        list.innerHTML = '';
+
+        dirs.forEach((dir, index) => {
+            let dataDir = dir;
+            if (dataDir === '/') {
+                dataDir = '';
+            }
+
+            const listItem = document.createElement('li');
+            listItem.textContent = dir;
+            listItem.setAttribute('data-path', dataDir);
+            listItem.setAttribute('data-index', index);
+
+            listItem.onclick = async () => {
+                await moveCurrentFile(dataDir);
+                this.close();
+            };
+
+            listItem.onmouseenter = () => {
+                document.querySelectorAll('#move-results li').forEach(li => li.classList.remove('focused'));
+                listItem.classList.add('focused');
+                this.focusedIndex = index;
+            };
+
+            list.appendChild(listItem);
+        });
+
+        this.focusedIndex = 0;
+        this.updateFocusedItem();
+    }
+
+    handleEnterKey() {
+        const resultsList = document.getElementById('move-results').querySelectorAll('li');
+        if (resultsList[this.focusedIndex]) {
+            const dataDir = resultsList[this.focusedIndex].getAttribute('data-path');
+            console.log('CLICKED ON folder to move', dataDir);
+            moveCurrentFile(dataDir).then(() => {
+                this.close();
+            });
+        }
+    }
+
+    updateFocusedItem() {
+        const resultsList = document.getElementById('move-results').querySelectorAll('li');
+        document.querySelectorAll('#move-results li').forEach(li => li.classList.remove('focused'));
+        resultsList.forEach((item, index) => {
+            if (index === this.focusedIndex) {
+                item.classList.add('focused');
+                item.scrollIntoView({block: 'nearest'});
+            } else {
+                item.classList.remove('focused');
+            }
+        });
+    }
+}
+
 const searchModal = new SearchModal();
+const moveModal = new MoveModal();
