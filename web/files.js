@@ -278,6 +278,8 @@ async function syncLocalFileWithServer(dir, filename) {
             body: JSON.stringify({
                 path: toPath(dir, filename),
                 lastModified: serverTimestamp,
+                lastSynced: serverFiles?.files?.[dir]?.[filename]?.lastSynced || 0,
+                localLastModified: file.lastModified,
                 content: content,
             })
         });
@@ -302,8 +304,8 @@ async function syncLocalFileWithServer(dir, filename) {
         return;
     }
 
-    const clientLastModified = await saveTextFile(path, serverFile.content);
-    setServerFile(path, serverFile.content, serverFile.lastModified, clientLastModified);
+    const lastSynced = await saveTextFile(path, serverFile.content);
+    setServerFile(path, serverFile.content, serverFile.lastModified, lastSynced);
     console.log(`saved server file for ${path} with timestamp ${serverFile.lastModified}`);
     saveServerFiles();
     console.log('showing file sync one');
@@ -854,7 +856,7 @@ function getMetadata(path) {
     }
 }
 
-function setServerFile(path, content, lastModified, clientLastModified = null) {
+function setServerFile(path, content, lastModifiedAt, lastSynced = null) {
     const parts = path.split('/');
     const filename = parts.pop();
     const dir = parts.join('/');
@@ -863,8 +865,8 @@ function setServerFile(path, content, lastModified, clientLastModified = null) {
     serverFiles['files'][dir] = serverFiles['files'][dir] ?? {};
     serverFiles['files'][dir][filename] = {
         hash: hash(content),
-        lastModified: lastModified,
-        clientLastModified: clientLastModified,
+        lastModified: lastModifiedAt,
+        lastSynced: lastSynced,
         path: path,
     };
 }
