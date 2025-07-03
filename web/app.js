@@ -1055,20 +1055,26 @@ document.addEventListener('keydown', (e) => {
     }
 
     // TODO uncomment, we won't this work only if focus on editor or sidebar, not in dialogs or input fields
-    // if (isMetaKey(e) && e.key === 'a') {
-    //     e.preventDefault();
-    //     e.stopPropagation();
-    //
-    //     // Select all except the first line
-    //     const lastLine = editor.lastLine();
-    //     const lastLineLength = editor.getLine(lastLine).length;
-    //
-    //     editor.getDoc().setSelection(
-    //         {line: 1, ch: 0},                    // anchor
-    //         {line: lastLine, ch: lastLineLength}, // head
-    //         {scroll: false}  // don't scroll to cursor
-    //     );
-    // }
+    if (isMetaKey(e) && e.key === 'a') {
+        // If event is not contained inside editor or sidebar, return
+        if (!editor.getWrapperElement().contains(e.target) &&
+            !sidebarContainer.contains(e.target)) {
+            return;
+        }
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Select all except the first line
+        const lastLine = editor.lastLine();
+        const lastLineLength = editor.getLine(lastLine).length;
+
+        editor.getDoc().setSelection(
+            {line: 1, ch: 0},                    // anchor
+            {line: lastLine, ch: lastLineLength}, // head
+            {scroll: false}  // don't scroll to cursor
+        );
+    }
 }, true);
 
 function toggleSidebar() {
