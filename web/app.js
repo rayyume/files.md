@@ -239,6 +239,52 @@ function initEditor(el) {
 
     // Editor keybindings
     editor.addKeyMap({
+        'Cmd-A': function (cm) {
+            const cursor = cm.getCursor();
+
+            // If cursor is on the first line, select all text in that line
+            if (cursor.line === 0) {
+                const lineLength = cm.getLine(0).length;
+                cm.setSelection(
+                    {line: 0, ch: 0},
+                    {line: 0, ch: lineLength}
+                );
+                return;
+            }
+
+            // Otherwise, use default Cmd-A behavior (select all except first line)
+            const lastLine = cm.lastLine();
+            const lastLineLength = cm.getLine(lastLine).length;
+
+            cm.setSelection(
+                {line: 1, ch: 0},
+                {line: lastLine, ch: lastLineLength},
+                {scroll: false}
+            );
+        },
+        'Ctrl-A': function (cm) {
+            const cursor = cm.getCursor();
+
+            // If cursor is on the first line, select all text in that line
+            if (cursor.line === 0) {
+                const lineLength = cm.getLine(0).length;
+                cm.setSelection(
+                    {line: 0, ch: 0},
+                    {line: 0, ch: lineLength}
+                );
+                return;
+            }
+
+            // Otherwise, use default Cmd-A behavior (select all except first line)
+            const lastLine = cm.lastLine();
+            const lastLineLength = cm.getLine(lastLine).length;
+
+            cm.setSelection(
+                {line: 1, ch: 0},
+                {line: lastLine, ch: lastLineLength},
+                {scroll: false}
+            );
+        },
         'Cmd-Y': function (cm) {
             var cursor = cm.getCursor();
             var lineStart = {line: cursor.line, ch: 0};
@@ -1052,28 +1098,6 @@ document.addEventListener('keydown', (e) => {
 
     if (isChat) {
         return;
-    }
-
-    // TODO uncomment, we won't this work only if focus on editor or sidebar, not in dialogs or input fields
-    if (isMetaKey(e) && e.key === 'a') {
-        // If event is not contained inside editor or sidebar, return
-        if (!editor.getWrapperElement().contains(e.target) &&
-            !sidebarContainer.contains(e.target)) {
-            return;
-        }
-
-        e.preventDefault();
-        e.stopPropagation();
-
-        // Select all except the first line
-        const lastLine = editor.lastLine();
-        const lastLineLength = editor.getLine(lastLine).length;
-
-        editor.getDoc().setSelection(
-            {line: 1, ch: 0},                    // anchor
-            {line: lastLine, ch: lastLineLength}, // head
-            {scroll: false}  // don't scroll to cursor
-        );
     }
 }, true);
 

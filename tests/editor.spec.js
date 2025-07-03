@@ -56,7 +56,7 @@ test.describe('Files.md Text Editor Sync Tests', () => {
         const content = await page.locator('.CodeMirror-code').textContent();
 
         console.log('Content:', content);
-        expect(content).toContain('[Markdown Guide](/Markdown Guide.md)');
+        expect(content).toContain('[Markdown Guide](/Markdown%20Guide.md)');
         // await page.pause()
     });
 

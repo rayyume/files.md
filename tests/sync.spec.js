@@ -46,7 +46,7 @@ async function setup(page) {
                 }
             }
 
-            await root.getFileHandle('Chat.md', { create: true });
+            await root.getFileHandle('Chat.txt', { create: true });
 
             return root;
         };
@@ -56,7 +56,7 @@ async function setup(page) {
         init(document.getElementById('editor'));
     });
 
-    await page.waitForSelector('.CodeMirror', {timeout: 10000});
+    await page.waitForSelector('#chat', {timeout: 10000});
     await page.waitForSelector('#sidebar-tree', {timeout: 5000});
 }
 
@@ -78,18 +78,13 @@ test('sync new files from server', async ({ page }) => {
 test('sync new files from client', async ({ page }) => {
     await setup(page);
 
-    await clickAndExpectContent(page, 'Saved', '# Saved\n');
-
     await page.click('#new-file');
     await page.waitForTimeout(100);
-    await page.keyboard.type('New file');
-    await page.waitForTimeout(100);
-    await page.keyboard.press('Enter');
-    await page.keyboard.type('content');
+    await page.keyboard.type('Content');
     await page.waitForTimeout(3000);
     await page.pause();
 
-    await expectFileOnServer(page, 'New file.md', 'content\n');
+    await expectFileOnServer(page, 'New file.md', 'Content');
 });
 
 test('get changes for current file from server', async ({ page }) => {

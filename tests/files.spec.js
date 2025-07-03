@@ -121,10 +121,7 @@ test('create new in root', async ({ page }) => {
 
     await page.click('#new-file');
     await page.waitForTimeout(100);
-    await page.keyboard.type('New file');
-    await page.waitForTimeout(100);
-    await page.keyboard.press('Enter');
-    await page.keyboard.type('content');
+    await page.keyboard.type('Body content');
     await page.waitForTimeout(700);
 
     await page.click('#sidebar >> text=New file');
@@ -133,7 +130,7 @@ test('create new in root', async ({ page }) => {
         const cm = document.querySelector('.CodeMirror').CodeMirror;
         return cm.getValue();
     });
-    expect(codeMirrorContent).toBe("# New file\ncontent\n");
+    expect(codeMirrorContent).toBe("# New file\nBody content");
 });
 
 test('file is not renamed on select all and change', async ({ page }) => {
@@ -302,6 +299,8 @@ test('create dirs and move', async ({ page }) => {
 
     await page.click('#new-file');
     await page.waitForTimeout(100);
+    await page.keyboard.press('ArrowUp');
+    await page.keyboard.press('Meta+a');
     await page.keyboard.type('file1');
     // await page.waitForTimeout(500); // TODO shoudln't be rc, maybe save file on focus out or something
     await page.keyboard.press('Enter');
@@ -322,6 +321,8 @@ test('create dirs and move', async ({ page }) => {
 
     await page.click('#new-file');
     await page.waitForTimeout(100);
+    await page.keyboard.press('ArrowUp');
+    await page.keyboard.press('Meta+a');
     await page.keyboard.type('file2');
     await page.waitForTimeout(100);
     await page.keyboard.press('Enter');
