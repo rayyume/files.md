@@ -292,7 +292,8 @@ async function syncLocalFileWithServer(dir, filename) {
             return;
         }
         if (json.status === 'updatedOnServer') {
-            setServerFile(path, content, json.lastModified);
+            // TODO maybe RC here? When file was updated, but during this time we already changed it
+            setServerFile(path, content, json.lastModified, serverFiles?.files?.[dir]?.[filename]?.lastSynced);
             console.log(`saved metadata for ${path} with timestamp ${json.lastModified}`, json);
             saveServerFiles();
             return;
@@ -858,7 +859,7 @@ function getMetadata(path) {
     }
 }
 
-function setServerFile(path, content, lastModifiedAt, lastSynced = null) {
+function setServerFile(path, content, lastModifiedAt, clientLastSynced = null) {
     const parts = path.split('/');
     const filename = parts.pop();
     const dir = parts.join('/');
@@ -868,7 +869,7 @@ function setServerFile(path, content, lastModifiedAt, lastSynced = null) {
     serverFiles['files'][dir][filename] = {
         hash: hash(content),
         lastModified: lastModifiedAt,
-        lastSynced: lastSynced,
+        lastSynced: clientLastSynced,
         path: path,
     };
 }
