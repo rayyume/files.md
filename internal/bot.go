@@ -2007,9 +2007,6 @@ func (b *Bot) addToRecentFileOrNoteFromShortcut(params []string) error {
 	content := params[0]
 
 	args, _ := b.db.RecentCommandParams()
-	if len(args) < 2 {
-		return nil
-	}
 	cmd, _ := b.db.RecentCommand()
 
 	var existingFilename string
