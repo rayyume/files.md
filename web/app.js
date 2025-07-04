@@ -211,8 +211,6 @@ function initEditor(el) {
         }
     });
 
-    initAutoscroll(newEditor);
-
     // Image upload
     newEditor.on('paste', async (_, event) => {
         const items = (event.clipboardData || event.originalEvent.clipboardData).items;
@@ -386,6 +384,8 @@ function initEditor(el) {
         document.body.appendChild(toast);
         setTimeout(() => document.body.removeChild(toast), 1000);
     }, true);
+
+    // initAutoscroll(newEditor);
 
     return newEditor;
 }
@@ -661,6 +661,12 @@ async function openFile(dir, filename, saveToHistory = true, el = 'editor-textar
     const end = performance.now();
     console.log(`File opened in: ${(end - start).toFixed(3)} milliseconds`);
     // Get the editor instance
+
+    if (el === 'editor-textarea') {
+        initAutoscroll(editor);
+    } else if (el === 'editor2-textarea') {
+        initAutoscroll(editor2);
+    }
 }
 
 async function newFile() {
