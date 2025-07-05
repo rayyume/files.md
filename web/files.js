@@ -143,6 +143,7 @@ async function loadLocalFiles(rootDirHandle) {
 
 // TODO add support for config.json
 async function syncTextsWithServer() {
+    return;
     if (files === undefined || Object.keys(files).length === 0) {
         return;
     }
@@ -1056,7 +1057,11 @@ async function syncCurrentFile(syncWithServer = true) {
                 await renderSidebar();
 
                 // Used further for syncing.
-                filename = newFilename;
+                // filename = newFilename;
+
+                // Let's call it a day?
+                isSyncingCurrentFile = false;
+                return;
             }
         } catch (error) {
             console.error('Error during filename change:', error);
