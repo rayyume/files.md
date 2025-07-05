@@ -285,7 +285,7 @@ func SyncText(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Log client times
-	logSync(fmt.Sprintf("Client file '%s' last modified: %d, last synced: %d", clientFile.Path, clientFile.ClientLastModified, clientFile.ClientLastSynced), r)
+	logSync(fmt.Sprintf("Client file '%s': last client modified: %d, last client synced: %d", clientFile.Path, clientFile.ClientLastModified, clientFile.ClientLastSynced), r)
 
 	var content string
 	fileWasModifiedOnServer := false
@@ -299,7 +299,7 @@ func SyncText(w http.ResponseWriter, r *http.Request) {
 			logSync(fmt.Sprintf("Modified only on server, sending server copy to client: '%s'", clientFile.Path), r)
 			content = serverContent
 		} else if fileWasModifiedOnServer {
-			logSync(fmt.Sprintf("Server one clientFile '%s' was modified at %d, client timestamp is %d", path, serverLastModified, clientFile.LastModified), r)
+			logSync(fmt.Sprintf("File '%s' was modified on server at %d, but on client at %d", path, serverLastModified, clientFile.LastModified), r)
 			logSync(fmt.Sprintf("Merging and writing one clientFile: '%s'", clientFile.Path), r)
 			content = Merge(serverContent, clientFile.Content)
 		} else {
@@ -320,6 +320,15 @@ func SyncText(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	serverLastModified, err = userFS.Ctime(fs.DirRoot, path)
+	// TODO what if 0?
+	logSync(fmt.Sprintf("Final server timestamp for '%s': %d", path, serverLastModified), r)
+
+	serverLastModified, err = userFS.Ctime(fs.DirRoot, path)
+	// TODO what if 0?
+	logSync(fmt.Sprintf("Final server timestamp for '%s': %d", path, serverLastModified), r)
+
+	time.Sleep(100 * time.Millisecond) // TODO remove, just for testing
 	serverLastModified, err = userFS.Ctime(fs.DirRoot, path)
 	// TODO what if 0?
 	logSync(fmt.Sprintf("Final server timestamp for '%s': %d", path, serverLastModified), r)

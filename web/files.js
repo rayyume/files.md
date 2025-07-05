@@ -297,7 +297,7 @@ async function syncLocalFileWithServer(dir, filename) {
 
     const lastSynced = await saveTextFile(path, serverFile.content);
     setServerFile(path, serverFile.content, serverFile.lastModified, lastSynced);
-    console.log(`saved server file for ${path} with timestamp ${serverFile.lastModified}`);
+    console.log(`Saved server file for ${path} with timestamp ${serverFile.lastModified}`);
     saveServerFiles();
     console.log('Opening file after sync');
     await openFile(dir, filename);
