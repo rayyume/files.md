@@ -109,11 +109,11 @@ func SyncTexts(w http.ResponseWriter, r *http.Request) {
 		var clientContent string
 		if err != nil && !errors.Is(err, os.ErrNotExist) {
 			slog.Error("Sync error: syncTexts: error reading file '%s': %v", path, err)
-			logSync(fmt.Sprintf("Error reading file '%s': %v", path, err), r)
+			logSync(fmt.Sprintf("Sync texts: error reading file '%s': %v", path, err), r)
 			// TODO All-or-nothing sync?
 			continue
 		} else if errors.Is(err, os.ErrNotExist) {
-			logSync(fmt.Sprintf("Creating: '%s'", clientFile.Path), r)
+			logSync(fmt.Sprintf("Sync texts: creating: '%s'", clientFile.Path), r)
 			clientContent = clientFile.Content
 		} else {
 			// file locks?
@@ -124,11 +124,11 @@ func SyncTexts(w http.ResponseWriter, r *http.Request) {
 					slog.Error("Sync error: syncTexts: error reading modified on server file '%s': %v", path, err)
 					continue
 				}
-				logSync(fmt.Sprintf("Merging and writing: '%s'", clientFile.Path), r)
-				clientContent = Merge(string(serverContent), clientFile.Content)
+				logSync(fmt.Sprintf("Sync texts: Merging and writing: '%s'", clientFile.Path), r)
+				clientContent = Merge(serverContent, clientFile.Content)
 			} else {
 				// Changed on client, unchanged on client
-				logSync(fmt.Sprintf("Writing only: '%s'", clientFile.Path), r)
+				logSync(fmt.Sprintf("Sync texts: Writing only: '%s'", clientFile.Path), r)
 				clientContent = clientFile.Content
 			}
 		}
@@ -143,7 +143,7 @@ func SyncTexts(w http.ResponseWriter, r *http.Request) {
 		err = userFS.Write(fs.DirRoot, path, clientContent)
 		if err != nil {
 			slog.Error("Sync error: syncTexts: error writing file '%s': %v", path, err)
-			logSync(fmt.Sprintf("Error writing file '%s': %v", path, err), r)
+			logSync(fmt.Sprintf("Sync texts: error writing file '%s': %v", path, err), r)
 			continue
 		}
 	}
