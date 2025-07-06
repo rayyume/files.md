@@ -94,7 +94,8 @@ async function loadLocalFiles(rootDirHandle) {
                     newFiles[dir][filename].lastModified = file.lastModified;
                 });
 
-                if (dir === 'media') {
+                // TODO support any dirs
+                if (dir === 'media' || dir === 'img') {
                     getImageUrl(entry).then(imageUrl => {
                         newFiles[dir][filename].imageUrl = imageUrl;
                     });

@@ -161,6 +161,12 @@ function initEditor(el) {
 
         path = path.replace(/%20/g, ' ');
 
+        // TODO really dirty fix for links like:
+        // ../media/image.png, remove
+        if (path.startsWith('../')) {
+            path = path.replace('../', '');
+        }
+
         if (/^(?!http|https|\[).+\.md$/.test(path)) {
             let parts = path.split('/');
             if (parts.length === 1) {
@@ -171,10 +177,15 @@ function initEditor(el) {
             return path;
         }
 
-        const match = path.match(/^media\/(.+\.(png|jpg|jpeg|gif|webp))$/i);
+        // TODO support other than media and img folders
+        const match = path.match(/\/(.+\.(png|jpg|jpeg|gif|webp))$/i);
 
         if (match && files['media'] && files['media'][match[1]]) {
             return files['media'][match[1]].imageUrl;
+        }
+
+        if (match && files['img'] && files['img'][match[1]]) {
+            return files['img'][match[1]].imageUrl;
         }
 
         return path;
