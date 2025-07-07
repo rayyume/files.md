@@ -171,10 +171,10 @@ function initEditor(el) {
         if (/^(?!http|https|\[).+\.md$/.test(path)) {
             let parts = path.split('/');
             if (parts.length === 1) {
-                openFile('', path);
+                openFile('', path, true, 'editor2-textarea');
                 return;
             }
-            openFile(parts[0], parts[1]);
+            openFile(parts[0], parts[1], true, 'editor2-textarea');
             return path;
         }
 
