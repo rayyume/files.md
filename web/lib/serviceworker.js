@@ -1,4 +1,3 @@
-const CACHE_NAME = 'files-md-v1';
 const urlsToCache = [
     '/',
     '/favicon.ico',
@@ -43,16 +42,18 @@ const urlParams = new URLSearchParams(self.location.search);
 const COMMIT_HASH = urlParams.get('v') ? `?v=${urlParams.get('v')}` : '';
 console.log('SW commit hash:', COMMIT_HASH);
 
+const cacheName = `files-md-v${COMMIT_HASH}`;
+
+
 self.addEventListener('install', event => {
     event.waitUntil(
-        caches.open(CACHE_NAME)
+        caches.open(cacheName)
             .then(cache => {
                 const cachePromises = urlsToCache.map(url => {
                     if (url !== "/") {
                         url += COMMIT_HASH;
                     }
                     return cache.add(url)
-                        .then(() => console.log('✓ Cached:', url))
                         .catch(err => console.error('✗ Failed to cache:', url, err));
                 });
                 return Promise.allSettled(cachePromises); // Won't fail if one fails
@@ -64,9 +65,24 @@ self.addEventListener('install', event => {
     );
 });
 
+self.addEventListener("activate", (event) => {
+    console.log("Service worker is activated");
+
+    event.waitUntil(
+        caches.keys().then((cacheNames) => {
+            return cacheNames.map((cache) => {
+                if (cache !== cacheName) {
+                    caches.delete(cache);
+                }
+            });
+        })
+    );
+});
+
 self.addEventListener("fetch", (event) => {
-    console.log("Fetching via Service worker");
     event.respondWith(
-        fetch(event.request).catch(() => caches.match(event.request))
+        fetch(event.request).catch(() =>
+            caches.open(cacheName).then((cache) => cache.match(event.request))
+        )
     );
 });
