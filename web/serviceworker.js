@@ -80,6 +80,7 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+    console.log('intercepting fetch:', event.request.url);
     event.respondWith(
         fetch(event.request).catch(() =>
             caches.open(cacheName).then((cache) => cache.match(event.request))
