@@ -83,7 +83,8 @@ async function loadLocalFiles(rootDirHandle) {
                 dirs = dirs.filter(d => d !== '');
 
                 let currentDir = newFiles;
-                for (const dir of dirs) {
+                for (let dir of dirs) {
+                    dir += '/';
                     if (!currentDir[dir]) {
                         currentDir[dir] = {};
                     }
@@ -203,27 +204,15 @@ async function syncTextsWithServer() {
             // If it is current file, skip, because we sync it separately
             // TODO if we skip current, don't take it's timestamp? We had a bug when sync was broken for 1 file
             // TODO fix missing / for root files
-            if (path === `${editor.currentDir}/${editor.currentFile}` || path === editor.currentFile
-                || path === `${editor2.currentDir}/${editor2.currentFile}` || path === editor2.currentFile
-            ) {
+            // TODO multidir add /path to server
+            if (path === editor.path || path === editor2.path) {
                 console.log('Skip current received from server' + path);
                 continue;
             }
 
             try {
                 await saveTextFile(path, content)
-
-                // TODO get rid of this
-                let dir, filename;
-                if (path.includes('/')) {
-                    const parts = path.split('/');
-                    filename = parts.pop();
-                    dir = parts.join('/');
-                } else {
-                    dir = '';
-                    filename = path;
-                }
-                addFileToMemory(dir, filename, {
+                addFileToMemory(path, {
                     content: content,
                     lastModified: lastModified,
                     handle: await getFileHandle(path),
@@ -503,6 +492,7 @@ async function collectModifiedAndDeletedFiles() {
     const modifiedFiles = [];
     const existingFiles = {};
     const promises = [];
+    // TODO multidir walk
     for (const dir in files) {
         if (dir === 'media') continue; // Skip image directory
 
@@ -809,21 +799,29 @@ async function moveCurrentFile(toDir) {
 }
 
 // TODO lock on files modification?
-function addFileToMemory(dir, filename, fileData) {
-    // Ensure directory exists
-    if (!files[dir]) {
-        files[dir] = {};
+function addFileToMemory(path, memFile) {
+    let dirs = path.split('/');
+    dirs = dirs.filter(d => d !== '');
+    const filename = dirs.pop();
+
+    let currentDir = files;
+    for (const dir of dirs) {
+        if (!currentDir[dir]) {
+            currentDir[dir] = {};
+        }
+        currentDir = currentDir[dir];
     }
 
-    files[dir][filename] = fileData;
+    currentDir[filename] = memFile;
 
     // Only sort the specific directory that was modified
-    const sortedFiles = {};
-    const sortedKeys = Object.keys(files[dir]).sort((a, b) => a.localeCompare(b));
-    for (const key of sortedKeys) {
-        sortedFiles[key] = files[dir][key];
-    }
-    files[dir] = sortedFiles;
+    // TODO multidir
+    // const sortedFiles = {};
+    // const sortedKeys = Object.keys(files[dir]).sort((a, b) => a.localeCompare(b));
+    // for (const key of sortedKeys) {
+    //     sortedFiles[key] = files[dir][key];
+    // }
+    // files[dir] = sortedFiles;
 
     // Remove the global re-sorting - it's messing up the natural order
     // The directory order should stay as established by loadLocalFiles
@@ -937,8 +935,8 @@ async function openFile(path, saveToHistory = true, el = 'editor-textarea') {
     const start = performance.now();
     // Why we do normalize here as well?
     path = path.normalize('NFC');
-    const fileData = getMemFile(path);
-    console.log(fileData);
+    const memFile = getMemFile(path);
+    console.log(memFile);
 
     // Check if we're loading the same file and save cursor position
     let cursorPos = null;
@@ -950,13 +948,13 @@ async function openFile(path, saveToHistory = true, el = 'editor-textarea') {
    let filename = toFilename(path);
     const header = filename.replace(/\.md$/, '').replace(/^\w/, (c) => c.toUpperCase());
     let content = '';
-    if (fileData.handle !== undefined) {
-        const file = await fileData.handle.getFile();
+    if (memFile.handle !== undefined) {
+        const file = await memFile.handle.getFile();
         content = await file.text();
         content = `# ${header}\n${content}`;
     } else {
         // We use welcome's files
-        content = fileData.content;
+        content = memFile.content;
     }
 
     // currentEditor.currentDir = dir;
