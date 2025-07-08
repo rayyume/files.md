@@ -515,19 +515,18 @@ async function collectModifiedAndDeletedFiles() {
     // Find deleted files that are in server files but not in existing files.
     let deleted = [];
     for (const dir in serverFiles.files) {
-        for (const file in serverFiles.files[dir]) {
-            if (/[<>:'|?*\\/\x00-\x1F\x7F]/.test(file)) {
+        for (const filename in serverFiles.files[dir]) {
+            if (/[<>:'|?*\\/\x00-\x1F\x7F]/.test(filename)) {
                 continue;
             }
             // Skip current files.
-            if (path === `${editor.currentDir}/${editor.currentFile}` || path === editor.currentFile
-                || path === `${editor2.currentDir}/${editor2.currentFile}` || path === editor2.currentFile
-            ) {
+            if ((dir === editor.currentDir && filename === editor.currentFile)
+                || (dir === editor2.currentDir && filename === editor2.currentFile)) {
                 continue;
             }
-            if (!existingFiles[toPath(dir, file)]) {
-                console.log('DELETED ' + toPath(dir, file));
-                deleted.push(toPath(dir, file));
+            if (!existingFiles[toPath(dir, filename)]) {
+                console.log('DELETED ' + toPath(dir, filename));
+                deleted.push(toPath(dir, filename));
             }
         }
     }
