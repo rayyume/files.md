@@ -450,7 +450,7 @@ function createAutocompleteDict() {
     const entries = [];
 
     // Collect all files with their metadata
-    Object.keys(excludeDirs(SYSTEM_DIRS)).forEach(dir => {
+    Object.keys(files).forEach(dir => {
         Object.keys(files[dir]).forEach(filename => {
             if (filename === CONFIG_FILENAME || filename === CHAT_FILENAME) {
                 return;
@@ -462,13 +462,21 @@ function createAutocompleteDict() {
             entries.push({
                 key,
                 filePath,
-                lastModified: files[dir][filename].lastModified
+                lastModified: files[dir][filename].lastModified,
+                isSystemDir: SYSTEM_DIRS.includes(dir)
             });
         });
     });
 
-    // Sort by last modified (most recent first)
-    entries.sort((a, b) => b.lastModified - a.lastModified);
+    // Sort by system dirs last, then by last modified (most recent first)
+    entries.sort((a, b) => {
+        // System dirs always go to the bottom
+        if (a.isSystemDir && !b.isSystemDir) return 1;
+        if (!a.isSystemDir && b.isSystemDir) return -1;
+
+        // Within same category (system or non-system), sort by last modified
+        return b.lastModified - a.lastModified;
+    });
 
     // Convert back to dictionary
     const dict = {};
