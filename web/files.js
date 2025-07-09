@@ -560,23 +560,37 @@ async function collectModifiedAndDeletedFiles() {
 
     // Find deleted files that are in server files but not in existing files.
     let deleted = [];
-    // TODO multidir walk
-    for (const dir in serverFiles.files) {
-        for (const filename in serverFiles.files[dir]) {
-            if (/[<>:'|?*\\/\x00-\x1F\x7F]/.test(filename)) {
-                continue;
-            }
-            // Skip current files.
-            if ((dir === editor.currentDir && filename === editor.currentFile)
-                || (dir === editor2.currentDir && filename === editor2.currentFile)) {
-                continue;
-            }
-            if (!existingFiles[toPath(dir, filename)]) {
-                console.log('DELETED ' + toPath(dir, filename));
-                deleted.push(toPath(dir, filename));
-            }
+    // for (const dir in serverFiles.files) {
+    //     for (const filename in serverFiles.files[dir]) {
+    //         if (/[<>:'|?*\\/\x00-\x1F\x7F]/.test(filename)) {
+    //             continue;
+    //         }
+    //         // Skip current files.
+    //         if ((dir === editor.currentDir && filename === editor.currentFile)
+    //             || (dir === editor2.currentDir && filename === editor2.currentFile)) {
+    //             continue;
+    //         }
+    //         if (!existingFiles[toPath(dir, filename)]) {
+    //             console.log('DELETED ' + toPath(dir, filename));
+    //             deleted.push(toPath(dir, filename));
+    //         }
+    //     }
+    // }
+    walk(serverFiles.files, (path, entry, isFile) => {
+        if (/[<>:'|?*\\/\x00-\x1F\x7F]/.test(toFilename(path))) {
+            return;
         }
-    }
+
+        // Skip current files.
+        if (path === editor.path || path === editor2.path) {
+            return;
+        }
+
+        if (existingFiles[path] === undefined) {
+            console.log('DELETED ' + path);
+            deleted.push(path);
+        }
+    });
 
     return {
         modified: modifiedFiles,
@@ -613,7 +627,7 @@ function toPath(dir, file) {
 
 async function getFileStatus(path) {
     let content;
-    console.log('checking' , path);
+    console.log('Checking status for' , path);
     try {
         const memFile = getMemFile(path);
         if (!memFile?.handle) {
@@ -634,9 +648,9 @@ async function getFileStatus(path) {
     // TODO why path is stored at all?
     // const path = serverFiles?.files?.[dir]?.[filename]?.path;
     let serverFile = getServerFile(path);
-    console.log('STATUS', path, serverFile);
+    // console.log('STATUS', path, serverFile);
     if (serverFile === null) {
-        console.log('NEW FILE ' + path);
+        console.log('NEW LOCAL FILE ' + path);
         return {
             status: 'new',
             content: content,
@@ -648,6 +662,7 @@ async function getFileStatus(path) {
     const serverHash = serverFile.hash;
     const serverTime = serverFile.lastModified;
     if (serverHash !== hash(content)) {
+        console.log('NEW MODIFIED LOCAL FILE ' + path);
         return {
             status: 'modified',
             content: content,
@@ -697,6 +712,7 @@ async function getFileHandle(path, create = false) {
 
 // TODO split into two, sometimes we need just compare
 async function isContentEqual(path, content) {
+    console.log('checking contentl for', path);
     let fileHandle = await getFileHandle(path);
     if (fileHandle === null) {
         // TODO fix once Chromium fixes the bug
@@ -1015,7 +1031,10 @@ async function openFile(path, saveToHistory = true, el = 'editor-textarea') {
         currentEditor = editor2;
     }
 
-    await syncCurrentFile(false);
+    // Sync previous file
+    if (currentEditor.path !== undefined) {
+        await syncCurrentFile(false);
+    }
 
     if (path === CHAT_PATH) {
         openChat();
@@ -1513,12 +1532,12 @@ function removeMemFile(path) {
 }
 
 // Returns nextPath for sibling or null
-function findNextFile(path) {
+function findSiblingPath(path) {
     const allFiles = [];
     let foundDesiredPath = false;
     let nextPath = null;
     walk(files, (filePath, file, isFile) => {
-        if (filePath === CONFIG_PATH || file === CHAT_PATH) {
+        if (filePath === CONFIG_PATH || filePath === CHAT_PATH) {
             return;
         }
 

@@ -877,11 +877,12 @@ window.addEventListener('keydown', async (event) => {
             return;
         }
 
-        const nextFilePath = findNextFile(path);
+        const nextFilePath = findSiblingPath(path);
 
         let oldPath = path;
         let newPath = '/archive/' + toFilename(path);
 
+        currentEditor.path = undefined;
         if (toDir(path) === '/archive') {
             console.log('Removing file permanently', path);
             await removeFile(oldPath);
