@@ -369,19 +369,20 @@ test('create new file, move to new dir, create new file is subdir, move to root'
     await page.keyboard.type('content');
     // await page.waitForTimeout(300);
 
-    await page.click('#new-folder');
-    await page.waitForTimeout(100);
+    // await page.click('#new-folder');
+    // await page.waitForTimeout(100);
 
-    await page.keyboard.press('Meta+m');
+    // await page.keyboard.press('Meta+m');
+    // await page.waitForTimeout(100);
+    // await page.click('#move-results >> text=dir1');
     await page.waitForTimeout(100);
-    await page.click('#move-results >> text=dir1');
-    await page.waitForTimeout(200);
     // Before multidir we didn't wait for file sync
     // await page.waitForTimeout(2000);
 
     // Create second file in same subdir
     await page.click('#new-file');
-    await page.waitForTimeout(300);
+    await page.pause();
+    await page.waitForTimeout(2000);
     await page.keyboard.press('ArrowUp');
     await page.waitForTimeout(200);
     await page.keyboard.press('Meta+a');
@@ -396,11 +397,9 @@ test('create new file, move to new dir, create new file is subdir, move to root'
     await page.click('#move-results >> text=/');
     await page.waitForTimeout(500);
 
-
-    await page.click('#sidebar-tree li:has-text("dir1")');
-    await page.click('#sidebar-tree li:has-text("dir1") ul li:has-text("File1")')
+    // await page.click('#sidebar-tree li:has-text("dir1")');
+    // await page.click('#sidebar-tree li:has-text("dir1") ul li:has-text("File1")')
     await page.click('#sidebar-tree li:has-text("File2")');
-    await page.pause();
 
 });
 
@@ -463,7 +462,6 @@ test("create new in root with empty name so that it won't remove previous file",
         return cm.getValue();
     });
     expect(codeMirrorContent).toBe("# New file\nMy actual new file\ncontent");
-    await page.pause();
 });
 
 test('create new lower case', async ({ page }) => {

@@ -163,10 +163,9 @@ async function syncTextsWithServer() {
     if (files === undefined || Object.keys(files).length === 0) {
         return;
     }
-    // TODO multidir rem
-    // if (localStorage.getItem('token') === null) {
-    //     return;
-    // }
+    if (localStorage.getItem('token') === null) {
+        return;
+    }
     if (debug) {
         return;
     }
@@ -258,7 +257,6 @@ async function syncTextsWithServer() {
 }
 
 async function syncLocalFileWithServer(path) {
-    // TODO multidir
     if (localStorage.getItem('token') === null) {
         return;
     }
@@ -620,14 +618,6 @@ async function collectNewMediaFiles() {
     return newMediaFiles;
 }
 
-function toPath(dir, file) {
-    if (dir === '') {
-        return file;
-    }
-
-    return `/${dir}/${file}`;
-}
-
 async function getFileStatus(path) {
     let content;
     console.log('Checking status for' , path);
@@ -715,7 +705,7 @@ async function getFileHandle(path, create = false) {
 
 // TODO split into two, sometimes we need just compare
 async function isContentEqual(path, content) {
-    console.log('checking contentl for', path);
+    console.log('checking content for', path);
     let fileHandle = await getFileHandle(path);
     if (fileHandle === null) {
         // TODO fix once Chromium fixes the bug
@@ -834,7 +824,7 @@ async function moveCurrentFile(toDir) {
 
     // TODO add prevent syncing?
     const oldPath = currentEditor.path;
-    const newPath = toPath(toDir, toFilename(currentEditor.path));
+    const newPath = '/' + toDir + '/' + toFilename(currentEditor.path);
 
     try {
         let content = getCurrentContent();
@@ -1056,6 +1046,7 @@ async function openFile(path, saveToHistory = true, el = 'editor-textarea') {
 
     const start = performance.now();
 
+    console.log('Getting mem file for ', path);
     const memFile = getMemFile(path);
     console.log(memFile);
 
@@ -1065,7 +1056,6 @@ async function openFile(path, saveToHistory = true, el = 'editor-textarea') {
         console.log('saving cursor');
         cursorPos = editor.getCursor();
     }
-
 
     let filename = toFilename(path);
     const header = filename.replace(/\.md$/, '').replace(/^\w/, (c) => c.toUpperCase());
@@ -1242,8 +1232,10 @@ async function syncCurrentFile(syncWithServer = true) {
 
                 // Update last modified in memory.
                 let memFile = getMemFile(path);
-                memFile.lastModified = file.lastModified;
-                addMemFile(path, memFile);
+                if (memFile !== null) {
+                    memFile.lastModified = file.lastModified;
+                    addMemFile(path, memFile);
+                }
 
                 let localLastModified = file.lastModified;
                 // TODO inmemory lastmodified should be reloaded

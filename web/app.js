@@ -740,6 +740,7 @@ async function showRandomFile() {
 }
 
 async function newFile() {
+    console.log('New file clicked');
     let dir = toDir(currentEditor.path);
     let selectedDirs = tree.getSelectedNodes();
     // TODO multidir
@@ -754,12 +755,14 @@ async function newFile() {
 
     // TODO check tests
     let num = 1;
+    console.log('TRYING dir');
     while (files[dir + '/'] && files[dir + '/'][filename]) {
+        console.log('TRYING dir');
         filename = `New file (${num}).md`;
         num++;
     }
 
-    const path = toPath(dir, filename);
+    const path = dir + '/' + filename;
     console.log('Creating new file', path);
     let handle = await getFileHandle(path, true);
     // TODO multidir all mem files should add path key ? Search
@@ -772,6 +775,7 @@ async function newFile() {
         imageUrl: null
     });
 
+    console.log('Creating new file', path);
     await openFile(path);
     editor.setCursor({line: 1, ch: 0});
     editor.focus();

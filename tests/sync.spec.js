@@ -211,8 +211,6 @@ test('changed on both client and serve, should merge', async ({ page }) => {
 test("sync one new file from client doesn't conflict with syncTexts", async ({ page }) => {
     await setup(page);
 
-    await page.pause();
-
     await page.click('#new-file');
     await page.waitForTimeout(100);
     await page.keyboard.type('abc');
