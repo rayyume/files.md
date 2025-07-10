@@ -607,7 +607,7 @@ function renderSidebar(focusDir = '') {
         dirNodes[path] = dirNode;
 
         // Add to parent
-        const {dirPath, _ } = dirAndFilename(path);
+        const {dirPath, _ } = toDirPathAndFilename(path);
         const parentNode = dirNodes[dirPath + '/'] || root;
         parentNode.addChild(dirNode);
     });
@@ -626,7 +626,7 @@ function renderSidebar(focusDir = '') {
             return;
         }
 
-        const {dirPath, filename} = dirAndFilename(path);
+        const {dirPath, filename} = toDirPathAndFilename(path);
 
         let fileNode = new TreeNode(filename.replace(/\.md$/, '').replace(/\.txt$/, ''), {expanded: false});
         fileNode.on('click', async function (n, node) {
@@ -747,7 +747,7 @@ async function showRandomFile() {
 
 async function newFile() {
     console.log('New file clicked');
-    let dir = dirPath(currentEditor.path);
+    let dir = toDirPath(currentEditor.path);
     let selectedDirs = tree.getSelectedNodes();
     // TODO multidir
     if (selectedDirs.length > 0 &&
@@ -895,7 +895,7 @@ window.addEventListener('keydown', async (event) => {
         let newPath = '/archive/' + toFilename(path);
 
         currentEditor.path = undefined;
-        if (dirPath(path) === '/archive') {
+        if (toDirPath(path) === '/archive') {
             console.log('Removing file permanently', path);
             await removeFile(oldPath);
         } else {

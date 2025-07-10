@@ -152,7 +152,6 @@ async function loadLocalFiles(rootDirHandle) {
     }
 
     isLoadingLocalFiles = false;
-    console.log(newFiles);
 
     return newFiles;
 }
@@ -1175,7 +1174,7 @@ async function syncCurrentFile(syncWithServer = true) {
             if (hasFilenameChanged) {
                 console.log('Filename has changed from ', filename, 'to', newFilename);
                 // Change the file immediately, because on further await calls it can be synced by syncTexts.
-                currentEditor.path = joinPath(dirPath(path), newFilename);
+                currentEditor.path = joinPath(toDirPath(path), newFilename);
 
                 // 1. Remove file with old filename
                 // 2. Create file with new filename
@@ -1195,7 +1194,7 @@ async function syncCurrentFile(syncWithServer = true) {
                 //     content = getCurrentContent();
                 //     // Change current file if the editor is unchanged.
                 // }
-                const newPath = joinPath(dirPath(path), newFilename);
+                const newPath = joinPath(toDirPath(path), newFilename);
                 addMemFile(newPath, {
                     isFile: true,
                     content: content,
@@ -1453,9 +1452,9 @@ function walkFilesExcludingSystemDirs(callback) {
             return;
         }
 
-        const rootDir = rootDirName(path);
+        const rootDir = toRootDirName(path);
         console.log("ROOT", rootDir);
-        if (SYSTEM_DIRS.includes(rootDir) && rootDirName !== '/') {
+        if (SYSTEM_DIRS.includes(rootDir) && toRootDirName !== '/') {
             return;
         }
 
@@ -1464,21 +1463,21 @@ function walkFilesExcludingSystemDirs(callback) {
 }
 
 function toFilename(path) {
-    const {filename} = dirAndFilename(path);
+    const {filename} = toDirPathAndFilename(path);
 
     return filename;
 }
 
 // Dir with no slash at the end.
 // For '/' it returns '/'.
-function dirPath(path) {
-    const {dirPath} = dirAndFilename(path);
+function toDirPath(path) {
+    const {dirPath} = toDirPathAndFilename(path);
 
     return dirPath;
 }
 
-function rootDirName(path) {
-    const root = rootPath(path);
+function toRootDirName(path) {
+    const root = toRootPath(path);
     if (root === '/') {
         return root;
     }
@@ -1487,7 +1486,7 @@ function rootDirName(path) {
 }
 
 // Dir with no slash at the end.
-function dirAndFilename(path) {
+function toDirPathAndFilename(path) {
     let parts = path.split('/');
     parts = parts.filter(p => p !== '');
 
@@ -1503,7 +1502,7 @@ function excludeDirs(excludedDirs) {
             continue;
         }
 
-        const dirName = rootDirName(dir)
+        const dirName = toRootDirName(dir)
         if (!excludedDirs.includes(dirName)) {
             filteredDirs.push(dir);
         }
@@ -1512,16 +1511,8 @@ function excludeDirs(excludedDirs) {
     return filteredDirs;
 }
 
-// Removes / at the end if not '/'
-function normPath(str) {
-    if (str === '/') {
-        return '/';
-    }
 
-    return trimPostfix(str, '/');
-}
-
-function rootPath(path) {
+function toRootPath(path) {
     const parts = path.split('/').filter(p => p !== '');
 
     if (parts.length <= 1) {

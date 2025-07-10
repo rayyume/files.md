@@ -247,7 +247,7 @@ async function send() {
 
 async function receive(val) {
     let isChatModal = document.getElementById('chat-container').classList.contains('modal');
-    if (!isChatModal && editor.currentFile !== CHAT_PATH) {
+    if (!isChatModal && currentEditor.path !== CHAT_PATH) {
         return;
     }
 

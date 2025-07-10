@@ -83,7 +83,7 @@ class SearchModal {
         // Similarity matching, check for direct file matches across directories.
         walkFilesExcludingSystemDirs((path) => {
             // Ignore if not in searched dirs
-            let dirName = rootDirName(path);
+            let dirName = toRootDirName(path);
             if (!searchDirs.includes(dirName)) {
                 return;
             }
@@ -164,7 +164,7 @@ class SearchModal {
                 return;
             }
 
-            const dirName = rootDirName(path);
+            const dirName = toRootDirName(path);
             if (dirName === 'media') {
                 return;
             }
@@ -281,7 +281,7 @@ class SearchModal {
 
             const listItem = document.createElement('li');
             let title = trimPostfix(trimPostfix(toFilename(path), '.md'), '.txt');
-            let dirName = dirPath(path);
+            let dirName = toDirPath(path);
             if (dirName === '/') {
                 listItem.textContent = title;
             } else {
@@ -305,7 +305,6 @@ class SearchModal {
     }
 
     handleClick(path) {
-
         if (this.messageIndex !== null) {
             const selectedMessages = document.querySelectorAll('.message.selected');
             let indices = [];
@@ -319,7 +318,9 @@ class SearchModal {
                 messagesToRemove = [btn.closest('.message')];
             }
 
-            sendCmd('mvn', [filename, dir, indices.join(',')]);
+            const {dirPath, filename} = toDirPathAndFilename()
+            // TODO multidir check dirPath
+            sendCmd('mvn', [filename, dirPath, indices.join(',')]);
             messagesToRemove.forEach(message => {
                 message.classList.add('removing');
                 setTimeout(() => {
@@ -330,7 +331,7 @@ class SearchModal {
             renderSidebar();
             this.close();
         } else {
-            openFile(dir, filename);
+            openFile(path);
             this.close();
         }
     }
