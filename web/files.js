@@ -1427,6 +1427,8 @@ function walk(obj, callback, path = '/') {
     const maxAllowedIterations = 100000;
     let iterations = 0;
     while (stack.length > 0) {
+        // Normally that would never happen.
+        // But in case of an error, a watchdog like that can prevent freezing.
         iterations++;
         if (iterations > maxAllowedIterations) {
             alert("An infinite loop during files walk");
