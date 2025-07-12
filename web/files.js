@@ -1428,7 +1428,7 @@ function walk(obj, callback, path = '/') {
     // Chromium's callstack limit is 11K, so we iterate.
     const stack = [{obj, path}];
 
-    const maxAllowedIterations = 100000;
+    const maxAllowedIterations = 12000;
     let iterations = 0;
     let lastStackTraces = [];
     while (stack.length > 0) {
