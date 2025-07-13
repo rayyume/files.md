@@ -216,11 +216,12 @@ async function syncTextsWithServer() {
             }
 
             try {
-                await saveTextFile(path, content)
+                const lastClientModified = await saveTextFile(path, content)
                 addMemFile(path, {
                     isFile: true,
                     content: content,
                     lastModified: lastModified,
+                    lastClientModified: lastClientModified,
                     path: path,
                     handle: await getFileHandle(path),
                 });
