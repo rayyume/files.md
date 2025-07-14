@@ -603,14 +603,13 @@ body.dragging * {
 }
 
 #close-editor2 {
-    position: absolute;
-    top: 2px;
-    right: 8px;
+    position: relative;
     cursor: pointer;
     font-size: 27px;
     color: var(--col-link);
     background: none;
     border: none;
+    top: -2px;
 }
 
 #go-backward, #go-backward {
@@ -684,8 +683,7 @@ body.dragging * {
 }
 
 .nav-button {
-    position: absolute;
-    top: 10px;
+    position: relative;
     background: none;
     border: none;
     padding: 0;
@@ -701,10 +699,12 @@ body.dragging * {
     cursor: not-allowed;
 }
 
-#go-forward {
-    right: 32px;
-}
-
-#go-backward {
-    right: 55px;
+#nav-buttons {
+    background: var(--col-bg-alt);
+    border-radius: 10px;
+    display: flex;
+    position: absolute;
+    padding: 2px;
+    top: 2px;
+    right: 2px;
 }

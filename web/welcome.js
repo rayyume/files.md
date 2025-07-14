@@ -192,7 +192,6 @@ const DEFAULT_FILES = {
             "#### Links\n" +
             "You can insert your own links by typing `[`.\n\n" +
             "[Why using links](/Links.md)\n" +
-            "[Welcome](/🪴 Welcome.md)\n" +
             "[My project](/My project.md)",
         isFile: true,
     },
@@ -225,7 +224,6 @@ const DEFAULT_FILES = {
             "| -------- | -------- |\n" +
             "| `[` | Trigger file link autocomplete |\n" +
             "\n" +
-            "[Welcome](/🪴 Welcome.md)\n" +
             "[Markdown Guide](/Markdown Guide.md)",
         isFile: true,
     },
