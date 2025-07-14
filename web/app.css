@@ -210,6 +210,10 @@ a:hover {
 #search-results li, #move-results li {
     padding: 8px;
     cursor: pointer;
+    text-overflow: ellipsis;
+    word-break: break-all; /* Break long paths anywhere */
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 #search-results .focused, #move-results .focused {
