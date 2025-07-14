@@ -953,7 +953,7 @@ func (b *Bot) ShowToday(_ []string) error {
 		return b.showDirs(nil)
 	}
 
-	if b.cfg.JournalOnlyMode() {
+	if b.cfg.JournalOnlyMode() || b.cfg.ChatOnlyMode() {
 		_, err := b.tg.Send(b.userID, i18n.Tr("What's on your mind?"), nil, tg.MarkupHTML)
 		if err != nil {
 			return fmt.Errorf("show today: can't send journal message: %w", err)
@@ -2729,7 +2729,7 @@ func (b *Bot) chatMode(_ []string) error {
 		return fmt.Errorf("chat only mode: can't set chat only mode %w", err)
 	}
 
-	return b.showHTML(i18n.Tr("What is on your mind?"), nil)
+	return b.ShowToday(nil)
 }
 
 func (b *Bot) completeHabit(params []string) error {
