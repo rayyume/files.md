@@ -275,8 +275,8 @@ func (b *Bot) handlers() map[string]func([]string) error {
 		consts.CmdTasksOnlyMode:               b.setTasksOnlyMode,
 		consts.CmdNotesOnlyMode:               b.setNotesOnlyMode,
 		consts.CmdJournalOnlyMode:             b.setJournalOnlyMode,
-		consts.CmdFullMode:                    b.fullMode,
-		consts.CmdChatMode:                    b.chatMode,
+		consts.CmdFullMode:                    b.setFullMode,
+		consts.CmdChatMode:                    b.setChatOnlyMode,
 		consts.CmdCompleteHabit:               b.completeHabit,
 		consts.CmdShare:                       b.shareNote,
 		// Used for button-like separators
@@ -1555,12 +1555,12 @@ func (b *Bot) showStart(params []string) error {
 		} else if mode == "journal" {
 			return b.setJournalOnlyMode(nil)
 		} else if mode == "full" {
-			return b.fullMode(nil)
+			return b.setFullMode(nil)
 		}
 	}
 
 	// Default to full mode, people don't like to choose.
-	return b.fullMode(nil)
+	return b.setFullMode(nil)
 }
 
 func (b *Bot) moveToDirFromToday(params []string) error {
@@ -2684,10 +2684,11 @@ func (b *Bot) setJournalOnlyMode(_ []string) error {
 		return fmt.Errorf("journal only mode: can't set notes only mode %w", err)
 	}
 
-	return b.ShowToday(nil)
+	_, err = b.tg.Send(b.userID, i18n.Tr("What's on your mind?"), nil, tg.MarkupHTML)
+	return err
 }
 
-func (b *Bot) fullMode(_ []string) error {
+func (b *Bot) setFullMode(_ []string) error {
 	err := b.cfg.SetMode(userconfig.ModeFull)
 	if err != nil {
 		return fmt.Errorf("full mode: can't set notes only mode %w", err)
@@ -2718,13 +2719,14 @@ func (b *Bot) fullMode(_ []string) error {
 	return b.ShowToday(nil)
 }
 
-func (b *Bot) chatMode(_ []string) error {
+func (b *Bot) setChatOnlyMode(_ []string) error {
 	err := b.cfg.SetMode(userconfig.ModeChat)
 	if err != nil {
 		return fmt.Errorf("chat only mode: can't set chat only mode %w", err)
 	}
 
-	return b.ShowToday(nil)
+	_, err = b.tg.Send(b.userID, i18n.Tr("What's on your mind?"), nil, tg.MarkupHTML)
+	return err
 }
 
 func (b *Bot) completeHabit(params []string) error {
