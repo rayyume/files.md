@@ -78,6 +78,8 @@ type Update interface {
 	Caption() string
 	MsgID() (int, bool)
 	Time() (int, bool)
+	ChannelID() (int64, bool)
+	ChannelName() (string, bool)
 }
 
 // Chat provides a simple interface to chat API like Telegram.
@@ -137,6 +139,17 @@ func (b *Bot) Reply(u Update) error {
 	// Handle inline queries
 	if _, ok := u.InlineQueryID(); ok {
 		return b.answerSearch(u)
+	}
+
+	// Handle messages in channels
+	_, exists := u.ChannelID()
+	if exists {
+		channelName, _ := u.ChannelName()
+		if len(strings.TrimSpace(channelName)) == 0 {
+			channelName = "UnknownChannel"
+		}
+
+		return b.addToFile(fs.DirRoot, fs.Filename(channelName), u.MsgText())
 	}
 
 	for _, plugin := range BotPlugins {

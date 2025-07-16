@@ -102,3 +102,11 @@ func (u *Upd) MsgID() (int, bool) {
 func (u *Upd) Time() (int, bool) {
 	return u.TimeVal, u.HasTimeVal
 }
+
+func (u *Upd) ChannelID() (int64, bool) {
+	return 0, false
+}
+
+func (u *Upd) ChannelName() (string, bool) {
+	return "", false
+}

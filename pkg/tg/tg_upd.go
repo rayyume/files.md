@@ -40,6 +40,9 @@ func (u *TGUpd) MsgText() string {
 	if u.raw.Message != nil {
 		return u.raw.Message.Text
 	}
+	if u.raw.ChannelPost != nil {
+		return u.raw.ChannelPost.Text
+	}
 
 	return ""
 }
@@ -58,16 +61,27 @@ func (u *TGUpd) UserID() int64 {
 	}
 }
 
-func (u *TGUpd) ChannelID() (int64, error) {
+func (u *TGUpd) ChannelID() (int64, bool) {
 	switch {
 	case u.raw.ChannelPost != nil:
-		return u.raw.ChannelPost.Chat.ID, nil
+		return u.raw.ChannelPost.Chat.ID, true
 	case u.raw.EditedChannelPost != nil:
-		return u.raw.EditedChannelPost.Chat.ID, nil
+		return u.raw.EditedChannelPost.Chat.ID, true
 	case u.raw.CallbackQuery != nil && u.raw.CallbackQuery.Message != nil && u.raw.CallbackQuery.Message.Chat != nil && u.raw.CallbackQuery.Message.Chat.Type == "channel":
-		return u.raw.CallbackQuery.Message.Chat.ID, nil
+		return u.raw.CallbackQuery.Message.Chat.ID, true
 	default:
-		return 0, errNoChannelID
+		return 0, false
+	}
+}
+
+func (u *TGUpd) ChannelName() (string, bool) {
+	switch {
+	case u.raw.ChannelPost != nil:
+		return u.raw.ChannelPost.Chat.Title, true
+	case u.raw.EditedChannelPost != nil:
+		return u.raw.EditedChannelPost.Chat.Title, true
+	default:
+		return "", false
 	}
 }
 

@@ -103,14 +103,13 @@ func main() {
 				}
 			}()
 
-			var updJSON []byte
-			updJSON, _ = json.Marshal(update)
-			infolog.Info("Bot update: ", "update", string(updJSON))
+			updJSON, _ := json.MarshalIndent(update, "", "  ")
+			infolog.Info("Bot update", "update", string(updJSON))
 
 			var userID int64
 			upd := tg.NewTGUpd(update)
-			channelID, err := upd.ChannelID()
-			if err != nil {
+			channelID, channelIDExists := upd.ChannelID()
+			if channelIDExists {
 				userID, err = telegram.ChannelCreatorID(channelID)
 				if err != nil {
 					slog.Error("Bot error: can't get channel creator ID", "upd", string(updJSON), "err", err)
@@ -119,8 +118,8 @@ func main() {
 				userID = upd.UserID()
 			}
 
-			userCh, exists := userChannels[userID]
-			if !exists {
+			userCh, channelIDExists := userChannels[userID]
+			if !channelIDExists {
 				userCh = make(chan tgbotapi.Update, 100)
 				userChannels[userID] = userCh
 				go supervisor(userID, userCh, telegram)
