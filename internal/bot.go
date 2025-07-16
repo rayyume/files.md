@@ -2616,15 +2616,16 @@ func (b *Bot) showToADayRecurring(params []string) error {
 }
 
 func (b *Bot) addToFile(dir, filename, content string) error {
-	existingContent, err := b.fs.Read(dir, filename)
-	if err != nil {
-		return fmt.Errorf("add to file: can't get doc content of '%s': %w", filename, err)
-	}
+	existingContent, _ := b.fs.Read(dir, filename)
+	// Create if not exists?
+	//if err != nil {
+	//	return fmt.Errorf("add to file: can't get doc content of '%s': %w", filename, err)
+	//}
 
 	header := fmt.Sprintf("#### %d %s %d, %s", now().Day(), now().Format("January"), now().Year(), now().Weekday())
 	newContent := txt.InsertTextAfterHeader(existingContent, header, content)
 
-	err = b.fs.Write(dir, filename, newContent)
+	err := b.fs.Write(dir, filename, newContent)
 	if err != nil {
 		return fmt.Errorf("add to file: can't save file: %w", err)
 	}
