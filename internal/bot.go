@@ -1110,6 +1110,24 @@ func (b *Bot) showLaterTasks(_ []string) error {
 
 		kb.AddRow(btn)
 	}
+
+	// Adding tasks from Later.txt
+	laterChecklistMD, err := b.fs.Read(fs.DirRoot, fs.LaterFilename)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("show later: can't read later file: %w", err)
+	}
+	if len(laterChecklistMD) != 0 {
+		items := txt.ChecklistItems(laterChecklistMD)
+		for item, isCompleted := range items {
+			if isCompleted {
+				continue
+			}
+
+			cmd := tg.NewCmd(consts.CmdCompleteChecklistItem, []string{fs.Hash(fs.LaterFilename), fs.Hash(item)})
+			btn := tg.NewBtn(i18n.AddEmoji(item), cmd)
+			kb.AddRow(btn)
+		}
+	}
 	kb.AddRow(tg.NewBtn(i18n.StrToday, tg.NewCmd(consts.CmdShowToday, nil)))
 
 	msg := b.tr("⏳ Your tasks for <b>later</b>:")
@@ -1296,6 +1314,7 @@ func (b *Bot) showMoveFromToday(_ []string) error {
 	return nil
 }
 
+// TODO today.txt
 func (b *Bot) postpone(params []string) error {
 	// TODO Remove input expectations if dir is not today (?)
 	filenameHash := params[0]
@@ -1436,6 +1455,7 @@ func (b *Bot) showShop(_ []string) error {
 	return b.showChecklist([]string{fs.Hash(fs.DirShop)})
 }
 
+// TODO today.txt
 func (b *Bot) showMultilineTask(params []string) error {
 	dir := params[0]
 	filenameHash := params[1]
@@ -1736,39 +1756,53 @@ func (b *Bot) moveToChecklist(params []string) error {
 		msgIndices = append(msgIndices, msgIndex)
 	}
 
-	checklist, err := b.fs.Unhash(fs.DirRoot, toChecklistHash)
+	for _, msgIndex := range msgIndices {
+		_, err := b.addToChecklist(toChecklistHash, msgIndex)
+		if err != nil {
+			return fmt.Errorf("move to checklist: can't add to checklist: %w", err)
+		}
+	}
+
+	return b.ShowToday(nil)
+}
+
+func (b *Bot) addToChecklist(checklistHash string, msgIndex int) (string, error) {
+	checklist, err := b.fs.Unhash(fs.DirRoot, checklistHash)
 	// Create known checklist if it doesn't exist
 	if err != nil {
-		if fs.Hash(fs.TodayFilename) == toChecklistHash || fs.TodayFilename == toChecklistHash {
+		if fs.Hash(fs.TodayFilename) == checklistHash || fs.TodayFilename == checklistHash {
 			checklist = fs.TodayFilename
 			err = b.fs.Write(fs.DirRoot, checklist, "")
 			if err != nil {
-				return fmt.Errorf("move to checklist: can't create today checklist: %w", err)
+				return "", fmt.Errorf("add to checklist: can't create today checklist: %w", err)
 			}
-		} else if fs.Hash(fs.LaterFilename) == toChecklistHash || fs.LaterFilename == toChecklistHash {
+		} else if fs.Hash(fs.LaterFilename) == checklistHash || fs.LaterFilename == checklistHash {
 			checklist = fs.LaterFilename
 			err = b.fs.Write(fs.DirRoot, checklist, "")
 			if err != nil {
-				return fmt.Errorf("move to checklist: can't create later checklist: %w", err)
+				return "", fmt.Errorf("add to checklist: can't create later checklist: %w", err)
 			}
 		} else {
-			return fmt.Errorf("move to checklist: can't unhash checklist %s: %w", toChecklistHash, err)
+			return "", fmt.Errorf("add to checklist: can't unhash checklist %s: %w", checklistHash, err)
 		}
 	}
 
 	checklistMD, err := b.fs.Read(fs.DirRoot, checklist)
 	if err != nil {
-		return fmt.Errorf("move to checklist: can't read checklist %s: %w", checklist, err)
-	}
-	err = b.moveFromChat(func(content string, timestamp time.Time) error {
-		md := txt.AddChecklistItem(checklistMD, content, false)
-		return b.fs.Write(fs.DirRoot, checklist, md)
-	}, true, msgIndices...)
-	if err != nil {
-		return fmt.Errorf("move to checklist: can't move from chat: %w", err)
+		return "", fmt.Errorf("add to checklist: can't read checklist %s: %w", checklist, err)
 	}
 
-	return b.ShowToday(nil)
+	var item string
+	err = b.moveFromChat(func(content string, timestamp time.Time) error {
+		item = content
+		md := txt.AddChecklistItem(checklistMD, content, false)
+		return b.fs.Write(fs.DirRoot, checklist, md)
+	}, true, msgIndex)
+	if err != nil {
+		return "", fmt.Errorf("move to checklist: can't move from chat: %w", err)
+	}
+
+	return item, nil
 }
 
 func (b *Bot) completeChecklistItem(params []string) error {
@@ -1785,11 +1819,16 @@ func (b *Bot) completeChecklistItem(params []string) error {
 		return fmt.Errorf("complete checklist item: can't read checklist %s: %w", checklist, err)
 	}
 
-	md := txt.CompleteChecklistItem(checklistMD, itemHash)
+	md, item := txt.CompleteChecklistItem(checklistMD, itemHash)
 	err = b.fs.Write(fs.DirRoot, checklist, md)
 
 	if err != nil {
 		return fmt.Errorf("complete checklist item: can't complete item from chat: %w", err)
+	}
+
+	err = b.addToFile(fs.DirArchive, fs.DoneFilename, fmt.Sprintf("✅ %s", fs.Title(item)))
+	if err != nil {
+		return fmt.Errorf("complete checklist item: can't add to archive: %w", err)
 	}
 
 	return b.ShowToday(nil)
@@ -2172,7 +2211,7 @@ func (b *Bot) addToRecentFileOrNoteFromShortcut(params []string) error {
 func (b *Bot) moveToLater(params []string) error {
 	msgIndexStr := params[0]
 
-	return b.moveToDir([]string{fs.DirLater, msgIndexStr})
+	return b.moveToChecklist([]string{fs.LaterFilename, msgIndexStr})
 }
 
 func (b *Bot) complete(params []string) error {
@@ -2328,29 +2367,45 @@ func (b *Bot) schedule(params []string) error {
 	timeStr := params[1]
 	cron := params[2]
 
-	err = b.moveFromChat(func(content string, timestamp time.Time) error {
-		scheduleTime, err := strconv.ParseInt(timeStr, 10, 64)
-		if err != nil {
-			return fmt.Errorf("schedule: can't parse timestamp: %w", err)
-		}
+	scheduleTime, err := strconv.ParseInt(timeStr, 10, 64)
+	if err != nil {
+		return fmt.Errorf("schedule: can't parse timestamp: %w", err)
+	}
 
-		sanitizedTitle, content, err := b.extractTitleAndContent(content, maxTitleLengthForMobile)
-		if err != nil {
-			return fmt.Errorf("schedule: %w", err)
-		}
-		filename := fs.Filename(sanitizedTitle)
-		err = b.fs.Write(fs.DirLater, filename, content)
-		if err != nil {
-			return fmt.Errorf("schedule: can't write file %s: %w", filename, err)
-		}
+	item, err := b.addToChecklist(fs.LaterFilename, msgIndex)
+	if err != nil {
+		return fmt.Errorf("schedule: can't move to later: %w", err)
+	}
 
-		err = b.cfg.AddToSchedule(filename, scheduleTime, cron)
-		if err != nil {
-			return fmt.Errorf("schedule: can't add to schedule: %w", err)
-		}
+	err = b.cfg.AddToSchedule(item, scheduleTime, cron)
+	if err != nil {
+		return fmt.Errorf("schedule: can't add to schedule: %w", err)
+	}
 
-		return nil
-	}, false, msgIndex)
+	//err = b.moveFromChat(func(content string, timestamp time.Time) error {
+	//	scheduleTime, err := strconv.ParseInt(timeStr, 10, 64)
+	//	if err != nil {
+	//		return fmt.Errorf("schedule: can't parse timestamp: %w", err)
+	//	}
+	//
+	//	//sanitizedTitle, content, err := b.extractTitleAndContent(content, maxTitleLengthForMobile)
+	//	//if err != nil {
+	//	//	return fmt.Errorf("schedule: %w", err)
+	//	//}
+	//
+	//	//filename := fs.Filename(sanitizedTitle)
+	//	//err = b.fs.Write(fs.DirLater, filename, content)
+	//	//if err != nil {
+	//	//	return fmt.Errorf("schedule: can't write file %s: %w", filename, err)
+	//	//}
+	//	//
+	//	//err = b.cfg.AddToSchedule(filename, scheduleTime, cron)
+	//	//if err != nil {
+	//	//	return fmt.Errorf("schedule: can't add to schedule: %w", err)
+	//	//}
+	//
+	//	return nil
+	//}, false, msgIndex)
 
 	return b.ShowToday(nil)
 }

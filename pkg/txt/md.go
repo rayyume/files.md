@@ -56,16 +56,18 @@ func AddChecklistItem(md, item string, checked bool) string {
 	return strings.TrimSpace(md)
 }
 
-func CompleteChecklistItem(md, itemHash string) string {
+func CompleteChecklistItem(md, itemHash string) (string, string) {
+	foundItem := ""
 	lines := strings.Split(md, "\n")
 	for i, line := range lines {
 		line = strings.TrimSpace(line)
 		if strings.HasPrefix(line, "- [ ] ") && Hash(line[6:]) == itemHash {
+			foundItem = line[6:]
 			lines[i] = "- [x] " + line[6:]
 		}
 	}
 
-	return strings.Join(lines, "\n")
+	return strings.Join(lines, "\n"), foundItem
 }
 
 func RemoveChecklistItem(md, item string) string {

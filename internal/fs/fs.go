@@ -55,6 +55,7 @@ const (
 
 	TodayFilename    = "Today.txt"
 	LaterFilename    = "Later.txt"
+	DoneFilename     = "Done.txt"
 	InboxFilename    = "Inbox.txt"
 	PomodoroFilename = "Finished a break.md"
 
