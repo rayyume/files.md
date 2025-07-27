@@ -13,6 +13,7 @@ import (
 	"os"
 	"regexp"
 	"slices"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -980,11 +981,19 @@ func (b *Bot) ShowToday(_ []string) error {
 	}
 	if len(todayChecklistMD) != 0 {
 		tasks := txt.ChecklistItems(todayChecklistMD)
-		for task, isCompleted := range tasks {
+		// Sort keys
+		keys := make([]string, 0, len(tasks))
+		for key := range tasks {
+			keys = append(keys, key)
+		}
+		sort.Strings(keys)
+
+		for _, task := range keys {
+			isCompleted := tasks[task]
 			if isCompleted {
 				continue
 			}
-
+		
 			if len(task) >= maxTitleLengthForMobile {
 				cmd := tg.NewCmd(consts.CmdShowLongItem, []string{fs.Hash(fs.TodayFilename), fs.Hash(task)})
 				btn := tg.NewBtn(i18n.AddEmoji("eyes"), cmd)
@@ -1501,6 +1510,7 @@ func (b *Bot) showMultilineTask(params []string) error {
 	return nil
 }
 
+// TODO today.txt move to today/later
 func (b *Bot) showLongItem(params []string) error {
 	checklistHash := params[0]
 	itemHash := params[1]
