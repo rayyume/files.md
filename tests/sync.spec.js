@@ -80,8 +80,8 @@ async function setup(page) {
 }
 
 test('sync new files from server', async ({ page }) => {
-    await createFileOnServer('file.md', 'test content');
-    await createFileOnServer('another.md', '*italic*');
+    await createFileOnServer('File.md', 'test content');
+    await createFileOnServer('Another.md', '*italic*');
 
     await setup(page);
 
@@ -90,8 +90,8 @@ test('sync new files from server', async ({ page }) => {
     await clickAndExpectContent(page, 'README', '# README\nHello world');
 
     // Check that new files are added
-    await clickAndExpectContent(page, 'file', '# File\ntest content');
-    await clickAndExpectContent(page, 'another', '# Another\n*italic*');
+    await clickAndExpectContent(page, 'File', '# File\ntest content');
+    await clickAndExpectContent(page, 'Another', '# Another\n*italic*');
 });
 
 test('sync new files from client', async ({ page }) => {
@@ -137,8 +137,8 @@ test('sync new files from client, ignore current file in syncTexts', async ({ pa
 });
 
 test('sync existing files from client', async ({ page }) => {
-    await createFileOnServer('file.md', 'test content');
-    await createFileOnServer('another.md', '*italic*');
+    await createFileOnServer('File.md', 'test content');
+    await createFileOnServer('Another.md', '*italic*');
 
     await setup(page);
 
@@ -173,9 +173,9 @@ test('sync existing files from client', async ({ page }) => {
 });
 
 test('get changes for current file from server', async ({ page }) => {
-    await createFileOnServer('file.md', 'test content');
+    await createFileOnServer('File.md', 'test content');
     // await page.waitForTimeout(1000);
-    await createFileOnServer('another.md', '*italic*');
+    await createFileOnServer('Another.md', '*italic*');
 
     await setup(page);
 
@@ -183,16 +183,16 @@ test('get changes for current file from server', async ({ page }) => {
     await clickAndExpectContent(page, 'file', '# File\ntest content');
     await expectCurrentContent(page, '# File\ntest content');
 
-    await createFileOnServer('file.md', 'test content\nadded');
-    await createFileOnServer('file2.md', 'test content\nadded2');
+    await createFileOnServer('File.md', 'test content\nadded');
+    await createFileOnServer('File2.md', 'test content\nadded2');
     await page.waitForTimeout(2000);
     // await page.pause();
     await expectCurrentContent(page, '# File\ntest content\nadded');
 });
 
 test('send changes from current file to server', async ({ page }) => {
-    await createFileOnServer('file.md', 'test content');
-    await createFileOnServer('another.md', '*italic*');
+    await createFileOnServer('File.md', 'test content');
+    await createFileOnServer('Another.md', '*italic*');
 
     await setup(page);
 
@@ -200,7 +200,7 @@ test('send changes from current file to server', async ({ page }) => {
     await clickAndExpectContent(page, 'file', '# File\ntest content');
     await expectCurrentContent(page, '# File\ntest content');
 
-    await createFileOnServer('file.md', 'test content\nadded');
+    await createFileOnServer('File.md', 'test content\nadded');
     await page.waitForTimeout(2000);
     await expectCurrentContent(page, '# File\ntest content\nadded');
 
@@ -214,7 +214,7 @@ test('send changes from current file to server', async ({ page }) => {
 });
 
 test('changed on both client and serve, should merge', async ({ page }) => {
-    await createFileOnServer('file.md', 'test content');
+    await createFileOnServer('File.md', 'test content');
 
     await setup(page);
 
@@ -226,7 +226,7 @@ test('changed on both client and serve, should merge', async ({ page }) => {
     }, currentWorkerIndex);
 
     // Modify on server
-    await createFileOnServer('file.md', 'test content\nadded from server');
+    await createFileOnServer('File.md', 'test content\nadded from server');
     await page.waitForTimeout(2000);
 
     // Modify on client
@@ -240,7 +240,7 @@ test('changed on both client and serve, should merge', async ({ page }) => {
     }, currentWorkerIndex);
 
     await page.waitForTimeout(2000);
-    await expectFileOnServer(page, 'file.md', 'test content\nadded from server\naddded from client');
+    await expectFileOnServer(page, 'File.md', 'test content\nadded from server\naddded from client');
     await expectCurrentContent(page, '# File\ntest content\nadded from server\naddded from client');
 });
 
@@ -272,8 +272,8 @@ test("sync one new file from client doesn't conflict with syncTexts", async ({ p
 });
 
 test('delete files on client will propagate to server as well', async ({ page }) => {
-    await createFileOnServer('file.md', 'test content');
-    await createFileOnServer('another.md', '*italic*');
+    await createFileOnServer('File.md', 'test content');
+    await createFileOnServer('Another.md', '*italic*');
 
     await setup(page);
 
@@ -299,13 +299,13 @@ test('delete files on client will propagate to server as well', async ({ page })
 
     // await page.pause();
 
-    expectFileOnServer(page, 'file.md', 'test content');
+    expectFileOnServer(page, 'File.md', 'test content');
     expectNoFileOnServer(page, 'another.md');
 });
 
 test('files exist on both client and server, config is not removed on first sync', async ({ page }) => {
-    await createFileOnServer('file.md', 'test content');
-    await createFileOnServer('another.md', '*italic*');
+    await createFileOnServer('File.md', 'test content');
+    await createFileOnServer('Another.md', '*italic*');
 
     await setup(page);
     await page.waitForTimeout(300);
@@ -325,15 +325,15 @@ test('files exist on both client and server, config is not removed on first sync
     });
     await page.waitForTimeout(300);
 
-    await expectFileOnServer(page, 'file.md', 'test content');
-    await expectFileOnServer(page, 'another.md', '*italic*');
+    await expectFileOnServer(page, 'File.md', 'test content');
+    await expectFileOnServer(page, 'Another.md', '*italic*');
     await expectFileOnServer(page, 'config.json', '{}');
 });
 
 test('files exist on both client and server, serverFiles contains proper server files', async ({ page }) => {
-    await createFileOnServer('file.md', 'test content');
-    await createFileOnServer('dir/file2.md', 'test content2');
-    await createFileOnServer('another.md', '*italic*');
+    await createFileOnServer('File.md', 'test content');
+    await createFileOnServer('dir/File2.md', 'test content2');
+    await createFileOnServer('Another.md', '*italic*');
 
     await setup(page);
     await page.waitForTimeout(300);
@@ -343,8 +343,8 @@ test('files exist on both client and server, serverFiles contains proper server 
     await clickAndExpectContent(page, 'README', '# README\nHello world');
 
     // Check that new files are added
-    await clickAndExpectContent(page, 'file', '# File\ntest content');
-    await clickAndExpectContent(page, 'another', '# Another\n*italic*');
+    await clickAndExpectContent(page, 'File', '# File\ntest content');
+    await clickAndExpectContent(page, 'Another', '# Another\n*italic*');
 
     // Trigger syncTexts
     await page.evaluate(() => {
@@ -352,8 +352,8 @@ test('files exist on both client and server, serverFiles contains proper server 
     });
     await page.waitForTimeout(300);
 
-    await expectFileOnServer(page, 'file.md', 'test content');
-    await expectFileOnServer(page, 'another.md', '*italic*');
+    await expectFileOnServer(page, 'File.md', 'test content');
+    await expectFileOnServer(page, 'Another.md', '*italic*');
     await expectFileOnServer(page, 'config.json', '{}');
 
     let filesOnServer = await page.evaluate(() => {
@@ -381,12 +381,12 @@ test('files exist on both client and server, serverFiles contains proper server 
             lastClientModified: null,
             path: '/README.md'
         },
-        'another.md': {
+        'Another.md': {
             hash: expect.any(Number),
             isFile: true,
             lastModified: expect.toBeNumberOrNull(),
             lastClientModified: null,
-            path: '/another.md'
+            path: '/Another.md'
         },
         'config.json': {
             hash: expect.any(Number),
@@ -396,21 +396,20 @@ test('files exist on both client and server, serverFiles contains proper server 
             path: '/config.json'
         },
         'dir/': {
-            'file2.md': {
+            'File2.md': {
                 hash: expect.any(Number),
                 isFile: true,
                 lastModified: expect.any(Number),
                 lastClientModified: null,
-                path: '/dir/file2.md'
+                path: '/dir/File2.md'
             }
         },
-
-        'file.md': {
+        'File.md': {
             isFile: true,
             hash: expect.any(Number),
             lastModified: expect.any(Number),
             lastClientModified: null,
-            path: '/file.md'
+            path: '/File.md'
         },
         'happiness/': {
             'Boredom is just an emotion.md': {

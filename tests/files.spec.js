@@ -507,7 +507,7 @@ test('create new lower case', async ({ page }) => {
         const cm = document.querySelector('.CodeMirror').CodeMirror;
         return cm.getValue();
     });
-    expect(codeMirrorContent).toBe("# Another file\ncontent\n");
+    expect(codeMirrorContent).toBe("# Another file\ncontent");
 });
 
 test('move file between directories', async ({ page }) => {
