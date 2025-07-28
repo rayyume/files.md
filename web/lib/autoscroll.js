@@ -58,7 +58,6 @@ function checkAutoScroll(event, editor) {
 }
 
 function initAutoscroll(editor) {
-    console.log('initing autoscroll');
     editor.getWrapperElement().addEventListener("mousedown", function (e) {
         if (e.target.closest('.CodeMirror')) {
             isSelecting = true;
