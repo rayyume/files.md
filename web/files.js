@@ -620,6 +620,8 @@ async function collectModifiedAndDeletedFiles() {
         if (existingFiles[path] === undefined) {
             console.log('DELETED because not in existing or modified files:', path);
             console.log('Current editors paths:', editor.path, editor2.path);
+            // Log files entry
+            console.log('Mem file:', getMemFile(path));
             deleted.push(path);
         }
     });
@@ -659,7 +661,7 @@ async function getFileStatus(path) {
             fileHandle = await getFileHandle(path, false);
         }
         if (!(fileHandle instanceof FileSystemFileHandle)) {
-            console.log("Can't get file status for", path);
+            console.error("Error while getting file handle for status check", path);
             return {
                 status: 'error',
             }
