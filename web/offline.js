@@ -89,8 +89,10 @@ self.addEventListener("fetch", (event) => {
 
     event.respondWith(
         fetch(event.request)
+            .catch(() => fetch(event.request)) // Retry 1
+            .catch(() => fetch(event.request)) // Retry 2
             .then(response => {
-                if (response.ok) {
+                if (response && response.ok) {
                     const responseClone = response.clone();
                     caches.open(cacheName).then(cache => {
                         cache.put(event.request, responseClone);
@@ -99,7 +101,6 @@ self.addEventListener("fetch", (event) => {
                 return response;
             })
             .catch(() => {
-                // Network failed, try cache (only works for GET anyway)
                 return caches.match(event.request)
                     .then(cached => {
                         if (cached) return cached;
