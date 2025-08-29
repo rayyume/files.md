@@ -81,42 +81,41 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-    // Skip chrome-extension URLs and non-GET requests for caching
-    if (event.request.method !== 'GET' || event.request.url.startsWith('chrome-extension:') ||
+    // Skip non-GET requests and extensions
+    if (event.request.method !== 'GET' ||
+        event.request.url.startsWith('chrome-extension:') ||
         event.request.url.startsWith('moz-extension:')) {
-        return; // Let the browser handle it normally
+        return;
     }
 
-    event.respondWith(
-        fetch(event.request)
-            .catch(() => fetch(event.request)) // Retry 1
-            .catch(() => fetch(event.request)) // Retry 2
-            .then(async response => {
-                // In South America I had poor internet connection, and some js files
-                // were partly loaded/cached :( It seems like Chromium fires
-                // range requests for some files.
-                if (response.status === 206) {
-                    console.warn('⚠️ Partial content (206), not caching:', event.request.url);
-                    return response;
-                }
-
-                if (response && response.ok) {
-                    const responseClone = response.clone();
-                    caches.open(cacheName).then(cache => {
-                        cache.put(event.request, responseClone);
-                    });
-                }
-                return response;
-            })
-            .catch(() => {
-                return caches.match(event.request)
-                    .then(cached => {
-                        if (cached) return cached;
-                        return new Response('Offline and not cached', {
-                            status: 503,
-                            statusText: 'Service Unavailable'
-                        });
-                    });
-            })
-    );
+    event.respondWith(handleRequest(event.request));
 });
+
+async function handleRequest(request) {
+    for (let i = 0; i < 3; i++) {
+        try {
+            const response = await fetch(request);
+            // In South America I had poor internet connection, and some js files
+            // were partly loaded/cached :( It seems like Chromium fires
+            // range requests for some files.
+            if (response.status === 206) {
+                console.warn('⚠️ Partial content (206), not caching:', event.request.url);
+                return response;
+            }
+
+            if (response.ok) {
+                const cache = await caches.open(cacheName);
+                await cache.put(request, response.clone());
+            }
+
+            return response;
+
+        } catch (error) {
+            if (i === 2) {
+                return new Response('Network failed', { status: 503 });
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+    }
+}
