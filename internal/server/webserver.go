@@ -189,7 +189,6 @@ func newLogger(logFilename string) *log.Logger {
 	if err != nil {
 		log.Fatalf("Server: failed to open log file: %v", err)
 	}
-	defer logFile.Close()
 
 	return log.New(logFile, "Server Error: ", log.Ldate|log.Ltime|log.Lshortfile)
 }
