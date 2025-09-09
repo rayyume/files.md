@@ -83,7 +83,7 @@
                 // _this.updateImmediately();
                 _this.update();
             };
-            this.update = core_1.debounce(function () { return _this.updateImmediately(); }, 130);
+            this.update = core_1.debounce(function () { return _this.updateImmediately(); }, 100);
             /** Current user's selections, in each line */
             this._rangesInLine = {};
             new core_1.FlipFlop(
