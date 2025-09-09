@@ -147,3 +147,59 @@
 	overflow-y: auto;
 	overflow-x: hidden;
 }
+
+#sidebar ul {
+	margin-top: 0;
+}
+
+/*#open-folder {*/
+/*    display: none;*/
+/*    padding: 8px;*/
+/*}*/
+
+#sidebar-container {
+	position: relative;
+	z-index: 1;
+}
+
+.resize {
+	position: absolute;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	width: 25px;
+	cursor: col-resize;
+	z-index: 10;
+	background: transparent;
+}
+
+.resize:hover {
+	background: color-mix(in srgb, var(--col-bg-active) 50%, transparent);
+}
+
+.resize::after {
+	content: '';
+	position: absolute;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	width: 1px;
+	background: transparent;
+}
+
+.resize:hover::after {
+	background: var(--col-border);
+}
+
+#close-sidebar {
+	position: absolute;
+	top: 2px;
+	right: 4px;
+	opacity: 0;
+	cursor: pointer;
+	font-size: 27px;
+	color: var(--col-link);
+	transition: opacity 0.2s;
+	background: red;
+	z-index: 11;
+}
