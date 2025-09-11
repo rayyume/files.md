@@ -1182,7 +1182,7 @@ function goForward() {
 async function log(...args) {
     console.log(...args);
 
-    // Get current date
+    // Log to a log file
     const date = new Date();
     const day = date.getDate().toString().padStart(2, '0');
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -1196,7 +1196,7 @@ async function log(...args) {
     const msg = args.map(arg =>
         typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
     ).join(' ');
-    const logMsg = ``${now}` ${msg}\n`;
+    const logMsg = `\`${now}\` ${msg}\n`;
     try {
         await addToTextFile(LOG_PATH, logMsg);
     } catch (error) {
