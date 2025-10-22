@@ -144,18 +144,19 @@
     </form>
     <ul id="move-results"></ul>
 </div>
+<script src="editor.js?v="></script>
 <script src="app.js?v="></script>
 <script src="inbox.js?v="></script>
 <script src="modals.js?v="></script>
 <script>
     window.COMMIT_HASH = '?v=';
-    log('Current version:', window.COMMIT_HASH);
+    console.log('Current version:', window.COMMIT_HASH);
 
     // Allow offline mode.
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('offline.js?v=')
-            .then(reg => log('Service Worker registered'))
-            .catch(err => log('Service Worker registration failed'));
+            .then(reg => console.log('Service Worker registered'))
+            .catch(err => console.log('Service Worker registration failed'));
     }
 
     window.currentEditor = null;
