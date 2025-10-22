@@ -8,7 +8,7 @@ const LOAD_INTERVAL = 3000; // ms, how often to load current file from local fil
 let isSaving = false;
 let isSyncing = false;
 let isSyncingMedia = false;
-let isSyncingCurrentFile = false;
+let isSyncingCurrentEditor = false;
 let isLoadingLocalFiles = false;
 
 // The types of files we have:
@@ -719,7 +719,7 @@ function getImageExtension(mimeType) {
 
 // TODO can we reuse moveFile?
 async function moveCurrentFile(toDir) {
-    isSyncingCurrentFile = true;
+    isSyncingCurrentEditor = true;
 
     // TODO add prevent syncing?
     const oldPath = currentEditor.path;
@@ -755,7 +755,7 @@ async function moveCurrentFile(toDir) {
         console.error('Error moving file:', error);
     }
 
-    isSyncingCurrentFile = false;
+    isSyncingCurrentEditor = false;
 }
 
 // TODO lock on files modification?
@@ -907,8 +907,12 @@ function saveServerFiles() {
     localStorage.setItem(SERVER_STORAGE_KEY, JSON.stringify(server));
 }
 
-// Should be atomic?
 async function openFile(path, saveToHistory = true, el = 'editor-textarea') {
+    // There are a few awaits during syncCurrentFile, we should not change currentEditor during that.
+    while (isSyncingCurrentEditor) {
+        await new Promise(r => setTimeout(r, 50));
+    }
+
     const id = opId();
     log(`Opening file: ${path} in element: ${el}, opId: ${id}`, id);
 
@@ -928,12 +932,18 @@ async function openFile(path, saveToHistory = true, el = 'editor-textarea') {
     }
     if (currentEditor.path !== undefined) {
         log('Began syncing previous file');
-        await syncCurrentFile(false);
+        await syncCurrentEditor(false);
         log('Finished syncing previous file');
     }
 
+    // Lock the current editor during the operation, so we won't interrupt syncCurrentEditor in the middle.
+    // By this time it is guaranteed to be free because we've just waited for "syncCurrentEditor".
+    // We should do this before any awaits.
+    isSyncingCurrentEditor = true;
+
     if (path === INBOX_PATH) {
         openInbox();
+        isSyncingCurrentEditor = false;
         return;
     } else {
         const codemirror = document.querySelector('.CodeMirror-wrap');
@@ -968,7 +978,6 @@ async function openFile(path, saveToHistory = true, el = 'editor-textarea') {
         content = memFile.content;
     }
 
-    // TODO disable when syncing?
     currentEditor.path = path;
     if (saveToHistory) {
         const state = {
@@ -1019,17 +1028,23 @@ async function openFile(path, saveToHistory = true, el = 'editor-textarea') {
     setTimeout(() => {
         currentEditor.setOption('viewportMargin', Infinity);
     }, 100);
+
+    isSyncingCurrentEditor = false;
 }
 
 // 0) Read content from local fs
 // 1) Save current content to local filesystem
 // 2) Sync it with the server
 // TODO add hash of last read file comparison, merge on conflict (in which scenarious in can happen tho?)
-async function syncCurrentFile(syncWithServer = true) {
+// TODO It should be atomic.
+// Now currentEditor.content is changing (due to file open or such). We should prevent that.
+// If currentEditor is changed during the execution of this function, we'll have RC.
+async function syncCurrentEditor(syncWithServer = true) {
     if (files === undefined || isWelcome || debug || currentEditor.path === undefined) {
         return;
     }
 
+    // Skip sync if we're in in-memory mode.
     /// TODO detect welcome mode separately
     const savedDirHandle = await getRootDirHandle();
     const hasSavedDir = savedDirHandle instanceof FileSystemDirectoryHandle;
@@ -1041,10 +1056,11 @@ async function syncCurrentFile(syncWithServer = true) {
         return;
     }
 
-    if (isSyncingCurrentFile) {
+    // TODO replace with queues?
+    if (isSyncingCurrentEditor) {
         return;
     }
-    isSyncingCurrentFile = true;
+    isSyncingCurrentEditor = true;
 
     const path = currentEditor.path;
     let isCurrentEditorSame = () => {
@@ -1070,12 +1086,12 @@ async function syncCurrentFile(syncWithServer = true) {
                 if (inMemoryLastModified !== localLastModified) {
                     log(files);
                     await openFile(INBOX_PATH);
-                    isSyncingCurrentFile = false;
+                    isSyncingCurrentEditor = false;
                     return;
                 }
             } catch (e) {
                 logError('Error opening file:', e);
-                isSyncingCurrentFile = false;
+                isSyncingCurrentEditor = false;
                 return;
             }
         }
@@ -1088,7 +1104,7 @@ async function syncCurrentFile(syncWithServer = true) {
             }
         }
 
-        isSyncingCurrentFile = false;
+        isSyncingCurrentEditor = false;
         return;
     }
 
@@ -1133,15 +1149,6 @@ async function syncCurrentFile(syncWithServer = true) {
             await remove(path);
             log('Removed due to filename change', path);
 
-            // Get fresher content after await.
-            // if (isCurrentEditorSame()) {
-            //     content = getCurrentContent();
-            // }
-
-            // if (isCurrentEditorSame()) {
-            //     content = getCurrentContent();
-            //     // Change current file if the editor is unchanged.
-            // }
             const newPath = joinPath(toDirPath(path), newFilename);
             addMemFile(newPath, {
                 isFile: true,
@@ -1161,12 +1168,12 @@ async function syncCurrentFile(syncWithServer = true) {
             // filename = newFilename;
 
             // Let's call it a day?
-            isSyncingCurrentFile = false;
+            isSyncingCurrentEditor = false;
             return;
         }
     } catch (error) {
         console.error('Error during filename change:', error);
-        isSyncingCurrentFile = false;
+        isSyncingCurrentEditor = false;
         return;
     }
 
@@ -1182,13 +1189,13 @@ async function syncCurrentFile(syncWithServer = true) {
         contentWasModifiedLocally = !await isContentEqual(path, content);
     } catch (error) {
         console.error('Error checking content equality:', error);
-        isSyncingCurrentFile = false;
+        isSyncingCurrentEditor = false;
         return;
     }
 
     // I believe that after each await we should check that user hasn't changed the editor.
     if (!isCurrentEditorSame()) {
-        isSyncingCurrentFile = false;
+        isSyncingCurrentEditor = false;
         return;
     }
 
@@ -1201,7 +1208,7 @@ async function syncCurrentFile(syncWithServer = true) {
             await openFile(path);
         } catch (error) {
             console.error('Error opening file:', error);
-            isSyncingCurrentFile = false;
+            isSyncingCurrentEditor = false;
             return;
         }
     } else if (!currentEditor.isClean()) {
@@ -1242,7 +1249,7 @@ async function syncCurrentFile(syncWithServer = true) {
                 editor.replaceRange(' ', editor.getCursor());
                 editor.undo();
             }
-            isSyncingCurrentFile = false;
+            isSyncingCurrentEditor = false;
             return;
         }
         isSaving = false;
@@ -1256,7 +1263,7 @@ async function syncCurrentFile(syncWithServer = true) {
         }
     }
 
-    isSyncingCurrentFile = false;
+    isSyncingCurrentEditor = false;
 }
 
 function hash(str) {
@@ -1604,6 +1611,6 @@ window.addEventListener('beforeunload', function () {
 // Worker to process the saving queue
 window.saver = setInterval(() => {
     if (document.hasFocus()) {
-        syncCurrentFile();
+        syncCurrentEditor();
     }
 }, CURRENT_FILE_SYNC_INTERVAL);

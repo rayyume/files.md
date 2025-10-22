@@ -596,7 +596,7 @@ window.addEventListener('focus', async () => {
 
     // Sync media first, so that new images for current file would be loaded
     await syncMedia();
-    await syncCurrentFile();
+    await syncCurrentEditor();
 
     const start = performance.now();
     files = await loadLocalFiles(savedDirectoryHandle);
@@ -617,7 +617,7 @@ window.addEventListener('blur', async function () {
 
     // Sync media first, so that new images for current file would be loaded
     await syncMedia();
-    await syncCurrentFile();
+    await syncCurrentEditor();
 
     const savedDirectoryHandle = await getRootDirHandle();
 
