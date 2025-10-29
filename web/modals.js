@@ -596,9 +596,11 @@ class MoveModal {
             msgs = Array.from(selectedMessages).map(msg => msg.querySelector('.message-content').textContent);
             messagesToRemove = selectedMessages;
         } else {
-            const btn = document.querySelector(`.message[data-text="${this.selectedMsgText}"] button`);
+            // Find message by message-content
+            const msg = Array.from(document.querySelectorAll('.message'))
+                .find(el => el.dataset.text === this.selectedMsgText);
             msgs = [this.selectedMsgText];
-            messagesToRemove = [btn.closest('.message')];
+            messagesToRemove = [msg];
         }
 
         (async () => {
