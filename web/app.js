@@ -385,7 +385,7 @@ document.addEventListener('keydown', function (event) {
         return;
     }
     // Shift+Enter to toggle sidebar
-    if (event.shiftKey && event.key === 'Enter') {
+    if (isMetaKey(event) && event.key === '\\') {
         toggleSidebar();
     }
     if (isMetaKey(event) && event.key === 'Enter') {
