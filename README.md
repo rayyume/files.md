@@ -2,17 +2,12 @@
 
 # files.md
 
-An application for your personal stuff:
-- ✅ Tasks, Checklists
+A web application for your personal stuff:
 - 📝 Notes, Files
+- ✅ Tasks, Checklists
 - 💚 Journal, Habits
-- 🍅 Pomodoro
 
 **Everything is stored as plain local `*.md` files.**  
-
-When we are focused and distracting information comes in, we want to get rid of it as quickly as possible. To do that, just send whatever is distracting you to the bot. Then choose how you want to save it - as a task, a note, or a journal entry. By default, it will be saved as today's task.  
-
-It works like a regular chat, so it's easier to use because there's less resistance. We're used to sending messages to friends, now we're going to send stuff to the bot.  
 
 [files.md](https://files.md)  
 [Tasks management via bot](https://club.mnogosdelal.ru/post/180/)  
@@ -25,8 +20,11 @@ It works like a regular chat, so it's easier to use because there's less resista
 `/pkg` - various packages   
 `/web` - standalone web application for viewing/editing files (alpha version, Chrome only)   
 
-
 ## Telegram Bot 🤖
+When we are focused and distracting information comes in, we want to get rid of it as quickly as possible. To do that, just send whatever is distracting you to the bot. Then choose how you want to save it - as a task, a note, or a journal entry. By default, it will be saved as today's task.
+
+It works like a regular chat, so it's easier to use because there's less resistance. We're used to sending messages to friends, now we're going to send stuff to the bot.
+
 1) Install [Go](https://go.dev/doc/install)
 2) Register new telegram bot via [@BotFather](https://t.me/BotFather)
 3) Copy your bot token to `.env` file (see `.env.example`)
