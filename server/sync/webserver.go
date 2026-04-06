@@ -259,7 +259,7 @@ func panicMiddleware(next http.HandlerFunc) http.HandlerFunc {
 func corsMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
-		if origin == config.ServerCfg.AppHost {
+		if origin == "https://" + config.ServerCfg.AppHost {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 		}
 
