@@ -24,7 +24,6 @@ import (
 	"golang.org/x/exp/slog"
 
 	"github.com/zakirullin/files.md/server/config"
-	"github.com/zakirullin/files.md/server/consts"
 	"github.com/zakirullin/files.md/server/fs"
 	"github.com/zakirullin/files.md/server/habits"
 	"github.com/zakirullin/files.md/server/i18n"
@@ -132,6 +131,95 @@ type Bot struct {
 
 var now = time.Now
 
+// Telegram only allows 64 bytes in callback_data,
+// So we have to be really short :)
+const (
+	CmdShowStart                       = "start"
+	CmdDoNothing                       = "nothing"
+	CmdShowLater                       = "later"
+	CmdShowToday                       = "today"
+	CmdShowFiles                       = "files"
+	CmdShowDirs                        = "dirs"
+	CmdShowPostpone                    = "postpone"
+	CmdShowMoveFromToday               = "move"
+	CmdShowMoveTo                      = "s_move"
+	CmdShowMoveToFromToday             = "s_move_t"
+	CmdShowRename                      = "rename"
+	CmdShowRenameFile                  = "rename_file"
+	CmdShowChecklists                  = "checklists"
+	CmdShowStats                       = "stats"
+	CmdOpenInApp                       = "app"
+	CmdShowHelp                        = "help"
+	CmdComplete                        = "c"
+	CmdCompleteFromInbox               = "c_ch"
+	CmdPostpone                        = "post"
+	CmdShowMultilineTask               = "task"
+	CmdShowLongItem                    = "item"
+	CmdShowLongItemFromInbox           = "item_i"
+	CmdShowFile                        = "file"
+	CmdShowChecklist                   = "checklist"
+	CmdShowChecklistItem               = "check_show"
+	CmdCompleteListItem                = "check_comp"
+	CmdShowMoveToDirOrFile             = "to_file"
+	CmdShowMoveToChecklist             = "to_checklist"
+	CmdRename                          = "ren"
+	CmdMoveToExistingDir               = "mv"
+	CmdMoveToChecklist                 = "add_item"
+	CmdCompleteChecklistItem           = "check_item"
+	CmdMoveToExistingDirFromToday      = "mv_t"
+	CmdRequestNewDir                   = "new_dir"
+	CmdMoveToNewDir                    = "mv_to_new_dir"
+	CmdMoveToExistingFile              = "mf"
+	CmdMoveToExistingNote              = "mvn"
+	CmdMoveToNewFile                   = "mn"
+	CmdMoveToDirChecklist              = "mv_to_chk"
+	CmdMoveToRead                      = "mv_to_read"
+	CmdMoveToWatch                     = "mv_to_watch"
+	CmdMoveToShop                      = "mv_to_shop"
+	CmdMoveToNewChecklist              = "mv_to_new_chk"
+	CmdMoveToJournal                   = "mv_to_journal"
+	CmdMoveToLater                     = "mv_later"
+	CmdShowScheduleForDay              = "sc_day"
+	CmdSchedule                        = "sc"
+	CmdScheduleForTmrw                 = "sc_tmrw"
+	CmdPomodoro                        = "pomodoro"
+	CmdShowScheduleForDayRecurring     = "sc_day_r"
+	CmdLater                           = "later"
+	CmdShowSettings                    = "settings"
+	CmdShowQuickBtnsSettings           = "c_quick_btns"
+	CmdShowMoveToBtnsSettings          = "c_move_btns"
+	CmdAddToQuickBtns                  = "add_quick"
+	CmdDelFromQuickBtns                = "del_quick"
+	CmdAddToMoveToBtns                 = "add_move"
+	CmdDelFromMoveToBtns               = "del_move"
+	CmdShowTimezone                    = "timezone"
+	CmdSetTimezone                     = "set_timezone"
+	CmdShowReadChecklist               = "read"
+	CmdShowWatchChecklist              = "watch"
+	CmdShowShopChecklist               = "shop"
+	CmdShowSchedule                    = "schedule"
+	CmdDownload                        = "download"
+	CmdTasksOnlyMode                   = "tasks_only"
+	CmdNotesOnlyMode                   = "notes_only"
+	CmdJournalOnlyMode                 = "journal_only"
+	CmdFullMode                        = "full"
+	CmdChatMode                        = "chat"
+	CmdInlineQuerySearchEveryWhere     = "search"
+	CmdInlineQuerySearchInDir          = "search_dir"
+	CmdWebAppHabits                    = "habits"
+	CmdAddToJournalShortcut            = "j"
+	CmdAddToJournalAndContinueShortcut = "ja"
+	CmdAddToRecentFileShortcut         = "+"
+	CmdCompleteHabit                   = "ch"
+	CmdShare                           = "share"
+)
+
+var Shortcuts = map[string][]string{
+	CmdAddToJournalShortcut:            {"/ж", "jj", "жж"},
+	CmdAddToJournalAndContinueShortcut: {"жд", "jd", "ja"},
+	CmdAddToRecentFileShortcut:         {"++"},
+}
+
 func NewBot(userID int64, tg Chat, fs *fs.FS, db Database, cfg *userconfig.Config) *Bot {
 	return &Bot{userID, tg, fs, db, cfg}
 }
@@ -201,9 +289,9 @@ func (b *Bot) Reply(u Update) error {
 
 		if callbackQueryID, ok := u.CallbackQueryID(); ok {
 			// We can tolerate an error here, that won't affect UX
-			if cmd.Name == consts.CmdComplete || cmd.Name == consts.CmdCompleteHabit || cmd.Name == consts.CmdCompleteFromInbox {
+			if cmd.Name == CmdComplete || cmd.Name == CmdCompleteHabit || cmd.Name == CmdCompleteFromInbox {
 				_ = b.tg.AnswerCallbackQuery(callbackQueryID, completedMsg())
-			} else if cmd.Name == consts.CmdShare {
+			} else if cmd.Name == CmdShare {
 				_ = b.tg.AnswerCallbackQuery(callbackQueryID, "Shared 💚!")
 			} else {
 				_ = b.tg.AnswerCallbackQuery(callbackQueryID, "")
@@ -227,86 +315,86 @@ func (b *Bot) Reply(u Update) error {
 func (b *Bot) handlers() map[string]func([]string) error {
 	handlers := map[string]func([]string) error{
 		// Direct user commands
-		consts.CmdShowToday:      b.ShowToday,
-		consts.CmdShowStart:      b.showStart,
-		consts.CmdShowLater:      b.showLaterTasks,
-		consts.CmdShowFiles:      b.showFiles,
-		consts.CmdShowDirs:       b.showDirs,
-		consts.CmdShowChecklists: b.showChecklists,
-		consts.CmdShowPostpone:   b.showPostpone,
-		//consts.CmdShowMoveFromToday:  b.showMoveFromToday,
-		consts.CmdShowMoveTo:          b.showMoveTo,
-		consts.CmdShowMoveToFromToday: b.showMoveToFromToday,
-		consts.CmdShowRename:          b.showRename,
-		consts.CmdShowStats:           b.showStats,
-		consts.CmdShowReadChecklist:   b.showRead,
-		consts.CmdShowWatchChecklist:  b.showWatch,
-		consts.CmdShowShopChecklist:   b.showShop,
-		consts.CmdShowSchedule:        b.showSchedule,
-		consts.CmdShowMoveFromToday:   b.showMoveFromToday,
-		consts.CmdShowSettings:        b.showSettings,
-		consts.CmdShowTimezone:        b.showTimezone,
-		consts.CmdSetTimezone:         b.setTimezone,
-		consts.CmdOpenInApp:           b.openInApp,
-		consts.CmdShowHelp:            b.showHelp,
-		consts.CmdDownload:            b.download,
+		CmdShowToday:      b.ShowToday,
+		CmdShowStart:      b.showStart,
+		CmdShowLater:      b.showLaterTasks,
+		CmdShowFiles:      b.showFiles,
+		CmdShowDirs:       b.showDirs,
+		CmdShowChecklists: b.showChecklists,
+		CmdShowPostpone:   b.showPostpone,
+		//CmdShowMoveFromToday:  b.showMoveFromToday,
+		CmdShowMoveTo:          b.showMoveTo,
+		CmdShowMoveToFromToday: b.showMoveToFromToday,
+		CmdShowRename:          b.showRename,
+		CmdShowStats:           b.showStats,
+		CmdShowReadChecklist:   b.showRead,
+		CmdShowWatchChecklist:  b.showWatch,
+		CmdShowShopChecklist:   b.showShop,
+		CmdShowSchedule:        b.showSchedule,
+		CmdShowMoveFromToday:   b.showMoveFromToday,
+		CmdShowSettings:        b.showSettings,
+		CmdShowTimezone:        b.showTimezone,
+		CmdSetTimezone:         b.setTimezone,
+		CmdOpenInApp:           b.openInApp,
+		CmdShowHelp:            b.showHelp,
+		CmdDownload:            b.download,
 		// Button's commands (callbacks)
-		consts.CmdShowRenameFile:                  b.showRenameFile,
-		consts.CmdShowMultilineTask:               b.showMultilineTask,
-		consts.CmdShowLongItem:                    b.showLongItem,
-		consts.CmdShowLongItemFromInbox:           b.showLongItemFromInbox,
-		consts.CmdShowFile:                        b.showFile,
-		consts.CmdShowChecklist:                   b.showChecklist,
-		consts.CmdCompleteListItem:                b.completeListItem,
-		consts.CmdShowChecklistItem:               b.showChecklistItem,
-		consts.CmdShowScheduleForDay:              b.showToADay,
-		consts.CmdShowMoveToDirOrFile:             b.showMoveToFileOrDir,
-		consts.CmdShowMoveToChecklist:             b.showToChecklist,
-		consts.CmdMoveToExistingDir:               b.moveToDir,
-		consts.CmdMoveToChecklist:                 b.moveToChecklist,
-		consts.CmdCompleteChecklistItem:           b.completeChecklistItem,
-		consts.CmdMoveToExistingDirFromToday:      b.moveToDirFromToday,
-		consts.CmdRequestNewDir:                   b.requestNewDirName,
-		consts.CmdMoveToNewDir:                    b.moveToNewDir,
-		consts.CmdMoveToExistingFile:              b.moveToExistingFile,
-		consts.CmdMoveToExistingNote:              b.moveToExistingNote,
-		consts.CmdMoveToNewFile:                   b.moveToNewFile,
-		consts.CmdMoveToDirChecklist:              b.moveToDirChecklist,
-		consts.CmdMoveToRead:                      b.moveToRead,
-		consts.CmdMoveToWatch:                     b.moveToWatch,
-		consts.CmdMoveToShop:                      b.moveToShop,
-		consts.CmdMoveToNewChecklist:              b.moveToNewChecklist,
-		consts.CmdMoveToJournal:                   b.moveToJournal,
-		consts.CmdMoveToLater:                     b.moveToLater,
-		consts.CmdSchedule:                        b.schedule,
-		consts.CmdScheduleForTmrw:                 b.scheduleForTmrw,
-		consts.CmdComplete:                        b.complete,
-		consts.CmdCompleteFromInbox:               b.completeFromChat,
-		consts.CmdPostpone:                        b.postpone,
-		consts.CmdPomodoro:                        b.togglePomodoro,
-		consts.CmdShowScheduleForDayRecurring:     b.showToADayRecurring,
-		consts.CmdShowQuickBtnsSettings:           b.showQuickBtnsSettings,
-		consts.CmdShowMoveToBtnsSettings:          b.showMoveToBtnsSettings,
-		consts.CmdAddToQuickBtns:                  b.addToQuickBtns,
-		consts.CmdDelFromQuickBtns:                b.delFromQuickBtns,
-		consts.CmdAddToMoveToBtns:                 b.addToMoveToBtns,
-		consts.CmdDelFromMoveToBtns:               b.delFromMoveToBtns,
-		consts.CmdAddToJournalShortcut:            b.addToJournalFromShortcut,
-		consts.CmdAddToJournalAndContinueShortcut: b.addToJournalAndContinue,
-		consts.CmdAddToRecentFileShortcut:         b.addToRecentFileOrNoteFromShortcut,
-		consts.CmdRename:                          b.rename,
-		consts.CmdTasksOnlyMode:                   b.setTasksOnlyMode,
-		consts.CmdNotesOnlyMode:                   b.setNotesOnlyMode,
-		consts.CmdJournalOnlyMode:                 b.setJournalOnlyMode,
-		consts.CmdFullMode:                        b.setFullMode,
-		consts.CmdChatMode:                        b.setChatOnlyMode,
-		consts.CmdCompleteHabit:                   b.completeHabit,
-		consts.CmdShare:                           b.shareNote,
+		CmdShowRenameFile:                  b.showRenameFile,
+		CmdShowMultilineTask:               b.showMultilineTask,
+		CmdShowLongItem:                    b.showLongItem,
+		CmdShowLongItemFromInbox:           b.showLongItemFromInbox,
+		CmdShowFile:                        b.showFile,
+		CmdShowChecklist:                   b.showChecklist,
+		CmdCompleteListItem:                b.completeListItem,
+		CmdShowChecklistItem:               b.showChecklistItem,
+		CmdShowScheduleForDay:              b.showToADay,
+		CmdShowMoveToDirOrFile:             b.showMoveToFileOrDir,
+		CmdShowMoveToChecklist:             b.showToChecklist,
+		CmdMoveToExistingDir:               b.moveToDir,
+		CmdMoveToChecklist:                 b.moveToChecklist,
+		CmdCompleteChecklistItem:           b.completeChecklistItem,
+		CmdMoveToExistingDirFromToday:      b.moveToDirFromToday,
+		CmdRequestNewDir:                   b.requestNewDirName,
+		CmdMoveToNewDir:                    b.moveToNewDir,
+		CmdMoveToExistingFile:              b.moveToExistingFile,
+		CmdMoveToExistingNote:              b.moveToExistingNote,
+		CmdMoveToNewFile:                   b.moveToNewFile,
+		CmdMoveToDirChecklist:              b.moveToDirChecklist,
+		CmdMoveToRead:                      b.moveToRead,
+		CmdMoveToWatch:                     b.moveToWatch,
+		CmdMoveToShop:                      b.moveToShop,
+		CmdMoveToNewChecklist:              b.moveToNewChecklist,
+		CmdMoveToJournal:                   b.moveToJournal,
+		CmdMoveToLater:                     b.moveToLater,
+		CmdSchedule:                        b.schedule,
+		CmdScheduleForTmrw:                 b.scheduleForTmrw,
+		CmdComplete:                        b.complete,
+		CmdCompleteFromInbox:               b.completeFromChat,
+		CmdPostpone:                        b.postpone,
+		CmdPomodoro:                        b.togglePomodoro,
+		CmdShowScheduleForDayRecurring:     b.showToADayRecurring,
+		CmdShowQuickBtnsSettings:           b.showQuickBtnsSettings,
+		CmdShowMoveToBtnsSettings:          b.showMoveToBtnsSettings,
+		CmdAddToQuickBtns:                  b.addToQuickBtns,
+		CmdDelFromQuickBtns:                b.delFromQuickBtns,
+		CmdAddToMoveToBtns:                 b.addToMoveToBtns,
+		CmdDelFromMoveToBtns:               b.delFromMoveToBtns,
+		CmdAddToJournalShortcut:            b.addToJournalFromShortcut,
+		CmdAddToJournalAndContinueShortcut: b.addToJournalAndContinue,
+		CmdAddToRecentFileShortcut:         b.addToRecentFileOrNoteFromShortcut,
+		CmdRename:                          b.rename,
+		CmdTasksOnlyMode:                   b.setTasksOnlyMode,
+		CmdNotesOnlyMode:                   b.setNotesOnlyMode,
+		CmdJournalOnlyMode:                 b.setJournalOnlyMode,
+		CmdFullMode:                        b.setFullMode,
+		CmdChatMode:                        b.setChatOnlyMode,
+		CmdCompleteHabit:                   b.completeHabit,
+		CmdShare:                           b.shareNote,
 		// Used for button-like separators
-		consts.CmdDoNothing: func(s []string) error { return nil },
+		CmdDoNothing: func(s []string) error { return nil },
 	}
 
-	for cmd, shortcuts := range consts.Shortcuts {
+	for cmd, shortcuts := range Shortcuts {
 		for _, shortcut := range shortcuts {
 			handlers[shortcut] = handlers[cmd]
 		}
@@ -346,7 +434,7 @@ func (b *Bot) extractCmd(u Update) (*tg.Cmd, error) {
 		return cmd, nil
 	}
 
-	for canonicalCMD, shortcuts := range consts.Shortcuts {
+	for canonicalCMD, shortcuts := range Shortcuts {
 		for _, shortcut := range shortcuts {
 			escapedShortcut := regexp.QuoteMeta(shortcut)
 			reText := regexp.MustCompile(fmt.Sprintf(`(?i)^%s\s+|\s+%s$`, escapedShortcut, escapedShortcut))
@@ -532,7 +620,7 @@ func (b *Bot) addToRepliedFile(replyToMsgID int, newContent string) error {
 
 	b.delAllKeyboards()
 
-	b.db.SetRecentCommand(consts.CmdMoveToExistingFile)
+	b.db.SetRecentCommand(CmdMoveToExistingFile)
 	b.db.SetRecentCommandParams([]string{fs.ShortHash(existingFilename)})
 
 	return b.ShowToday(nil)
@@ -618,11 +706,11 @@ func (b *Bot) answerFileRequest(msg string) error {
 		err = b.moveFromInbox(func(content string, timestamp time.Time) error {
 			if dir == fs.DirUserRoot {
 				// We have a file
-				b.db.SetRecentCommand(consts.CmdMoveToExistingFile)
+				b.db.SetRecentCommand(CmdMoveToExistingFile)
 				b.db.SetRecentCommandParams([]string{fs.ShortHash(filename)})
 			} else {
 				// We have a note (a file placed in a subdirectory)
-				b.db.SetRecentCommand(consts.CmdMoveToExistingNote)
+				b.db.SetRecentCommand(CmdMoveToExistingNote)
 				b.db.SetRecentCommandParams([]string{fs.ShortHash(filename), fs.ShortHash(dir)})
 			}
 
@@ -780,7 +868,7 @@ func (b *Bot) showMD(probablyInvalidMD string, kb *tg.Keyboard) error {
 			link = parts[1]
 		}
 
-		cmd := tg.NewCmd(consts.CmdShowFile, []string{fs.Hash(dir), fs.Hash(link)})
+		cmd := tg.NewCmd(CmdShowFile, []string{fs.Hash(dir), fs.Hash(link)})
 		kb.PrependRow(tg.NewRow(tg.NewBtn(txt.Ucfirst(label), cmd)))
 	}
 
@@ -845,7 +933,7 @@ func (b *Bot) showMoveTo(params []string) error {
 		return b.ShowToday(nil)
 	}
 
-	toTodayCmd := tg.NewCmd(consts.CmdMoveToChecklist, []string{fs.Hash(fs.TodayFilename), msgIndexStr})
+	toTodayCmd := tg.NewCmd(CmdMoveToChecklist, []string{fs.Hash(fs.TodayFilename), msgIndexStr})
 	toTodayLabel := txt.Emoji(i18n.Emoji("tasks"), i18n.Tr("To Today"))
 	userMoveToBtns = append(userMoveToBtns, tg.NewBtn(toTodayLabel, toTodayCmd))
 
@@ -857,7 +945,7 @@ func (b *Bot) showMoveTo(params []string) error {
 
 	// This command is "do nothing and leave an item in the inbox"
 	if !b.cfg.TasksOnlyMode() {
-		showTodayCmd := tg.NewCmd(consts.CmdShowToday, []string{})
+		showTodayCmd := tg.NewCmd(CmdShowToday, []string{})
 		showTodayLabel := "👌"
 		userMoveToBtns = append(userMoveToBtns, tg.NewBtn(showTodayLabel, showTodayCmd))
 	}
@@ -917,13 +1005,13 @@ func (b *Bot) recentCmdBtn(msgIndex int) *tg.Btn {
 
 	var unhashedTarget string
 	icon := "⭐️"
-	if recentCmd == consts.CmdMoveToExistingFile {
+	if recentCmd == CmdMoveToExistingFile {
 		var err error
 		unhashedTarget, err = b.fs.Unhash(fs.DirUserRoot, targetFilenameHash)
 		if err != nil {
 			return nil
 		}
-	} else if recentCmd == consts.CmdMoveToExistingNote {
+	} else if recentCmd == CmdMoveToExistingNote {
 		dir, err := b.fs.Unhash(fs.DirUserRoot, args[1])
 		if err != nil {
 			return nil
@@ -979,11 +1067,11 @@ func (b *Bot) ShowToday(_ []string) error {
 			}
 
 			if len([]rune(title)) >= maxHeaderLengthForMobile || txt.HasImage(task) {
-				cmd := tg.NewCmd(consts.CmdShowLongItem, []string{fs.Hash(fs.TodayFilename), fs.Hash(task)})
+				cmd := tg.NewCmd(CmdShowLongItem, []string{fs.Hash(fs.TodayFilename), fs.Hash(task)})
 				btn := tg.NewBtn(txt.Emoji(i18n.Emoji("eyes"), title), cmd)
 				kb.AddRow(btn)
 			} else {
-				cmd := tg.NewCmd(consts.CmdCompleteChecklistItem, []string{fs.Hash(fs.TodayFilename), fs.Hash(task)})
+				cmd := tg.NewCmd(CmdCompleteChecklistItem, []string{fs.Hash(fs.TodayFilename), fs.Hash(task)})
 				btn := tg.NewBtn(i18n.AddEmoji(title), cmd)
 				kb.AddRow(btn)
 			}
@@ -1021,11 +1109,11 @@ func (b *Bot) ShowToday(_ []string) error {
 		}
 
 		if len([]rune(title)) >= maxHeaderLengthForMobile || txt.HasImage(block) {
-			cmd := tg.NewCmd(consts.CmdShowLongItemFromInbox, []string{strconv.Itoa(msgIndex)})
+			cmd := tg.NewCmd(CmdShowLongItemFromInbox, []string{strconv.Itoa(msgIndex)})
 			btn := tg.NewBtn(txt.Emoji(i18n.Emoji("eyes"), title), cmd)
 			kb.AddRow(btn)
 		} else {
-			cmd := tg.NewCmd(consts.CmdCompleteFromInbox, []string{strconv.Itoa(msgIndex)})
+			cmd := tg.NewCmd(CmdCompleteFromInbox, []string{strconv.Itoa(msgIndex)})
 			btn := tg.NewBtn(txt.Emoji(i18n.Emoji(title), title), cmd)
 			kb.AddRow(btn)
 		}
@@ -1049,7 +1137,7 @@ func (b *Bot) ShowToday(_ []string) error {
 			continue
 		}
 
-		cmd := tg.NewCmd(consts.CmdCompleteHabit, []string{habit})
+		cmd := tg.NewCmd(CmdCompleteHabit, []string{habit})
 		habitsRow = append(habitsRow, tg.NewBtn(habits.Emoji(b.fs, habit), cmd))
 	}
 	if len(habitsRow) > 0 {
@@ -1085,10 +1173,10 @@ func (b *Bot) showLaterTasks(_ []string) error {
 		var btn tg.Btn
 		name := i18n.AddEmoji(fs.UnsanitizeFilename(file.DisplayName))
 		if file.IsMultiline {
-			cmd := tg.NewCmd(consts.CmdShowMultilineTask, []string{fs.DirLater, fs.Hash(file.Name)})
+			cmd := tg.NewCmd(CmdShowMultilineTask, []string{fs.DirLater, fs.Hash(file.Name)})
 			btn = tg.NewBtn(txt.Emoji(i18n.Emoji("eyes"), fs.UnsanitizeFilename(file.DisplayName)), cmd)
 		} else {
-			cmd := tg.NewCmd(consts.CmdComplete, []string{fs.DirLater, fs.Hash(file.Name)})
+			cmd := tg.NewCmd(CmdComplete, []string{fs.DirLater, fs.Hash(file.Name)})
 			btn = tg.NewBtn(name, cmd)
 		}
 
@@ -1103,12 +1191,12 @@ func (b *Bot) showLaterTasks(_ []string) error {
 	if len(laterChecklistMD) != 0 {
 		tasks := txt.IncompleteChecklistItems(laterChecklistMD)
 		for _, task := range tasks {
-			cmd := tg.NewCmd(consts.CmdCompleteChecklistItem, []string{fs.Hash(fs.LaterFilename), fs.Hash(task)})
+			cmd := tg.NewCmd(CmdCompleteChecklistItem, []string{fs.Hash(fs.LaterFilename), fs.Hash(task)})
 			btn := tg.NewBtn(i18n.AddEmoji(task), cmd)
 			kb.AddRow(btn)
 		}
 	}
-	kb.AddRow(tg.NewBtn(i18n.StrToday, tg.NewCmd(consts.CmdShowToday, nil)))
+	kb.AddRow(tg.NewBtn(i18n.StrToday, tg.NewCmd(CmdShowToday, nil)))
 
 	msg := b.tr("⏳ Your tasks for <b>later</b>:")
 	err = b.showHTML(msg, &kb)
@@ -1173,7 +1261,7 @@ func (b *Bot) showFiles(_ []string) error {
 	mdFiles := fs.ExcludeConfig(fs.OnlyMDFiles(files))
 	var fileBtns []tg.Btn
 	for _, file := range mdFiles {
-		cmd := tg.NewCmd(consts.CmdShowFile, []string{fs.DirUserRoot, fs.Hash(file.Name)})
+		cmd := tg.NewCmd(CmdShowFile, []string{fs.DirUserRoot, fs.Hash(file.Name)})
 		btn := tg.NewBtn(fmt.Sprintf("%s", fs.UnsanitizeFilename(file.DisplayName)), cmd)
 		fileBtns = append(fileBtns, btn)
 	}
@@ -1181,11 +1269,11 @@ func (b *Bot) showFiles(_ []string) error {
 	for _, row := range fileBtnsByRows {
 		kb.AddRow(row)
 	}
-	inlineCmd := tg.NewCustomCmd(consts.CmdInlineQuerySearchEveryWhere, nil, tg.CmdTypeInlineQueryCurrentChat)
+	inlineCmd := tg.NewCustomCmd(CmdInlineQuerySearchEveryWhere, nil, tg.CmdTypeInlineQueryCurrentChat)
 
 	footer := tg.NewRow(tg.NewBtn(i18n.Tr("🔎 Search"), inlineCmd))
 	if !b.cfg.NotesOnlyMode() {
-		footer = append(footer, tg.NewBtn(i18n.StrToday, tg.NewCmd(consts.CmdShowToday, nil)))
+		footer = append(footer, tg.NewBtn(i18n.StrToday, tg.NewCmd(CmdShowToday, nil)))
 	}
 	kb.AddRow(footer)
 
@@ -1217,10 +1305,10 @@ func (b *Bot) showDirs(_ []string) error {
 		kb.AddRow(row)
 	}
 
-	inlineCmd := tg.NewCustomCmd(consts.CmdInlineQuerySearchEveryWhere, nil, tg.CmdTypeInlineQueryCurrentChat)
+	inlineCmd := tg.NewCustomCmd(CmdInlineQuerySearchEveryWhere, nil, tg.CmdTypeInlineQueryCurrentChat)
 	footer := tg.NewRow(tg.NewBtn(i18n.Tr("🔎 Search"), inlineCmd))
 	if !b.cfg.NotesOnlyMode() {
-		footer = append(footer, tg.NewBtn(i18n.StrToday, tg.NewCmd(consts.CmdShowToday, nil)))
+		footer = append(footer, tg.NewBtn(i18n.StrToday, tg.NewCmd(CmdShowToday, nil)))
 	}
 	kb.AddRow(footer)
 
@@ -1241,12 +1329,12 @@ func (b *Bot) showChecklists(_ []string) error {
 
 	var kb tg.Keyboard
 	for _, checklist := range checklists {
-		cmd := tg.NewCmd(consts.CmdShowChecklist, []string{fs.Hash(checklist.Name)})
+		cmd := tg.NewCmd(CmdShowChecklist, []string{fs.Hash(checklist.Name)})
 		btn := tg.NewBtn(i18n.AddEmoji(checklistTitle(checklist.Name)), cmd)
 
 		kb.AddRow(btn)
 	}
-	kb.AddRow(tg.NewBtn(b.tr("🏠 Today"), tg.NewCmd(consts.CmdShowToday, nil)))
+	kb.AddRow(tg.NewBtn(b.tr("🏠 Today"), tg.NewCmd(CmdShowToday, nil)))
 
 	err = b.showHTML(b.tr("☑️ Checklists"), &kb)
 	if err != nil {
@@ -1262,13 +1350,13 @@ func (b *Bot) showPostpone(_ []string) error {
 
 	var kb tg.Keyboard
 	for _, task := range tasks {
-		cmd := tg.NewCmd(consts.CmdPostpone, []string{fs.Hash(task)})
+		cmd := tg.NewCmd(CmdPostpone, []string{fs.Hash(task)})
 		kb.AddRow(tg.NewBtn(task, cmd))
 	}
 
 	kb.AddRow(tg.NewRow(
-		tg.NewBtn(b.tr("Rename"), tg.NewCmd(consts.CmdShowRename, []string{})),
-		tg.NewBtn(b.tr("OK"), tg.NewCmd(consts.CmdShowToday, []string{})),
+		tg.NewBtn(b.tr("Rename"), tg.NewCmd(CmdShowRename, []string{})),
+		tg.NewBtn(b.tr("OK"), tg.NewCmd(CmdShowToday, []string{})),
 	))
 
 	err = b.showHTML(b.tr("🦥 Select a task to postpone:"), &kb)
@@ -1287,13 +1375,13 @@ func (b *Bot) showMoveFromToday(_ []string) error {
 
 	var kb tg.Keyboard
 	for _, file := range files {
-		cmd := tg.NewCmd(consts.CmdShowMoveToFromToday, []string{fs.Hash(file.Name)})
+		cmd := tg.NewCmd(CmdShowMoveToFromToday, []string{fs.Hash(file.Name)})
 		kb.AddRow(tg.NewBtn(file.DisplayName, cmd))
 	}
 
 	kb.AddRow(tg.NewRow(
-		tg.NewBtn(b.tr("Rename"), tg.NewCmd(consts.CmdShowRename, []string{})),
-		tg.NewBtn(b.tr("OK"), tg.NewCmd(consts.CmdShowToday, []string{})),
+		tg.NewBtn(b.tr("Rename"), tg.NewCmd(CmdShowRename, []string{})),
+		tg.NewBtn(b.tr("OK"), tg.NewCmd(CmdShowToday, []string{})),
 	))
 
 	err = b.showHTML(b.tr("🦥 Select a task to move:"), &kb)
@@ -1344,12 +1432,12 @@ func (b *Bot) showRename(_ []string) error {
 	var kb tg.Keyboard
 	for _, task := range tasks {
 		var btn tg.Btn
-		cmd := tg.NewCmd(consts.CmdShowRenameFile, []string{fs.TodayFilename, fs.Hash(task)})
+		cmd := tg.NewCmd(CmdShowRenameFile, []string{fs.TodayFilename, fs.Hash(task)})
 		btn = tg.NewBtn(txt.Emoji(i18n.Emoji("eyes"), task), cmd)
 
 		kb.AddRow(btn)
 	}
-	kb.AddRow(tg.NewBtn(i18n.StrToday, tg.NewCmd(consts.CmdShowToday, nil)))
+	kb.AddRow(tg.NewBtn(i18n.StrToday, tg.NewCmd(CmdShowToday, nil)))
 
 	err = b.showHTML(b.todayLabel(), &kb)
 	if err != nil {
@@ -1364,10 +1452,10 @@ func (b *Bot) showRenameFile(params []string) error {
 	itemHash := params[1]
 
 	kb := tg.NewKeyboard([]tg.Row{
-		tg.NewRow(tg.NewBtn(i18n.StrBack, tg.NewCmd(consts.CmdShowToday, []string{}))),
+		tg.NewRow(tg.NewBtn(i18n.StrBack, tg.NewCmd(CmdShowToday, []string{}))),
 	})
 
-	cmd := tg.NewCmd(consts.CmdRename, []string{checklist, itemHash, "%s"})
+	cmd := tg.NewCmd(CmdRename, []string{checklist, itemHash, "%s"})
 	b.db.SetInputExpectation(cmd)
 
 	err := b.showHTML(i18n.Tr("OK. Send me the new name for your task"), kb)
@@ -1404,7 +1492,7 @@ func (b *Bot) showStats(_ []string) error {
 		return fmt.Errorf("show stats: %w", err)
 	}
 
-	kb := tg.NewKeyboard([]tg.Row{tg.NewBtn(i18n.StrToday, tg.NewCmd(consts.CmdShowToday, nil))})
+	kb := tg.NewKeyboard([]tg.Row{tg.NewBtn(i18n.StrToday, tg.NewCmd(CmdShowToday, nil))})
 	err = b.showHTML(strings.TrimSpace(report), kb)
 	if err != nil {
 		return fmt.Errorf("show stats: %w", err)
@@ -1423,7 +1511,7 @@ func (b *Bot) showSchedule(_ []string) error {
 		schedule = i18n.Tr("You don't have any scheduled tasks! 🌴")
 	}
 
-	kb := tg.NewKeyboard([]tg.Row{tg.NewBtn(i18n.StrToday, tg.NewCmd(consts.CmdShowToday, nil))})
+	kb := tg.NewKeyboard([]tg.Row{tg.NewBtn(i18n.StrToday, tg.NewCmd(CmdShowToday, nil))})
 	err = b.showHTML(schedule, kb)
 	if err != nil {
 		return fmt.Errorf("show stats: %w", err)
@@ -1466,18 +1554,18 @@ func (b *Bot) showMultilineTask(params []string) error {
 		btnLabel = i18n.StrToToday
 		toDir = fs.DirToday
 	}
-	moveToLaterBtn = tg.NewBtn(btnLabel, tg.NewCmd(consts.CmdMoveToExistingDirFromToday, []string{toDir, dir, filenameHash}))
+	moveToLaterBtn = tg.NewBtn(btnLabel, tg.NewCmd(CmdMoveToExistingDirFromToday, []string{toDir, dir, filenameHash}))
 
 	moveBtn := tg.NewBtn(
 		txt.Emoji(i18n.Emoji("right arrow"), b.tr("Move to")),
-		tg.NewCmd(consts.CmdShowMoveToFromToday, []string{filenameHash}),
+		tg.NewCmd(CmdShowMoveToFromToday, []string{filenameHash}),
 	)
 
 	kb := tg.NewKeyboard([]tg.Row{
 		tg.NewRow(moveToLaterBtn, moveBtn),
 		tg.NewRow(
 			tg.NewBtn(i18n.StrBack, tg.NewCmd(dir, []string{dir})),
-			tg.NewBtn(i18n.StrComplete, tg.NewCmd(consts.CmdComplete, []string{dir, filenameHash})),
+			tg.NewBtn(i18n.StrComplete, tg.NewCmd(CmdComplete, []string{dir, filenameHash})),
 		),
 	})
 
@@ -1513,15 +1601,15 @@ func (b *Bot) showLongItem(params []string) error {
 
 	item := txt.ChecklistItem(checklistMD, itemHash)
 
-	cmd := consts.CmdShowToday
+	cmd := CmdShowToday
 	if checklist == fs.LaterFilename {
-		cmd = consts.CmdShowLater
+		cmd = CmdShowLater
 	}
 
 	kb := tg.NewKeyboard([]tg.Row{
 		tg.NewRow(
 			tg.NewBtn(i18n.StrBack, tg.NewCmd(cmd, []string{})),
-			tg.NewBtn(i18n.StrComplete, tg.NewCmd(consts.CmdCompleteChecklistItem, []string{checklistHash, itemHash})),
+			tg.NewBtn(i18n.StrComplete, tg.NewCmd(CmdCompleteChecklistItem, []string{checklistHash, itemHash})),
 		),
 	})
 
@@ -1559,9 +1647,9 @@ func (b *Bot) showLongItemFromInbox(params []string) error {
 
 				kb := tg.NewKeyboard([]tg.Row{
 					tg.NewRow(
-						tg.NewBtn(i18n.StrBack, tg.NewCmd(consts.CmdShowToday, []string{})),
-						tg.NewBtn(i18n.AddEmoji("Move"), tg.NewCmd(consts.CmdShowMoveTo, []string{msgIndexStr})),
-						tg.NewBtn(txt.Emoji(i18n.Emoji("Archive"), "Complete"), tg.NewCmd(consts.CmdCompleteFromInbox, []string{msgIndexStr})),
+						tg.NewBtn(i18n.StrBack, tg.NewCmd(CmdShowToday, []string{})),
+						tg.NewBtn(i18n.AddEmoji("Move"), tg.NewCmd(CmdShowMoveTo, []string{msgIndexStr})),
+						tg.NewBtn(txt.Emoji(i18n.Emoji("Archive"), "Complete"), tg.NewCmd(CmdCompleteFromInbox, []string{msgIndexStr})),
 					),
 				})
 
@@ -1599,16 +1687,16 @@ func (b *Bot) showFile(params []string) error {
 	isNotesDir := len(fs.OnlyNoteDirs([]fs.File{{Name: dir}})) > 0
 	row := tg.NewRow()
 	if isNotesDir {
-		inlineCmd := tg.NewCustomCmd(consts.CmdInlineQuerySearchEveryWhere, nil, tg.CmdTypeInlineQueryCurrentChat)
+		inlineCmd := tg.NewCustomCmd(CmdInlineQuerySearchEveryWhere, nil, tg.CmdTypeInlineQueryCurrentChat)
 		row = append(row, tg.NewBtn(i18n.Tr("🔎 Search"), inlineCmd))
 
 		hasChannelsToPrint := len(b.cfg.Channels()) > 0
 		if hasChannelsToPrint {
-			cmd := tg.NewCmd(consts.CmdShare, []string{fs.Hash(dir), fs.Hash(filename)})
+			cmd := tg.NewCmd(CmdShare, []string{fs.Hash(dir), fs.Hash(filename)})
 			row = append(row, tg.NewBtn(i18n.Tr("🖨 Share"), cmd))
 		}
 	}
-	row = append(row, tg.NewBtn(i18n.StrToday, tg.NewCmd(consts.CmdShowToday, nil)))
+	row = append(row, tg.NewBtn(i18n.StrToday, tg.NewCmd(CmdShowToday, nil)))
 	kb := tg.NewKeyboard([]tg.Row{row})
 
 	md := fmt.Sprintf("**%s**\n\n%s", fs.DisplayName(filename), content)
@@ -1650,16 +1738,16 @@ func (b *Bot) showChecklist(params []string) error {
 	kb := tg.NewKeyboard(nil)
 	for _, item := range items {
 		if len([]rune(item)) >= maxHeaderLengthForMobile {
-			cmd := tg.NewCmd(consts.CmdShowLongItem, []string{fs.Hash(checklist), fs.Hash(item)})
+			cmd := tg.NewCmd(CmdShowLongItem, []string{fs.Hash(checklist), fs.Hash(item)})
 			btn := tg.NewBtn(txt.Emoji(i18n.Emoji("eyes"), item), cmd)
 			kb.AddRow(btn)
 		} else {
-			cmd := tg.NewCmd(consts.CmdCompleteChecklistItem, []string{checklistHash, fs.Hash(item)})
+			cmd := tg.NewCmd(CmdCompleteChecklistItem, []string{checklistHash, fs.Hash(item)})
 			btn := tg.NewBtn(i18n.AddEmoji(item), cmd)
 			kb.AddRow(btn)
 		}
 	}
-	kb.AddRow(tg.NewBtn(i18n.StrToday, tg.NewCmd(consts.CmdShowToday, nil)))
+	kb.AddRow(tg.NewBtn(i18n.StrToday, tg.NewCmd(CmdShowToday, nil)))
 
 	title := checklistTitle(checklist)
 	if checklist == fs.DirRead {
@@ -1735,7 +1823,7 @@ func (b *Bot) moveToDirFromToday(params []string) error {
 	}
 
 	if toDir != fs.DirLater {
-		b.db.SetRecentCommand(consts.CmdMoveToExistingNote)
+		b.db.SetRecentCommand(CmdMoveToExistingNote)
 		// Move from dir is today, because quick command
 		// appears when file is in today dir
 		b.db.SetRecentCommandParams([]string{fs.Hash(filename), toDirHash})
@@ -1798,7 +1886,7 @@ func (b *Bot) moveToDir(params []string) error {
 	}, true, msgIndices...)
 
 	if toDir != fs.DirLater {
-		//b.db.SetRecentCommand(consts.CmdMoveToExistingNote)
+		//b.db.SetRecentCommand(CmdMoveToExistingNote)
 		// Move from dir is today, because quick command
 		// appears when file is in today dir
 		//b.db.SetRecentCommandParams([]string{strconv.Itoa(msgIndex), toDirHash})
@@ -1936,7 +2024,7 @@ func (b *Bot) requestNewDirName(params []string) error {
 		return fmt.Errorf("request new dir: %w", err)
 	}
 
-	b.db.SetInputExpectation(tg.NewCmd(consts.CmdMoveToNewDir, []string{filenameHash, "%s"}))
+	b.db.SetInputExpectation(tg.NewCmd(CmdMoveToNewDir, []string{filenameHash, "%s"}))
 
 	return nil
 }
@@ -1989,7 +2077,7 @@ func (b *Bot) moveToExistingFile(params []string) error {
 		return fmt.Errorf("move to file: can't add to existing file '%s': %w", existingFilename, err)
 	}
 
-	b.db.SetRecentCommand(consts.CmdMoveToExistingFile)
+	b.db.SetRecentCommand(CmdMoveToExistingFile)
 	b.db.SetRecentCommandParams([]string{fs.ShortHash(existingFilename)})
 
 	b.delAllKeyboards()
@@ -2036,7 +2124,7 @@ func (b *Bot) moveToExistingNote(params []string) error {
 			return fmt.Errorf("move to existing note: can't add to file %s: %w", toFilename, err)
 		}
 
-		b.db.SetRecentCommand(consts.CmdMoveToExistingNote)
+		b.db.SetRecentCommand(CmdMoveToExistingNote)
 		b.db.SetRecentCommandParams([]string{fs.ShortHash(toFilename), fs.ShortHash(toDir)})
 
 		return nil
@@ -2162,7 +2250,7 @@ func (b *Bot) moveToNewFile(params []string) error {
 		// We can tolerate this
 		//_ = journal.AddRecord(b.fs, fmt.Sprintf("📄 %s", fs.DisplayName(filename)), b.cfg.Timezone())
 
-		b.db.SetRecentCommand(consts.CmdMoveToExistingFile)
+		b.db.SetRecentCommand(CmdMoveToExistingFile)
 		b.db.SetRecentCommandParams([]string{fs.ShortHash(newFilenameFromUserInput)})
 
 		// TODO add if exists
@@ -2266,7 +2354,7 @@ func (b *Bot) addToRecentFileOrNoteFromShortcut(params []string) error {
 	cmd, _ := b.db.RecentCommand()
 
 	var existingFilename string
-	if cmd == consts.CmdMoveToExistingFile {
+	if cmd == CmdMoveToExistingFile {
 		var err error
 		existingFilename, err = b.fs.Unhash(fs.DirUserRoot, args[0])
 		if err != nil {
@@ -2277,7 +2365,7 @@ func (b *Bot) addToRecentFileOrNoteFromShortcut(params []string) error {
 		if err != nil {
 			return fmt.Errorf("failed to move to recent file: can't add note: %w", err)
 		}
-	} else if cmd == consts.CmdMoveToExistingNote {
+	} else if cmd == CmdMoveToExistingNote {
 		dir, err := b.fs.Unhash(fs.DirUserRoot, args[1])
 		if err != nil {
 			return fmt.Errorf("failed to move to recent note: can't unhash dir: %w", err)
@@ -2409,8 +2497,8 @@ func (b *Bot) showChecklistItem(params []string) error {
 
 	kb := tg.NewKeyboard([]tg.Row{
 		tg.NewRow(
-			tg.NewBtn(i18n.StrBack, tg.NewCmd(consts.CmdShowChecklist, []string{dirHash})),
-			tg.NewBtn(i18n.StrComplete, tg.NewCmd(consts.CmdCompleteListItem, []string{dirHash, filenameHash})),
+			tg.NewBtn(i18n.StrBack, tg.NewCmd(CmdShowChecklist, []string{dirHash})),
+			tg.NewBtn(i18n.StrComplete, tg.NewCmd(CmdCompleteListItem, []string{dirHash, filenameHash})),
 		),
 	})
 
@@ -2506,11 +2594,11 @@ func (b *Bot) showToADay(params []string) error {
 
 func (b *Bot) toADayKeyboard(filenameHash string) (*tg.Keyboard, error) {
 	newBtn := func(name, cron string) tg.Btn {
-		return tg.NewBtn(name, tg.NewCmd(consts.CmdSchedule, []string{filenameHash, txt.I64(sched.NextExcludeToday(cron)), ""}))
+		return tg.NewBtn(name, tg.NewCmd(CmdSchedule, []string{filenameHash, txt.I64(sched.NextExcludeToday(cron)), ""}))
 	}
 
 	kb := tg.NewKeyboard([]tg.Row{
-		tg.NewRow(tg.NewBtn(i18n.StrRepeat, tg.NewCmd(consts.CmdShowScheduleForDayRecurring, []string{filenameHash}))),
+		tg.NewRow(tg.NewBtn(i18n.StrRepeat, tg.NewCmd(CmdShowScheduleForDayRecurring, []string{filenameHash}))),
 		tg.NewRow(
 			newBtn(i18n.StrMonday, "0 0 * * 1"),
 			newBtn(i18n.StrTuesday, "0 0 * * 2"),
@@ -2532,7 +2620,7 @@ func (b *Bot) toADayKeyboard(filenameHash string) (*tg.Keyboard, error) {
 		}
 		kb.AddRow(row)
 	}
-	kb.AddRow(tg.NewBtn(i18n.StrToToday, tg.NewCmd(consts.CmdShowToday, nil)))
+	kb.AddRow(tg.NewBtn(i18n.StrToToday, tg.NewCmd(CmdShowToday, nil)))
 
 	return kb, nil
 }
@@ -2549,7 +2637,7 @@ func (b *Bot) showMoveToFileOrDir(params []string) error {
 	if userWantedAllBtns {
 		maxRecentBtns = maxBtns
 	} else {
-		//b.db.SetRecentCommand(consts.CmdMoveToExistingFile)
+		//b.db.SetRecentCommand(CmdMoveToExistingFile)
 		//b.db.SetRecentCommandParams([]string{fs.ShortHash(filename), fs.ShortHash(fs.DirToday)})
 	}
 
@@ -2588,12 +2676,12 @@ func (b *Bot) showMoveToFileOrDir(params []string) error {
 		// Free up space for the new dir button
 		dirBtns = dirBtns[:len(fileBtns)-1]
 	}
-	btn := tg.NewBtn("🗂 New Dir", tg.NewCmd(consts.CmdRequestNewDir, []string{msgIndexStr}))
+	btn := tg.NewBtn("🗂 New Dir", tg.NewCmd(CmdRequestNewDir, []string{msgIndexStr}))
 	dirBtns = append(dirBtns, btn)
 
 	//shouldAddSeparator := len(fileBtns) > 0
 	//if shouldAddSeparator {
-	searchCMD := tg.NewCustomCmd(consts.CmdInlineQuerySearchEveryWhere, nil, tg.CmdTypeInlineQueryCurrentChat)
+	searchCMD := tg.NewCustomCmd(CmdInlineQuerySearchEveryWhere, nil, tg.CmdTypeInlineQueryCurrentChat)
 	kb.AddRow(tg.NewBtn(i18n.Tr("Search"), searchCMD))
 	//}
 	dirBtnsByRows := slice.Chunk(dirBtns, btnsPerRow)
@@ -2602,10 +2690,10 @@ func (b *Bot) showMoveToFileOrDir(params []string) error {
 	}
 
 	if skippedBtns {
-		kb.AddRow(tg.NewBtn(i18n.Tr("More..."), tg.NewCmd(consts.CmdShowMoveToDirOrFile, []string{msgIndexStr, "full"})))
+		kb.AddRow(tg.NewBtn(i18n.Tr("More..."), tg.NewCmd(CmdShowMoveToDirOrFile, []string{msgIndexStr, "full"})))
 	}
 
-	b.db.SetInputExpectation(tg.NewCmd(consts.CmdMoveToNewFile, []string{msgIndexStr, "%s"}))
+	b.db.SetInputExpectation(tg.NewCmd(CmdMoveToNewFile, []string{msgIndexStr, "%s"}))
 
 	err = b.showHTML("📄 Select a file or enter a new name:", kb)
 	if err != nil {
@@ -2623,7 +2711,7 @@ func (b *Bot) showToChecklist(params []string) error {
 		return fmt.Errorf("show to checklist: can't get keyboard: %w", err)
 	}
 
-	b.db.SetInputExpectation(tg.NewCmd(consts.CmdMoveToNewChecklist, []string{filenameHash, "%s"}))
+	b.db.SetInputExpectation(tg.NewCmd(CmdMoveToNewChecklist, []string{filenameHash, "%s"}))
 
 	err = b.showHTML(i18n.Tr("Choose a checklist or name a new one"), kb)
 	if err != nil {
@@ -2648,7 +2736,7 @@ func (b *Bot) moveToFileBtns(msgIndex int) ([]tg.Btn, error) {
 	newBtn := func(title, existingFilenameHash string) tg.Btn {
 		title = fmt.Sprintf("%s", title)
 		params := []string{existingFilenameHash, strconv.Itoa(msgIndex)}
-		return tg.NewBtn(title, tg.NewCmd(consts.CmdMoveToExistingFile, params))
+		return tg.NewBtn(title, tg.NewCmd(CmdMoveToExistingFile, params))
 	}
 	for _, file := range files {
 		buttons = append(buttons, newBtn(file.DisplayName, fs.ShortHash(file.Name)))
@@ -2660,7 +2748,7 @@ func (b *Bot) moveToFileBtns(msgIndex int) ([]tg.Btn, error) {
 func (b *Bot) moveToDirBtns(msgIndex int) ([]tg.Btn, error) {
 	newBtn := func(dir string) tg.Btn {
 		emojifiedDir := fmt.Sprintf("%s %s", i18n.Emoji("dir"), txt.Ucfirst(dir))
-		return tg.NewBtn(emojifiedDir, tg.NewCmd(consts.CmdMoveToExistingDir, []string{fs.ShortHash(dir), strconv.Itoa(msgIndex)}))
+		return tg.NewBtn(emojifiedDir, tg.NewCmd(CmdMoveToExistingDir, []string{fs.ShortHash(dir), strconv.Itoa(msgIndex)}))
 	}
 
 	dirs, err := b.fs.FilesAndDirs(fs.DirUserRoot)
@@ -2680,7 +2768,7 @@ func (b *Bot) moveToDirBtns(msgIndex int) ([]tg.Btn, error) {
 
 func (b *Bot) toChecklistKeyboard(filenameHash string) (*tg.Keyboard, error) {
 	newBtn := func(dir, title string) tg.Btn {
-		return tg.NewBtn(title, tg.NewCmd(consts.CmdMoveToDirChecklist, []string{filenameHash, dir}))
+		return tg.NewBtn(title, tg.NewCmd(CmdMoveToDirChecklist, []string{filenameHash, dir}))
 	}
 
 	dirs, err := b.fs.FilesAndDirs(fs.DirUserRoot)
@@ -2754,7 +2842,7 @@ func (b *Bot) showToADayRecurring(params []string) error {
 
 	newBtn := func(name, cron string) tg.Btn {
 		// We need to shorten filehash, otherwise whole payload doesn't fit telegram's restrictions (64 bytes)
-		cmd := tg.NewCmd(consts.CmdSchedule, []string{txt.Substr(filenameHash, 0, 4), txt.I64(sched.NextExcludeToday(cron)), cron})
+		cmd := tg.NewCmd(CmdSchedule, []string{txt.Substr(filenameHash, 0, 4), txt.I64(sched.NextExcludeToday(cron)), cron})
 		return tg.NewBtn(name, cmd)
 	}
 
@@ -2786,7 +2874,7 @@ func (b *Bot) showToADayRecurring(params []string) error {
 		}
 		kb.AddRow(row)
 	}
-	kb.AddRow(tg.NewBtn(i18n.StrToToday, tg.NewCmd(consts.CmdShowToday, nil)))
+	kb.AddRow(tg.NewBtn(i18n.StrToToday, tg.NewCmd(CmdShowToday, nil)))
 
 	err := b.showHTML(i18n.Tr("Repeat the task"), kb)
 	if err != nil {
@@ -2826,13 +2914,13 @@ func (b *Bot) openInApp(_ []string) error {
 
 // TODO release add help
 func (b *Bot) showHelp(_ []string) error {
-	kb := tg.NewKeyboard([]tg.Row{tg.NewBtn(i18n.StrToday, tg.NewCmd(consts.CmdShowToday, nil))})
+	kb := tg.NewKeyboard([]tg.Row{tg.NewBtn(i18n.StrToday, tg.NewCmd(CmdShowToday, nil))})
 
 	return b.showHTML("Not yet implemented 🏗!", kb)
 }
 
 func (b *Bot) download(_ []string) error {
-	kb := tg.NewKeyboard([]tg.Row{tg.NewBtn(i18n.StrToday, tg.NewCmd(consts.CmdShowToday, nil))})
+	kb := tg.NewKeyboard([]tg.Row{tg.NewBtn(i18n.StrToday, tg.NewCmd(CmdShowToday, nil))})
 
 	return b.showHTML("Not yet implemented 🏗!", kb)
 }
@@ -2856,9 +2944,9 @@ func (b *Bot) setTasksOnlyMode(_ []string) error {
 	}
 
 	moveToCmds := []string{
-		consts.CmdScheduleForTmrw,
-		consts.CmdMoveToLater,
-		consts.CmdShowScheduleForDay,
+		CmdScheduleForTmrw,
+		CmdMoveToLater,
+		CmdShowScheduleForDay,
 	}
 	for _, cmd := range moveToCmds {
 		err = b.cfg.AddMoveToCmd(cmd)
@@ -2895,14 +2983,14 @@ func (b *Bot) setFullMode(_ []string) error {
 	}
 
 	moveToCmds := []string{
-		consts.CmdScheduleForTmrw,
-		consts.CmdMoveToLater,
-		consts.CmdShowScheduleForDay,
-		consts.CmdShowMoveToDirOrFile,
-		consts.CmdMoveToRead,
-		consts.CmdMoveToShop,
-		consts.CmdMoveToWatch,
-		consts.CmdMoveToJournal,
+		CmdScheduleForTmrw,
+		CmdMoveToLater,
+		CmdShowScheduleForDay,
+		CmdShowMoveToDirOrFile,
+		CmdMoveToRead,
+		CmdMoveToShop,
+		CmdMoveToWatch,
+		CmdMoveToJournal,
 	}
 	for _, cmd := range moveToCmds {
 		err = b.cfg.AddMoveToCmd(cmd)

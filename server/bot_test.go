@@ -12,7 +12,6 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 
-	"github.com/zakirullin/files.md/server/consts"
 	"github.com/zakirullin/files.md/server/db"
 	"github.com/zakirullin/files.md/server/fs"
 	"github.com/zakirullin/files.md/server/journal"
@@ -1548,11 +1547,11 @@ func TestShowMoveTo(t *testing.T) {
 	err = cfg.CreateDefaultIfNotExists()
 	r.NoError(err)
 
-	_ = cfg.AddMoveToCmd(consts.CmdScheduleForTmrw)
-	_ = cfg.AddMoveToCmd(consts.CmdMoveToLater)
-	_ = cfg.AddMoveToCmd(consts.CmdShowScheduleForDay)
-	_ = cfg.AddMoveToCmd(consts.CmdShowMoveToDirOrFile)
-	_ = cfg.AddMoveToCmd(consts.CmdMoveToJournal)
+	_ = cfg.AddMoveToCmd(CmdScheduleForTmrw)
+	_ = cfg.AddMoveToCmd(CmdMoveToLater)
+	_ = cfg.AddMoveToCmd(CmdShowScheduleForDay)
+	_ = cfg.AddMoveToCmd(CmdShowMoveToDirOrFile)
+	_ = cfg.AddMoveToCmd(CmdMoveToJournal)
 
 	bot := NewBot(-1, tgram, userFS, db.NewFakeDB(), cfg)
 	err = bot.Reply(tg.NewUpd(-1, "New task\nContent"))
@@ -2507,11 +2506,11 @@ func TestSaveToNewTask(t *testing.T) {
 	err = cfg.CreateDefaultIfNotExists()
 	r.NoError(err)
 
-	_ = cfg.AddMoveToCmd(consts.CmdScheduleForTmrw)
-	_ = cfg.AddMoveToCmd(consts.CmdMoveToLater)
-	_ = cfg.AddMoveToCmd(consts.CmdShowScheduleForDay)
-	_ = cfg.AddMoveToCmd(consts.CmdShowMoveToDirOrFile)
-	_ = cfg.AddMoveToCmd(consts.CmdMoveToJournal)
+	_ = cfg.AddMoveToCmd(CmdScheduleForTmrw)
+	_ = cfg.AddMoveToCmd(CmdMoveToLater)
+	_ = cfg.AddMoveToCmd(CmdShowScheduleForDay)
+	_ = cfg.AddMoveToCmd(CmdShowMoveToDirOrFile)
+	_ = cfg.AddMoveToCmd(CmdMoveToJournal)
 
 	tgram := tg.NewFakeTG()
 	database := db.NewFakeDB()
@@ -2581,11 +2580,11 @@ func TestSaveToExistingFile(t *testing.T) {
 	err = cfg.CreateDefaultIfNotExists()
 	r.NoError(err)
 
-	_ = cfg.AddMoveToCmd(consts.CmdScheduleForTmrw)
-	_ = cfg.AddMoveToCmd(consts.CmdMoveToLater)
-	_ = cfg.AddMoveToCmd(consts.CmdShowScheduleForDay)
-	_ = cfg.AddMoveToCmd(consts.CmdShowMoveToDirOrFile)
-	_ = cfg.AddMoveToCmd(consts.CmdMoveToJournal)
+	_ = cfg.AddMoveToCmd(CmdScheduleForTmrw)
+	_ = cfg.AddMoveToCmd(CmdMoveToLater)
+	_ = cfg.AddMoveToCmd(CmdShowScheduleForDay)
+	_ = cfg.AddMoveToCmd(CmdShowMoveToDirOrFile)
+	_ = cfg.AddMoveToCmd(CmdMoveToJournal)
 
 	tgram := tg.NewFakeTG()
 	database := db.NewFakeDB()
@@ -2672,11 +2671,11 @@ func TestSaveToExistingFileModeTasks(t *testing.T) {
 	err = cfg.CreateDefaultIfNotExists()
 	r.NoError(err)
 
-	_ = cfg.AddMoveToCmd(consts.CmdScheduleForTmrw)
-	_ = cfg.AddMoveToCmd(consts.CmdMoveToLater)
-	_ = cfg.AddMoveToCmd(consts.CmdShowScheduleForDay)
-	_ = cfg.AddMoveToCmd(consts.CmdShowMoveToDirOrFile)
-	_ = cfg.AddMoveToCmd(consts.CmdMoveToJournal)
+	_ = cfg.AddMoveToCmd(CmdScheduleForTmrw)
+	_ = cfg.AddMoveToCmd(CmdMoveToLater)
+	_ = cfg.AddMoveToCmd(CmdShowScheduleForDay)
+	_ = cfg.AddMoveToCmd(CmdShowMoveToDirOrFile)
+	_ = cfg.AddMoveToCmd(CmdMoveToJournal)
 
 	tgram := tg.NewFakeTG()
 	database := db.NewFakeDB()
@@ -2760,11 +2759,11 @@ func TestSaveToNewFile(t *testing.T) {
 	err = cfg.CreateDefaultIfNotExists()
 	r.NoError(err)
 
-	_ = cfg.AddMoveToCmd(consts.CmdScheduleForTmrw)
-	_ = cfg.AddMoveToCmd(consts.CmdMoveToLater)
-	_ = cfg.AddMoveToCmd(consts.CmdShowScheduleForDay)
-	_ = cfg.AddMoveToCmd(consts.CmdShowMoveToDirOrFile)
-	_ = cfg.AddMoveToCmd(consts.CmdMoveToJournal)
+	_ = cfg.AddMoveToCmd(CmdScheduleForTmrw)
+	_ = cfg.AddMoveToCmd(CmdMoveToLater)
+	_ = cfg.AddMoveToCmd(CmdShowScheduleForDay)
+	_ = cfg.AddMoveToCmd(CmdShowMoveToDirOrFile)
+	_ = cfg.AddMoveToCmd(CmdMoveToJournal)
 
 	tgram := tg.NewFakeTG()
 	database := db.NewFakeDB()
@@ -2849,11 +2848,11 @@ func TestSaveToNewDirFull(t *testing.T) {
 	err = cfg.CreateDefaultIfNotExists()
 	r.NoError(err)
 
-	_ = cfg.AddMoveToCmd(consts.CmdScheduleForTmrw)
-	_ = cfg.AddMoveToCmd(consts.CmdMoveToLater)
-	_ = cfg.AddMoveToCmd(consts.CmdShowScheduleForDay)
-	_ = cfg.AddMoveToCmd(consts.CmdShowMoveToDirOrFile)
-	_ = cfg.AddMoveToCmd(consts.CmdMoveToJournal)
+	_ = cfg.AddMoveToCmd(CmdScheduleForTmrw)
+	_ = cfg.AddMoveToCmd(CmdMoveToLater)
+	_ = cfg.AddMoveToCmd(CmdShowScheduleForDay)
+	_ = cfg.AddMoveToCmd(CmdShowMoveToDirOrFile)
+	_ = cfg.AddMoveToCmd(CmdMoveToJournal)
 
 	tgram := tg.NewFakeTG()
 	database := db.NewFakeDB()
@@ -2939,11 +2938,11 @@ func TestSaveToNewDir(t *testing.T) {
 	err = cfg.CreateDefaultIfNotExists()
 	r.NoError(err)
 
-	_ = cfg.AddMoveToCmd(consts.CmdScheduleForTmrw)
-	_ = cfg.AddMoveToCmd(consts.CmdMoveToLater)
-	_ = cfg.AddMoveToCmd(consts.CmdShowScheduleForDay)
-	_ = cfg.AddMoveToCmd(consts.CmdShowMoveToDirOrFile)
-	_ = cfg.AddMoveToCmd(consts.CmdMoveToJournal)
+	_ = cfg.AddMoveToCmd(CmdScheduleForTmrw)
+	_ = cfg.AddMoveToCmd(CmdMoveToLater)
+	_ = cfg.AddMoveToCmd(CmdShowScheduleForDay)
+	_ = cfg.AddMoveToCmd(CmdShowMoveToDirOrFile)
+	_ = cfg.AddMoveToCmd(CmdMoveToJournal)
 
 	tgram := tg.NewFakeTG()
 	database := db.NewFakeDB()
@@ -3031,11 +3030,11 @@ func TestSaveToNewMultilineFile(t *testing.T) {
 	err = cfg.CreateDefaultIfNotExists()
 	r.NoError(err)
 
-	_ = cfg.AddMoveToCmd(consts.CmdScheduleForTmrw)
-	_ = cfg.AddMoveToCmd(consts.CmdMoveToLater)
-	_ = cfg.AddMoveToCmd(consts.CmdShowScheduleForDay)
-	_ = cfg.AddMoveToCmd(consts.CmdShowMoveToDirOrFile)
-	_ = cfg.AddMoveToCmd(consts.CmdMoveToJournal)
+	_ = cfg.AddMoveToCmd(CmdScheduleForTmrw)
+	_ = cfg.AddMoveToCmd(CmdMoveToLater)
+	_ = cfg.AddMoveToCmd(CmdShowScheduleForDay)
+	_ = cfg.AddMoveToCmd(CmdShowMoveToDirOrFile)
+	_ = cfg.AddMoveToCmd(CmdMoveToJournal)
 
 	tgram := tg.NewFakeTG()
 	database := db.NewFakeDB()
@@ -3117,11 +3116,11 @@ func TestSaveToNewCustomFile(t *testing.T) {
 	err = cfg.CreateDefaultIfNotExists()
 	r.NoError(err)
 
-	_ = cfg.AddMoveToCmd(consts.CmdScheduleForTmrw)
-	_ = cfg.AddMoveToCmd(consts.CmdMoveToLater)
-	_ = cfg.AddMoveToCmd(consts.CmdShowScheduleForDay)
-	_ = cfg.AddMoveToCmd(consts.CmdShowMoveToDirOrFile)
-	_ = cfg.AddMoveToCmd(consts.CmdMoveToJournal)
+	_ = cfg.AddMoveToCmd(CmdScheduleForTmrw)
+	_ = cfg.AddMoveToCmd(CmdMoveToLater)
+	_ = cfg.AddMoveToCmd(CmdShowScheduleForDay)
+	_ = cfg.AddMoveToCmd(CmdShowMoveToDirOrFile)
+	_ = cfg.AddMoveToCmd(CmdMoveToJournal)
 
 	tgram := tg.NewFakeTG()
 	database := db.NewFakeDB()
@@ -3202,11 +3201,11 @@ func TestSaveToRecentFile(t *testing.T) {
 	err = cfg.CreateDefaultIfNotExists()
 	r.NoError(err)
 
-	_ = cfg.AddMoveToCmd(consts.CmdScheduleForTmrw)
-	_ = cfg.AddMoveToCmd(consts.CmdMoveToLater)
-	_ = cfg.AddMoveToCmd(consts.CmdShowScheduleForDay)
-	_ = cfg.AddMoveToCmd(consts.CmdShowMoveToDirOrFile)
-	_ = cfg.AddMoveToCmd(consts.CmdMoveToJournal)
+	_ = cfg.AddMoveToCmd(CmdScheduleForTmrw)
+	_ = cfg.AddMoveToCmd(CmdMoveToLater)
+	_ = cfg.AddMoveToCmd(CmdShowScheduleForDay)
+	_ = cfg.AddMoveToCmd(CmdShowMoveToDirOrFile)
+	_ = cfg.AddMoveToCmd(CmdMoveToJournal)
 
 	tgram := tg.NewFakeTG()
 	database := db.NewFakeDB()
