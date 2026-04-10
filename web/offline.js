@@ -32,6 +32,8 @@ const urlsToCache = [
     '/lib/show-hint.js',
     '/lib/autoscroll.js',
     '/lib/codemirror-go.js',
+    '/lib/codemirror-python.js',
+    '/lib/codemirror-javascript.js',
     '/lib/codemirror-php.js',
     '/lib/codemirror-shell.js',
     '/lib/similarity.js',
