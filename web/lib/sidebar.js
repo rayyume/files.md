@@ -40,7 +40,7 @@ function renderSidebar(focusDir = '', modifiedPaths) {
 
     let inbox = new TreeNode('inbox');
     inbox.path = INBOX_PATH;
-    if (currentEditor.path === undefined || selectedNodes.has('inbox')) {
+    if ((currentEditor.path === undefined && !isMemFS) || selectedNodes.has('inbox')) {
         inbox.setSelected(true);
     }
     inbox.on('click', async function (n, node) {
@@ -286,6 +286,10 @@ function renderSidebar(focusDir = '', modifiedPaths) {
 
         const parentNode = dirNodes[dirPath] || root;
         parentNode.addChild(fileNode);
+
+        if (currentEditor.path === path) {
+            fileNode.setSelected(true);
+        }
 
         if (modifiedPaths !== undefined && modifiedPaths.includes(path)) {
             fileNode.shouldBlink = true;

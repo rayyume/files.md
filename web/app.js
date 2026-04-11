@@ -54,13 +54,13 @@ async function init() {
 
     const savedDirHandle = await getSavedRootDirHandle();
     const hasSavedLocalDir = savedDirHandle instanceof FileSystemDirectoryHandle;
-    if (!hasSavedLocalDir) {
-        document.getElementById('open-folder').style.display = 'inline';
-        isMemFS = false;
-        // document.getElementById('open-chat-modal').style.display = 'inline';
-    } else {
+    if (hasSavedLocalDir) {
         isMemFS = false;
         document.getElementById('open-folder').style.display = 'none';
+        // document.getElementById('open-chat-modal').style.display = 'inline';
+    } else {
+        document.getElementById('open-folder').style.display = 'inline';
+        isMemFS = true;
         // document.getElementById('open-chat-modal').style.display = 'inline';
     }
 
@@ -89,7 +89,7 @@ async function init() {
     log(`Sidebar built in: ${(performance.now() - perf).toFixed(3)} milliseconds`);
 
     if (isMemFS) {
-        openFile('/🪴 Welcome.md');
+        await openFile('/🪴 Welcome.md');
     } else {
         openInbox();
     }
@@ -99,6 +99,7 @@ async function init() {
     await renderSidebar();
     await syncMedia();
     log(`Files initialized in: ${(performance.now() - perf).toFixed(3)} milliseconds`);
+
 }
 
 // Logic for click-handling is in click.js => isWikiLink
