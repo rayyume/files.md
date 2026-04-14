@@ -47,7 +47,35 @@ All this activity helped me to:
 
 To achieve all that, **you'll have to use your brain**, not advanced templates or AI workflows.  
 
+## Second Brain?
+I'll quote [I Deleted My Second Brain](https://www.joanwestenberg.com/i-deleted-my-second-brain-692aa40d59d5f06dd5131e43/):
+
+> Obsidian is a brilliant piece of software. I love it, dearly. But like anything, without restraint, it can also be a trap. Markdown files in nested folders. Plugins that track your productivity. Graph views that suggest omniscience. There’s an illusion of mastery in watching your notes web into constellations. But constellations are projections. They tell stories. They do not guarantee understanding.
+>
+> When I first started using PKM tools, I believed I was solving a problem of forgetting. Later, I believed I was solving a problem of integration.
+> 
+> **Eventually, I realized I had created a new problem: deferral. The more my system grew, the more I deferred the work of thought to some future self who would sort, tag, distill, and extract the gold.**
+
+You can follow this exciting path:  
+The Second Brain name is exciting. It sounds fancy. You want this.  
+You invest a lot in structure, guru templates, AI-workflows, plugins.  
+You are very motivated to scrape the wisdom of the whole internet into your second brain.  
+You get dopamine spikes every time **your second brain becomes smarter and bigger**.  
+There's some beauty in your system and neatly organized notes. You feel good.    
+**Your first brain never actually gets smarter**. The actual job is postponed.  
+
+Moreover, you rob yourself of the chance to live it through.
+
+> **We don’t let new experiences emerge because we already have knowledge.**
+> We think we understand, but in reality we just know.
+> Reading and rereading can easily fool us into believing that we understand a text. Rereading is especially dangerous because of the mere-exposure effect: The moment we become familiar with something, we start believing we also understand it.
+> **At some point, we know something so good, that we start thinking that we actually do it (or at least tried)**.
+
+You can choose another path, see below.
+
 ## How to take notes 🗒️
+
+
 You read a book, you stumble upon an interesting idea.  
 
 Open your favorite chat application and send the note there:  
@@ -96,6 +124,25 @@ To do that, just send whatever is distracting you to the bot. Then choose how yo
 It works like a regular chat, so it's easier to use because there's less resistance.  
 We're used to sending messages to friends, now we're going to send stuff to the bot.
 
+## Hotkeys
+
+| Hotkey | Action |
+| -------- |-------- |
+| `Cmd+K` / `Ctrl+K` | Open file search modal |
+| `Cmd+N` / `Ctrl+N` | New file |
+| `Cmd+M` / `Ctrl+M` | Move file |
+| `Cmd+D` / `Ctrl+D` | Delete file |
+| `Cmd+Enter` / `Ctrl+Enter` | Toggle chat mode |
+| `Cmd+[` / `Ctrl+[` | Go to previous file |
+| `Cmd+]` / `Ctrl+]` | Go to next file |
+| `Cmd+\` / `Ctrl+\` | Toggle sidebar |
+| `Cmd+B` / `Ctrl+B` | Toggle **bold** |
+| `Cmd+I` / `Ctrl+I` | Toggle *italic* |
+| `Cmd+Y` / `Ctrl+Y` | Insert checkbox |
+| `Cmd/Ctrl` + `Click` | Copy inline text / open link |
+| `Ctrl+Cmd+Space` | Insert emoji (macOS) |
+| `[` | Trigger file link autocomplete |  
+
 ## Useful scripts for your files
 All scripts are in `cmd` and can be run **inside your files directory**. Install [Go](https://go.dev/doc/install) first.
 
@@ -121,25 +168,6 @@ Shift timestamps in journal files by N hours (useful after timezone change):
 ```
 go run /abs/path/to/files.md/cmd/shifttime/shifttime.go
 ```
-
-## Hotkeys
-
-| Hotkey | Action |
-| -------- |-------- |
-| `Cmd+K` / `Ctrl+K` | Open file search modal |
-| `Cmd+N` / `Ctrl+N` | New file |
-| `Cmd+M` / `Ctrl+M` | Move file |
-| `Cmd+D` / `Ctrl+D` | Delete file |
-| `Cmd+Enter` / `Ctrl+Enter` | Toggle chat mode |
-| `Cmd+[` / `Ctrl+[` | Go to previous file |
-| `Cmd+]` / `Ctrl+]` | Go to next file |
-| `Cmd+\` / `Ctrl+\` | Toggle sidebar |
-| `Cmd+B` / `Ctrl+B` | Toggle **bold** |
-| `Cmd+I` / `Ctrl+I` | Toggle *italic* |
-| `Cmd+Y` / `Ctrl+Y` | Insert checkbox |
-| `Cmd/Ctrl` + `Click` | Copy inline text / open link |
-| `Ctrl+Cmd+Space` | Insert emoji (macOS) |
-| `[` | Trigger file link autocomplete |  
 
 ## Deploy on your own server
 Prepare server (tested on Debian-based systems):
