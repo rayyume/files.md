@@ -6,13 +6,13 @@ How `openFile`, `syncCurrentEditor`, `syncTextsWithServer`, and `syncLocalFileWi
 
 ```mermaid
 flowchart TD
-    U[User: sidebar click, link click, popstate] -->|openFile| OF[openFile - web/files.js:956]
-    Timer1[setInterval 1000ms - saver - files.js:1662] -->|syncCurrentEditor| SCE[syncCurrentEditor - files.js:1081]
+    U[User: sidebar click, link click, popstate] -->|openFile| OF[openFile]
+    Timer1[setInterval 1000ms saver] -->|syncCurrentEditor| SCE[syncCurrentEditor]
     Focus[focusin / focus event] -->|syncCurrentEditor| SCE
-    Timer2[setInterval syncTexts + syncMedia - app.js] -->|syncTextsWithServer| STS[syncTextsWithServer - files.js:173]
+    Timer2[setInterval syncTexts + syncMedia] -->|syncTextsWithServer| STS[syncTextsWithServer]
 
     OF -->|save previous editor before swapping| SCE
-    SCE -->|switchAwayEditor=false: end of fn| SLF[syncLocalFileWithServer - files.js:291]
+    SCE -->|switchAwayEditor=false: end of fn| SLF[syncLocalFileWithServer]
     STS -->|per-file path| POST1[POST /syncText per file]
     SLF --> POST2[POST /syncText]
 

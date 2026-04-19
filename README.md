@@ -193,15 +193,7 @@ go run /abs/path/to/files.md/cmd/shifttime/shifttime.go
 ```
 
 ## Deploy on your own server
-Prepare server (tested on Debian-based systems):
-```bash
-$ make init_server host=<YOUR_SSH_HOST> salt=<YOUR_SECRET_SALT>
-```
-
-Deploy a systemd service:
-```bash
-$ make deploy_systemd host=<YOUR_SSH_HOST>
-```
+See [docs/your-own-server.md](docs/your-own-server.md).
 
 ## Run your own Telegram Bot
 1) Install [Go](https://go.dev/doc/install)
@@ -305,25 +297,3 @@ Read 4K randomly from SSD = 150,000 ns
 - Package db.go doesn't store userID (we often use it separately...) Do we? Maybe we gonna use it without userID (like global bot stats?). Added: moved userID to class. Maybe in later we'll need this class outside of user's scope, but let's stay in the future :)
 - We can't ucfist filename in fs.Put - what if that was user-created file (outside the bot), i.e. it comes with lowercase
 
-## Transfer files to another server
-1) Backup your data (`/app/storage`)
-2) Be sure that all client app fully synced with the server (bring the app in the focus)
-3) Stop bot on old server, so no new files would be created.
-4) Compress all the files on one server: `tar -czvf storage.tar.gz storage`
-5) `scp` the file to your host machine: `scp SSH_HOST:/app/storage.tar.gz .`
-6) `scp` the file to your target machine
-
-Synchronization is relying on `mtime`, so after compressing/decompressing the flag wouldn't be lost.
-
-1) `cd /opt/files.md`
-2) `tar -czvf tokens.tar.gz tokens`
-3) `scp` to same dir on target machine
-
-We don't need to transfer fslog (renames), if we're certain that all clients read the log.
-
-1) Extract all files on new server
-2) Transfer `BOT_API_TOKEN`
-3) Launch server
-4) Execute `localStorage.setItem('ApiHost', 'YOUR_NEW_API_HOST');` in your PWA applications
-5) Make sure that all files are available
-6) Cleanup the oldserver
