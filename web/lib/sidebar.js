@@ -868,19 +868,19 @@ function TreeView(root, container, options) {
             if (needsGroupHeader) {
                 let nodeStr = node.toString();
                 if (nodeStr.endsWith('_') || nodeStr === 'read' || nodeStr === 'watch' || nodeStr === 'shop') {
-                    groupHeaderText = "Lists";
+                    groupHeaderText = "LISTS";
                     groupHeaderClass = "lists";
                 } else if (['today', 'later'].includes(nodeStr)) {
-                    groupHeaderText = "Tasks";
+                    groupHeaderText = "TASKS";
                     groupHeaderClass = "tasks";
                 } else if (['journal', 'habits', 'insights'].includes(nodeStr)) {
-                    groupHeaderText = "Personal";
+                    groupHeaderText = "PERSONAL";
                     groupHeaderClass = "personal";
                 } else if (nodeStr === 'inbox') {
                     // groupHeaderText = "Personal";
                     groupHeaderClass = "personal";
                 } else {
-                    groupHeaderText = "Files";
+                    groupHeaderText = "FILES";
                     groupHeaderClass = "user-dirs";
                 }
             }

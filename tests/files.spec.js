@@ -768,72 +768,6 @@ test('create file in selected folder', async ({ page }) => {
     expect(await projectFiles.count()).toBe(1);
 });
 
-async function clickAndExpectContent(page, filePath, expectedContent) {
-    const parts = filePath.split('/');
-    const file = parts.pop();
-    const dirs = parts;
-
-    for (const dir of dirs) {
-        const isSelected = await page.locator(`#tree .tj_description:has-text('${dir}')`).evaluate(el => el.classList.contains('expanded'));
-        if (!isSelected) {
-            await page.click(`#tree .tj_description:has-text('${dir}')`);
-            await page.waitForTimeout(100);
-        }
-    }
-
-    await page.click(`#tree .tj_description:has-text('${file}')`);
-    await page.waitForTimeout(200);
-
-    const codeMirrorContent = await page.evaluate(() => {
-        const cm = document.querySelector('.CodeMirror').CodeMirror;
-        return cm.getValue();
-    });
-    expect(codeMirrorContent).toBe(expectedContent);
-}
-
-async function expectCurrentContent(page, content) {
-    const codeMirrorContent = await page.evaluate(() => {
-        const cm = document.querySelector('.CodeMirror').CodeMirror;
-        return cm.getValue();
-    });
-    expect(codeMirrorContent).toBe(content);
-}
-
-async function setup(page) {
-    await page.goto('/index.html');
-
-    await page.evaluate(()=> {
-        window.getRootDirHandle = async function() {
-            const root = await navigator.storage.getDirectory();
-
-            const files = [
-                { name: 'README.md', content: 'Hello world' },
-                { name: 'Notes.md', content: 'Some text' }
-            ];
-
-            for (const file of files) {
-                try {
-                    await root.getFileHandle(file.name);
-                } catch (error) {
-                    const fileHandle = await root.getFileHandle(file.name, { create: true });
-                    const writable = await fileHandle.createWritable();
-                    await writable.write(file.content);
-                    await writable.close();
-                }
-            }
-
-            return root;
-        };
-    })
-
-    await page.evaluate(() => {
-        init(document.getElementById('editor'));
-    });
-
-    await page.waitForSelector('#chat', {timeout: 10000});
-    await page.waitForSelector('#tree', {timeout: 5000});
-}
-
 // Regression test for a destructive file-duplication cascade.
 //
 // --- Where the drift happened ---
@@ -921,7 +855,7 @@ async function setup(page) {
 // the executioner (rename-from-header), nor does it fix the "P doesn't
 // re-verify currentEditor" problem — any future code path that rotates
 // currentEditor during P's await would poison again.
-test.only('pilaf should not be copied to happiness when opening link in editor2 after stale editor2 drift', async ({page}) => {
+test('pilaf should not be copied to happiness when opening link in editor2 after stale editor2 drift', async ({page}) => {
     await page.evaluate(async () => {
         const seedRoot = await navigator.storage.getDirectory();
         const hapDir = await seedRoot.getDirectoryHandle('hap', {create: true});
@@ -1009,3 +943,69 @@ test.only('pilaf should not be copied to happiness when opening link in editor2 
     expect(disk.hap).toEqual(['Awareness.md', 'Dream.md']);
     expect(disk.life).toEqual(['Pilaf.md', 'Recipes.md']);
 });
+
+async function clickAndExpectContent(page, filePath, expectedContent) {
+    const parts = filePath.split('/');
+    const file = parts.pop();
+    const dirs = parts;
+
+    for (const dir of dirs) {
+        const isSelected = await page.locator(`#tree .tj_description:has-text('${dir}')`).evaluate(el => el.classList.contains('expanded'));
+        if (!isSelected) {
+            await page.click(`#tree .tj_description:has-text('${dir}')`);
+            await page.waitForTimeout(100);
+        }
+    }
+
+    await page.click(`#tree .tj_description:has-text('${file}')`);
+    await page.waitForTimeout(200);
+
+    const codeMirrorContent = await page.evaluate(() => {
+        const cm = document.querySelector('.CodeMirror').CodeMirror;
+        return cm.getValue();
+    });
+    expect(codeMirrorContent).toBe(expectedContent);
+}
+
+async function expectCurrentContent(page, content) {
+    const codeMirrorContent = await page.evaluate(() => {
+        const cm = document.querySelector('.CodeMirror').CodeMirror;
+        return cm.getValue();
+    });
+    expect(codeMirrorContent).toBe(content);
+}
+
+async function setup(page) {
+    await page.goto('/index.html');
+
+    await page.evaluate(()=> {
+        window.getRootDirHandle = async function() {
+            const root = await navigator.storage.getDirectory();
+
+            const files = [
+                { name: 'README.md', content: 'Hello world' },
+                { name: 'Notes.md', content: 'Some text' }
+            ];
+
+            for (const file of files) {
+                try {
+                    await root.getFileHandle(file.name);
+                } catch (error) {
+                    const fileHandle = await root.getFileHandle(file.name, { create: true });
+                    const writable = await fileHandle.createWritable();
+                    await writable.write(file.content);
+                    await writable.close();
+                }
+            }
+
+            return root;
+        };
+    })
+
+    await page.evaluate(() => {
+        init(document.getElementById('editor'));
+    });
+
+    await page.waitForSelector('#chat', {timeout: 10000});
+    await page.waitForSelector('#tree', {timeout: 5000});
+}
