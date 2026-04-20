@@ -6,13 +6,14 @@ A simple application for your `.md` files.
 <img src="https://github.com/zakirullin/files.md/raw/main/web/app.png" alt="Files.md screenshot" title="Files.md"/>
 
 You can store whole your life:
+- 📄 Documents
 - 📝 Notes, Projects
-- ✅ Tasks, Checklists
 - 💚 Journal, Habits
+- ✅ Checklists, Tasks
 
 All in plain `.md` files, locally. LLM-friendly.
 
-You can try it out: [app.files.md](https://app.files.md)
+You can try it out: [app.files.md](https://app.files.md).
 
 ## Another note-taking app?
 Maybe. But this time: 
@@ -74,9 +75,9 @@ You don't need to learn new advanced techniques or tools to start taking notes.
 
 It's even better if you reuse an old, familiar pattern.  
 
-For me that was chatting. It is so natural for us to share an insight with our friends through a message.  
+For me, that was chatting. It feels so natural to share an insight with friends in a message.
 
-Only this time i'll write a message to the bot:
+Only this time, I was writing a message to a bot:
 
 <img>
 
