@@ -296,127 +296,6 @@ function isMetaKey(event) {
     return event.metaKey || event.ctrlKey || event.altKey;
 }
 
-// Hotkeys
-window.addEventListener('keydown', async (event) => {
-    if (isMetaKey(event) && event.key == 'w') {
-        hideEditor2();
-    }
-
-    if (isMetaKey(event) && event.key === 'p') {
-        event.preventDefault();
-        event.stopPropagation();
-        document.getElementById('search-input').value = ''
-        searchModal.open();
-    }
-
-    if (isMetaKey(event) && event.key === 'k') {
-        event.preventDefault();
-        event.stopPropagation();
-        document.getElementById('search-input').value = ''
-        searchModal.open();
-    }
-
-    if (isMetaKey(event) && event.key === 'm') {
-        event.preventDefault();
-        event.stopPropagation();
-        document.getElementById('move-input').value = ''
-        moveModal.open();
-    }
-
-    if (isMetaKey(event) && event.key === 'd') {
-        log('cmd+d');
-        event.preventDefault();
-        event.stopPropagation();
-        removeCurrentFile();
-    }
-
-    if (isMetaKey(event) && event.key === 'n') {
-        event.preventDefault();
-        event.stopPropagation();
-        event.stopImmediatePropagation();
-
-        if (event.shiftKey) {
-            await newFolder();
-        } else {
-            await newFile();
-        }
-    }
-}, true);
-
-document.addEventListener('keydown', (event) => {
-    // TODO cursor shouldn't jump to top once we hit "esc".
-    if (event.key === 'Escape') {
-        if (chatContainer.style.display !== 'none') {
-            const selectedMessages = inbox.querySelectorAll('.message.selected');
-            if (selectedMessages.length > 0) {
-                selectedMessages.forEach(message => message.classList.remove('selected'));
-                event.preventDefault();
-                event.stopPropagation();
-                return;
-            }
-
-            closeInboxModal();
-            editor.focus();
-            return;
-        }
-
-        hideEditor2();
-        editor.focus();
-
-        const allMessages = inbox.querySelectorAll('.message');
-        allMessages.forEach(message => message.classList.remove('selected'));
-        // If in chat, focus chat input
-        if (isInbox) {
-            chatInput.focus();
-        }
-    }
-});
-
-
-// Toggle focus mode
-document.addEventListener('keydown', function(event) {
-    // Cmd+shift+enter toglle inbox modal
-    if (event.shiftKey && isMetaKey(event) && event.key === 'Enter') {
-        event.preventDefault();
-        if (isInbox) {
-            history.back();
-        } else {
-            event.preventDefault();
-            toggleInboxModal();
-        }
-        return;
-    }
-    // Shift+Enter to toggle sidebar
-    if (isMetaKey(event) && event.key === '\\') {
-        toggleSidebar();
-    }
-    if (isMetaKey(event) && event.key === '.') {
-        toggleSidebar();
-    }
-    if (isMetaKey(event) && event.key === 'Enter') {
-        openInbox();
-    }
-});
-
-document.addEventListener('keydown', (e) => {
-    if (e.metaKey || e.ctrlKey) {
-        document.body.classList.add('cmd-pressed');
-    }
-});
-
-document.addEventListener('keyup', (e) => {
-    if (!e.metaKey && !e.ctrlKey) {
-        document.body.classList.remove('cmd-pressed');
-    }
-});
-
-window.addEventListener('popstate', (event) => {
-    const state = event.state;
-    if (state) {
-        openFile(state.path, false, state.el);
-    }
-});
-
 async function openDir() {
     await navigator.storage.persist();
     // // Request persistent storage for site
@@ -477,25 +356,6 @@ function toHeader(filename) {
 }
 
 function fromHeaderToFilename(header) {
-    // Kinda tricky, but what can we do if Chromium is very slow with md files
-    if (header === '# Today') {
-        return toFilename(TODAY_PATH);
-    }
-    if (header === '# Later') {
-        return toFilename(LATER_PATH);
-    }
-    if (header === '# Done') {
-        return toFilename(DONE_PATH);
-    }
-    if (header === '# Shop') {
-        return toFilename(SHOP_PATH);
-    }
-    if (header === '# Watch') {
-        return toFilename(WATCH_PATH);
-    }
-    if (header === '# Read') {
-        return toFilename(READ_PATH);
-    }
     if (header.startsWith('# ')) {
         return header.slice(2).trim() + '.md';
     }
@@ -537,68 +397,17 @@ async function saveDirectoryHandle(directoryHandle) {
     await store.put(directoryHandle, 'savedDirectoryHandle');
 }
 
-// async function getSavedRootDirHandle() {
-//     const db = await initDB();
-//     return new Promise((resolve, reject) => {
-//         const transaction = db.transaction('handles', 'readonly');
-//         const store = transaction.objectStore('handles');
-//         const request = store.get('savedDirectoryHandle');
-//         request.onsuccess = () => resolve(request.result);
-//         request.onerror = () => reject(request.error);
-//     });
-// }
-//
-//
-//
-
 async function getSavedRootDirHandle() {
-    try {
-        const db = await initDB().catch((err) => {
-            console.error("[getSavedRootDirHandle] initDB failed:", err);
-            throw err;
-        });
+    const db = await initDB();
+    const tx = db.transaction("handles", "readonly");
+    const store = tx.objectStore("handles");
 
-        return await new Promise((resolve, reject) => {
-            let transaction;
-
-            try {
-                transaction = db.transaction("handles", "readonly");
-            } catch (err) {
-                console.error("[getSavedRootDirHandle] db.transaction() threw:", err);
-                reject(err);
-                return;
-            }
-
-            transaction.onabort = () => {
-                console.error("[getSavedRootDirHandle] transaction aborted:", transaction.error);
-                reject(transaction.error ?? new Error("IndexedDB transaction aborted"));
-            };
-
-            transaction.onerror = () => {
-                console.error("[getSavedRootDirHandle] transaction error:", transaction.error);
-                reject(transaction.error ?? new Error("IndexedDB transaction error"));
-            };
-
-            const store = transaction.objectStore("handles");
-            const request = store.get("savedDirectoryHandle");
-
-            request.onsuccess = () => {
-                const result = request.result;
-                if (!result) {
-                    console.log("[getSavedRootDirHandle] savedDirectoryHandle not found (null/undefined).");
-                }
-                resolve(result);
-            };
-
-            request.onerror = () => {
-                console.error("[getSavedRootDirHandle] request error:", request.error);
-                reject(request.error ?? new Error("IndexedDB request error"));
-            };
-        });
-    } catch (err) {
-        console.error("[getSavedRootDirHandle] failed:", err);
-        throw err;
-    }
+    return new Promise((resolve, reject) => {
+        const req = store.get("savedDirectoryHandle");
+        req.onsuccess = () => resolve(req.result ?? null);
+        req.onerror = () => reject(req.error);
+        tx.onabort = () => reject(tx.error || new Error("Transaction aborted"));
+    });
 }
 
 async function removeSavedRootDirHandle() {
@@ -620,84 +429,6 @@ async function getRootDirHandle() {
 
     return savedDirHandle;
 }
-
-// Reload files once the app gains focus.
-window.addEventListener('focus', async () => {
-    // Clear any pending inbox open timer
-    if (openInboxIdleTimer) {
-        clearTimeout(openInboxIdleTimer);
-        openInboxIdleTimer = null;
-    }
-
-    // We don't want to do heavy stuff when chat is open.
-    if (isInbox || isMemFS) {
-        if (isInbox) {
-            document.getElementById('chat-input').focus();
-        }
-        return false;
-    }
-
-    log('FOCUS');
-
-    if (currentEditor.path === undefined) {
-        return;
-    }
-
-    // editor.focus();
-    // focus chat-input
-    document.getElementById('chat-input').focus();
-
-    const savedDirectoryHandle = await getRootDirHandle();
-    // TODO check if access granted
-
-    // Sync media first, so that new images for current file would be loaded
-    await syncMedia();
-    await syncCurrentEditor();
-
-    const start = performance.now();
-    files = await loadLocalFiles(savedDirectoryHandle, true);
-    const end = performance.now();
-    log(`Files loaded in: ${(end - start).toFixed(3)} milliseconds`);
-    await syncTextsWithServer()
-    await renderSidebar();
-    log('Sync completed');
-});
-
-// Sync files on chat focus lose.
-window.addEventListener('blur', async function() {
-    log('Window lost focus');
-    editor.refresh();
-
-    // Start timer to open inbox after idle
-    openInboxIdleTimer = setTimeout(() => {
-        openInbox();
-    }, OPEN_INBOX_AFTER_IDLE);
-
-    // if (!isInbox) {
-    //     return;
-    // }
-    // Why we did that?
-
-    // Sync media first, so that new images for current file would be loaded
-    // if files is not empty object
-    if (Object.keys(files).length === 0) {
-        return;
-    }
-    await syncMedia();
-    await syncCurrentEditor();
-
-    const savedDirectoryHandle = await getRootDirHandle();
-
-    // Benchmark time took
-    const start = performance.now();
-    files = await loadLocalFiles(savedDirectoryHandle);
-    const end = performance.now();
-    log(`Files loaded in: ${(end - start).toFixed(3)} milliseconds`);
-    await syncTextsWithServer()
-    await renderSidebar();
-    log('Sync completed');
-});
-
 
 const resizeHandle = document.querySelector('.resize');
 let isResizing = false;
@@ -728,18 +459,6 @@ function stopResize() {
     isResizing = false;
     document.body.classList.remove('dragging');
 }
-
-document.addEventListener('keydown', (e) => {
-    // If search or move dialog is focused - return
-    if (document.getElementById('search').style.display !== 'none' ||
-        document.getElementById('move').style.display !== 'none') {
-        return;
-    }
-
-    if (isInbox) {
-        return;
-    }
-}, true);
 
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
@@ -919,3 +638,208 @@ let operationCounter = 0;
 function opId() {
     return `${++operationCounter}`;
 }
+
+// Event listeners
+
+// Hotkeys
+window.addEventListener('keydown', async (event) => {
+    if (isMetaKey(event) && event.key == 'w') {
+        hideEditor2();
+    }
+
+    if (isMetaKey(event) && event.key === 'p') {
+        event.preventDefault();
+        event.stopPropagation();
+        document.getElementById('search-input').value = ''
+        searchModal.open();
+    }
+
+    if (isMetaKey(event) && event.key === 'k') {
+        event.preventDefault();
+        event.stopPropagation();
+        document.getElementById('search-input').value = ''
+        searchModal.open();
+    }
+
+    if (isMetaKey(event) && event.key === 'm') {
+        event.preventDefault();
+        event.stopPropagation();
+        document.getElementById('move-input').value = ''
+        moveModal.open();
+    }
+
+    if (isMetaKey(event) && event.key === 'd') {
+        log('cmd+d');
+        event.preventDefault();
+        event.stopPropagation();
+        removeCurrentFile();
+    }
+
+    if (isMetaKey(event) && event.key === 'n') {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+
+        if (event.shiftKey) {
+            await newFolder();
+        } else {
+            await newFile();
+        }
+    }
+}, true);
+
+document.addEventListener('keydown', (event) => {
+    // TODO cursor shouldn't jump to top once we hit "esc".
+    if (event.key === 'Escape') {
+        if (chatContainer.style.display !== 'none') {
+            const selectedMessages = inbox.querySelectorAll('.message.selected');
+            if (selectedMessages.length > 0) {
+                selectedMessages.forEach(message => message.classList.remove('selected'));
+                event.preventDefault();
+                event.stopPropagation();
+                return;
+            }
+
+            closeInboxModal();
+            editor.focus();
+            return;
+        }
+
+        hideEditor2();
+        editor.focus();
+
+        const allMessages = inbox.querySelectorAll('.message');
+        allMessages.forEach(message => message.classList.remove('selected'));
+        // If in chat, focus chat input
+        if (isInbox) {
+            chatInput.focus();
+        }
+    }
+});
+
+// Toggle focus mode
+document.addEventListener('keydown', function(event) {
+    // Cmd+shift+enter toglle inbox modal
+    if (event.shiftKey && isMetaKey(event) && event.key === 'Enter') {
+        event.preventDefault();
+        if (isInbox) {
+            history.back();
+        } else {
+            event.preventDefault();
+            toggleInboxModal();
+        }
+        return;
+    }
+    // Shift+Enter to toggle sidebar
+    if (isMetaKey(event) && event.key === '\\') {
+        toggleSidebar();
+    }
+    if (isMetaKey(event) && event.key === '.') {
+        toggleSidebar();
+    }
+    if (isMetaKey(event) && event.key === 'Enter') {
+        openInbox();
+    }
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.metaKey || e.ctrlKey) {
+        document.body.classList.add('cmd-pressed');
+    }
+});
+
+document.addEventListener('keyup', (e) => {
+    if (!e.metaKey && !e.ctrlKey) {
+        document.body.classList.remove('cmd-pressed');
+    }
+});
+
+window.addEventListener('popstate', (event) => {
+    const state = event.state;
+    if (state) {
+        openFile(state.path, false, state.el);
+    }
+});
+
+// Reload files once the app gains focus.
+window.addEventListener('focus', async () => {
+    // Clear any pending inbox open timer
+    if (openInboxIdleTimer) {
+        clearTimeout(openInboxIdleTimer);
+        openInboxIdleTimer = null;
+    }
+
+    // We don't want to do heavy stuff when chat is open.
+    if (isInbox || isMemFS) {
+        if (isInbox) {
+            document.getElementById('chat-input').focus();
+        }
+        return false;
+    }
+
+    log('FOCUS');
+
+    if (currentEditor.path === undefined) {
+        return;
+    }
+
+    document.getElementById('chat-input').focus();
+
+    const savedDirectoryHandle = await getRootDirHandle();
+    // TODO check if access granted
+
+    // Sync media first, so that new images for current file would be loaded
+    await syncMedia();
+    await syncCurrentEditor();
+
+    const start = performance.now();
+    files = await loadLocalFiles(savedDirectoryHandle, true);
+    const end = performance.now();
+    log(`Files loaded in: ${(end - start).toFixed(3)} milliseconds`);
+    await syncTextsWithServer()
+    await renderSidebar();
+    log('Sync completed');
+});
+
+// Sync files on chat focus lose.
+window.addEventListener('blur', async function() {
+    log('Window lost focus');
+    editor.refresh();
+
+    // Start timer to open inbox after idle
+    openInboxIdleTimer = setTimeout(() => {
+        openInbox();
+    }, OPEN_INBOX_AFTER_IDLE);
+
+    // Sync media first, so that new images for current file would be loaded
+    // if files is not empty object
+    if (Object.keys(files).length === 0) {
+        return;
+    }
+    await syncMedia();
+    await syncCurrentEditor();
+
+    const savedDirectoryHandle = await getRootDirHandle();
+
+    // Benchmark time took
+    const start = performance.now();
+    files = await loadLocalFiles(savedDirectoryHandle);
+    const end = performance.now();
+    log(`Files loaded in: ${(end - start).toFixed(3)} milliseconds`);
+    await syncTextsWithServer()
+    await renderSidebar();
+    log('Sync completed');
+});
+
+document.addEventListener('keydown', (e) => {
+    // If search or move dialog is focused - return
+    if (document.getElementById('search').style.display !== 'none' ||
+        document.getElementById('move').style.display !== 'none') {
+        return;
+    }
+
+    if (isInbox) {
+        return;
+    }
+}, true);
+
