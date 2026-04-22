@@ -991,6 +991,7 @@ async function openFile(path, saveToHistory = true, el = 'editor-textarea') {
     // Lock the current editor during the operation, so we won't interrupt syncCurrentEditor in the middle.
     // By this time it is guaranteed to be free because we've just waited for "syncCurrentEditor".
     // We should do this before any awaits.
+    // FIXME without finally, this lock can be stalled when an error is thrown.
     isMessingWithCurrentEditor = true;
 
     if (path === INBOX_PATH) {
