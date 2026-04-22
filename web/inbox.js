@@ -40,7 +40,6 @@ async function addToInbox() {
     });
     const formattedContent = `\n- [ ] \`${timestamp}\` ${text}\n`;
     await writeAtEnd(INBOX_PATH, formattedContent);
-    if (lastInboxText !== null) lastInboxText += formattedContent;
 
     chatInput.value = '';
     chatIsClean = false;
@@ -210,7 +209,6 @@ async function saveMessagesToInbox(messages) {
     });
 
     await write(INBOX_PATH, content);
-    lastInboxText = content;
 }
 
 // Toggle the checkbox marker on a single inbox line in place.
