@@ -163,8 +163,7 @@
 }
 
 .message-actions {
-    background: var(--col-bg-active);
-    padding: 5px;
+    padding: 3px;
     border-radius: 5px 5px 0 5px;
     display: flex;
     gap: 3px;
