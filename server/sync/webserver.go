@@ -3,6 +3,7 @@
 package sync
 
 import (
+	"compress/gzip"
 	"crypto/tls"
 	_ "embed"
 	"fmt"
@@ -22,6 +23,29 @@ import (
 	"github.com/zakirullin/files.md/server/journal"
 	"github.com/zakirullin/files.md/server/userconfig"
 )
+
+type gzipResponseWriter struct {
+	http.ResponseWriter
+	gz *gzip.Writer
+}
+
+func (w gzipResponseWriter) Write(b []byte) (int, error) { return w.gz.Write(b) }
+
+// gzipMiddleware streams the response through gzip when the client advertises
+// gzip support. No-op otherwise.
+func gzipMiddleware(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			h(w, r)
+			return
+		}
+		w.Header().Set("Content-Encoding", "gzip")
+		w.Header().Del("Content-Length")
+		gz := gzip.NewWriter(w)
+		defer gz.Close()
+		h(gzipResponseWriter{ResponseWriter: w, gz: gz}, r)
+	}
+}
 
 // Serve TODO release graceful shutdown etc
 // All directories paths are absolute.
@@ -92,10 +116,10 @@ func router(serverLogger *log.Logger) *http.ServeMux {
 
 	// TODO CHECK that user id belongs to oneTimeToken ID, or get userID by oneTimeToken id
 	// TODO for further safety, remove * cors?
-	r.HandleFunc("/syncTexts", corsMiddleware(panicMiddleware(tokenMiddleware(SyncTexts))))
-	r.HandleFunc("/syncText", corsMiddleware(panicMiddleware(tokenMiddleware(SyncText))))
-	r.HandleFunc("/syncMedias", corsMiddleware(panicMiddleware(tokenMiddleware(SyncMedias))))
-	r.HandleFunc("/syncMedia", corsMiddleware(panicMiddleware(tokenMiddleware(SyncMedia))))
+	r.HandleFunc("/syncTexts", corsMiddleware(panicMiddleware(tokenMiddleware(gzipMiddleware(SyncTexts)))))
+	r.HandleFunc("/syncText", corsMiddleware(panicMiddleware(tokenMiddleware(gzipMiddleware(SyncText)))))
+	r.HandleFunc("/syncMedias", corsMiddleware(panicMiddleware(tokenMiddleware(gzipMiddleware(SyncMedias)))))
+	r.HandleFunc("/syncMedia", corsMiddleware(panicMiddleware(tokenMiddleware(gzipMiddleware(SyncMedia)))))
 	r.HandleFunc("/token", corsMiddleware(panicMiddleware(IssueToken)))
 
 	r.HandleFunc("GET /habits_v2/{userID}", func(w http.ResponseWriter, r *http.Request) {
