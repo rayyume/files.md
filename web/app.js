@@ -2,6 +2,7 @@
 // We use HyperMD/Codemirror as an underlying text editor.
 // We read and save files using Local File System API (or in-memory FS in case of Safari).
 // We sync both text and media files with the server if there's a token key in local storage.
+// Token is stored implicitly in a http secure cookie. API server provides the cookie on first /token request.
 
 const sidebar = document.getElementById('sidebar');
 const content = document.getElementById('content')
@@ -36,8 +37,7 @@ async function init() {
             });
 
             if (response.ok) {
-                const data = await response.json();
-                localStorage.setItem('token', data.token);
+                // Server sets the auth cookie via Set-Cookie on this response.
                 const url = new URL(window.location);
                 url.searchParams.delete('token');
                 window.history.replaceState({}, '', url);
@@ -702,7 +702,8 @@ window.addEventListener('focus', async () => {
     }
 
     // We don't want to do heavy stuff when chat is open.
-    if (isInbox || isMemFS) {
+    const userHasCustomAPIUrl = localStorage.getItem('apiUrl') !== null;
+    if (isInbox || (isMemFS && !userHasCustomAPIUrl)) {
         if (isInbox) {
             document.getElementById('inbox-input').focus();
         }

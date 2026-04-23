@@ -175,9 +175,6 @@ async function syncTextsWithServer() {
     if (files === undefined || Object.keys(files).length === 0) {
         return;
     }
-    if (localStorage.getItem('token') === null) {
-        return;
-    }
     if (debug) {
         return;
     }
@@ -291,9 +288,6 @@ async function syncTextsWithServer() {
 }
 
 async function syncLocalFileWithServer(path) {
-    if (localStorage.getItem('token') === null) {
-        return;
-    }
     if (isSyncingFileWithServer[path]) {
         needsResyncWithServer[path] = true;
         return;
@@ -313,7 +307,6 @@ async function syncLocalFileWithServer(path) {
                 credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('token'),
                     'Version': getCurrentVersion()
                 },
                 body: JSON.stringify({
@@ -385,9 +378,6 @@ async function syncMedia() {
     if (isSyncingMedia) {
         return;
     }
-    if (localStorage.getItem('token') === null) {
-        return;
-    }
     if (debug) {
         return;
     }
@@ -418,8 +408,7 @@ async function syncMedia() {
                     credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': localStorage.getItem('token'),
-                        'Version': getCurrentVersion()
+                            'Version': getCurrentVersion()
                     },
                     body: JSON.stringify({
                         filename: mediaFilename,
@@ -448,7 +437,6 @@ async function syncMedia() {
             credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': localStorage.getItem('token'),
                 'Version': getCurrentVersion()
             },
             body: JSON.stringify({
@@ -473,7 +461,6 @@ async function syncMedia() {
                     credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': localStorage.getItem('token')
                     },
                     body: JSON.stringify({
                         filename: filename,
@@ -1359,7 +1346,6 @@ async function post(endpoint, data) {
             credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': localStorage.getItem('token'),
                 'Version': getCurrentVersion()
             },
             body: JSON.stringify(data)
