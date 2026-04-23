@@ -167,8 +167,6 @@ test('sync existing files from client', async ({ page }) => {
         window.dispatchEvent(new Event('focus'));
     });
 
-
-    await page.pause();
     await page.waitForTimeout(500);
 
     // Check that existing files from client are synced
