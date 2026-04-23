@@ -3150,17 +3150,6 @@ func checklistTitle(checklist string) string {
 	return fs.DisplayName(title)
 }
 
-func angerEmoji(file fs.File) string {
-	anger := []string{"", "🙄", "😕", "😢", "😭", "🤬️"}
-
-	timeDiff := now().Unix() - file.Ctime
-	timeDiff = max(0, timeDiff)
-	daysDiff := (int)(timeDiff / (24 * 60 * 60))
-	daysDiff = min(len(anger)-1, daysDiff)
-
-	return anger[daysDiff]
-}
-
 func completedMsg() string {
 	msgs := []string{
 		"Completed! 🚀",

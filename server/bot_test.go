@@ -1928,53 +1928,6 @@ func TestShowSchedule(t *testing.T) {
 	r.Equal("<b>01 January, Thursday</b>\n- Filename", tgram.SentTexts[0])
 }
 
-func TestAngerEmoji(t *testing.T) {
-	r := require.New(t)
-
-	savedNow := now
-	defer func() {
-		now = savedNow
-	}()
-	now = func() time.Time {
-		return time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
-	}
-
-	file := fs.NewFile("n", "h", "t", 0, false, false, "")
-	r.Equal("", angerEmoji(file))
-
-	now = func() time.Time {
-		return time.Date(1970, 1, 1, 23, 59, 59, 999999999, time.UTC)
-	}
-	r.Equal("", angerEmoji(file))
-
-	now = func() time.Time {
-		return time.Date(1970, 1, 2, 0, 0, 0, 0, time.UTC)
-	}
-	r.Equal("🙄", angerEmoji(file))
-
-	now = func() time.Time {
-		return time.Date(1970, 1, 6, 0, 0, 0, 0, time.UTC)
-	}
-	r.Equal("🤬️", angerEmoji(file))
-
-	now = func() time.Time {
-		return time.Date(1970, 1, 7, 0, 0, 0, 0, time.UTC)
-	}
-	r.Equal("🤬️", angerEmoji(file))
-
-	now = func() time.Time {
-		return time.Date(1970, 1, 2, 0, 0, 0, 0, time.UTC)
-	}
-	file = fs.NewFile("n", "h", "t", 24*60*60, false, false, "")
-	r.Equal("", angerEmoji(file))
-
-	now = func() time.Time {
-		return time.Date(1970, 1, 3, 0, 0, 0, 0, time.UTC)
-	}
-	file = fs.NewFile("n", "h", "t", 24*60*60, false, false, "")
-	r.Equal("🙄", angerEmoji(file))
-}
-
 // TODO today.md
 //func TestAngerInTodayTasks(t *testing.T) {
 //	r := require.New(t)
