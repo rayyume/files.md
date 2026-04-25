@@ -77,10 +77,10 @@ For me that was chatting with friends.
 Only this time, I was sending messages to the bot:  
 
 <div align="center">
-    <img src="https://github.com/zakirullin/files.md/raw/main/web/bot.gif" alt="Telegram Bot" title="Telegram Bot" width="350"/>
+    <img src="https://github.com/zakirullin/files.md/raw/main/docs/img/bot.gif" alt="Telegram Bot" title="Telegram Bot" width="350"/>
 </div>
 
-That's it, the note is saved in the `brain` directory.   
+That's it, the `.md` note is saved in the `brain` directory.   
 
 Later I open [app.files.md](https://app.files.md) and make some connections between new and old notes. I think through notes.    
 
@@ -95,6 +95,7 @@ That's all you need to take notes.
 My friends and I have been using this setup for five years and it works well.  
 
 Telegram bot: [@FilesMDBot](https://t.me/FilesMDBot) (other messengers will follow).  
+There's a chat window in the web app as well, so you can reuse the same flow.  
 
 ## Knowledge vs Experience
 If your goal is to:
@@ -136,9 +137,9 @@ Only then I added this useful insight to my knowledge base.
 This experience helped me to discover that I don't like taking notes with traditional applications, too much resistance.   
 At the same time, chatting with friends is effortless for me. That's how the bot for taking notes appeared.  
 
-## No productivity, no planning no stress
+## No productivity, no complexity, no stress
 The only thing that matters is your calmness.  
-Same well-familiar messaging pattern is reused for everything.  
+**We reuse same well-familiar messaging pattern is reused for everything.**     
 
 ## Tasks ✅
 You're in the flow. A colleague comes in and asks you to send the report.  
@@ -149,22 +150,24 @@ You drop a message and continue being in the flow.
     <img src="https://github.com/zakirullin/files.md/raw/main/docs/img/task.png" title="Adding a task" width="350"/>
 </div>
 
-No energy is spent, no flow is interrupted. 
+No energy is spent, no flow is interrupted.   
+Your to-do list shouldn't create a feeling of guilt, it should instead free your mind.   
 
 ## Journaling 💚
 Drop a message.  
-Hover over a bubble and press "To journal".  
-Or just use "jj" or "жж" postfix at the end of your message.  
+Hover over a bubble and press "To Journal".  
 
 <div align="center">
     <img src="https://github.com/zakirullin/files.md/raw/main/docs/img/journal.png" title="Journaling" width="450"/>
 </div>
 
+Or just use "jj" or "жж" at the end of your message.  
+Your record is gonna be saved nicely at `journal/Year Month.md`.  
+
 ## Checklists 🛒
 A good friend of yours recommends you a book.  
 You've run out of butter and cheese.  
 Things like these are easy to remember, but again they drain your mental energy.  
-
 
 ## Files structure
 You don't have to think about the structure, it is predefined.  
