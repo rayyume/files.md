@@ -1851,13 +1851,6 @@ func (b *Bot) showChecklist(params []string) error {
 	kb.AddRow(tg.NewBtn(i18n.StrToday, tg.NewCmd(CmdShowToday, nil)))
 
 	title := checklistTitle(checklist)
-	if checklist == fs.DirRead {
-		title = i18n.Tr(i18n.AddEmoji("Reading List"))
-	} else if checklist == fs.DirWatch {
-		title = i18n.Tr(i18n.AddEmoji("Watchlist"))
-	} else if checklist == fs.DirShop {
-		title = i18n.Tr(i18n.AddEmoji("Shopping List"))
-	}
 	err = b.showHTML(title+wideSpacer, kb)
 	if err != nil {
 		return fmt.Errorf("show checklist: %w", err)
@@ -2211,14 +2204,8 @@ func (b *Bot) moveToDirChecklist(params []string) error {
 	checklistDirHash := params[1]
 
 	checklistDir, err := b.fs.Unhash(fs.DirUserRoot, checklistDirHash)
-	// Default directories can be created later
-	canCreateMissingDir := slices.Contains([]string{fs.DirWatch, fs.DirShop, fs.DirRead}, checklistDirHash)
 	if err != nil {
-		if canCreateMissingDir {
-			checklistDir = checklistDirHash
-		} else {
-			return fmt.Errorf("move to checklistDir: %w", err)
-		}
+		return fmt.Errorf("move to checklistDir: %w", err)
 	}
 
 	err = b.moveFromInbox(func(content string, t time.Time) error {
@@ -2526,13 +2513,6 @@ func (b *Bot) completeListItem(params []string) error {
 
 	if err = b.fs.Touch(dir, filename); err != nil {
 		return fmt.Errorf("complete: can't touch %s: %w", filename, err)
-	}
-
-	// Informative records, we don't need to check for errors
-	if dir == fs.DirRead {
-		_ = journal.AddRecord(b.fs, fmt.Sprintf("📚 Read %s", filename), b.cfg.Timezone())
-	} else if dir == fs.DirWatch {
-		_ = journal.AddRecord(b.fs, fmt.Sprintf("📺 Watched %s", filename), b.cfg.Timezone())
 	}
 
 	err = b.fs.Rename(dir, filename, fs.DirArchive, filename)

@@ -263,11 +263,7 @@ func (c *Config) DelFromSchedule(filename string) error {
 }
 
 func (c *Config) ShouldSplitChecklist(checklist string) bool {
-	for _, unsplittableChecklist := range []string{fs.DirRead, fs.DirWatch} {
-		if checklist == unsplittableChecklist {
-			return false
-		}
-	}
+	// TODO disallow split for read/watch
 	return true
 }
 

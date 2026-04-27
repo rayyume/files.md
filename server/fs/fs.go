@@ -45,9 +45,6 @@ const (
 	DirJournal  = "journal"
 	DirHabits   = "habits"
 	DirInsights = "insights"
-	DirRead     = "_read_"
-	DirWatch    = "_watch_"
-	DirShop     = "_shop_"
 
 	TodayFilename = "Today.md"
 	LaterFilename = "Later.md"
@@ -136,15 +133,8 @@ func (fs FS) CreateDirsIfNotExist(dirs ...string) error {
 	if len(dirs) == 0 {
 		dirs = []string{
 			DirArchive,
-			DirToday,
-			DirLater,
 			DirMedia,
-			DirRead,
-			DirWatch,
-			DirShop,
-			DirHabits,
 			DirJournal,
-			DirInsights,
 		}
 	}
 	for _, dir := range dirs {

@@ -40,18 +40,6 @@ func TodayReport(userFS *fs.FS, db any, userID int64) (string, error) {
 }
 
 func emoji(filename string) string {
-	if strings.HasPrefix(fs.DirRead, filename) {
-		return "📚"
-	}
-
-	if strings.HasPrefix(fs.DirWatch, filename) {
-		return "📺"
-	}
-
-	if strings.HasPrefix(fs.DirShop, filename) {
-		return "🛒"
-	}
-
 	if fs.IsChecklistItem(filename) {
 		return "☑️"
 	}
