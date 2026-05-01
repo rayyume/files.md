@@ -1,4 +1,4 @@
-<img src="https://github.com/zakirullin/files.md/raw/main/web/icon.png" alt="Files.md icon" title="Files.md" align="right" height="76" />
+<img src="https://github.com/zakirullin/files.md/raw/main/web/img/icon.png" alt="Files.md icon" title="Files.md" align="right" height="76" />
 
 # Files.md  
 A simple application for your `.md` files.
@@ -52,7 +52,7 @@ To achieve all that, **you'll have to use your brain**, not advanced templates o
 Leonardo da Vinci, Charles Darwin, Jules Verne and many others took notes using just pen and paper.
 
 You don't need to learn anything new to start taking notes.    
-We'll reuse a well familiar pattern: chatter with friends.
+We'll reuse a well familiar pattern: chatting with friends.  
 
 Only this time, we are going to messages to the bot:
 
@@ -104,7 +104,9 @@ One wants to scrape the wisdom of the whole internet.
 There's some beauty in this neat system. Every new note brings dopamine.  
 _Second Brain gets better and better._  
 
-However, the first brain never actually gets smarter. _The actual job is postponed._  
+However, **the first brain never actually gets smarter.**  
+And that's an issue - in the AI age, your first brain is as valuable as ever.  
+Use your brain to think through the notes. Apply and experience the knowledge.  
 
 ## Self-help through reading and taking notes?
 **Harm caused at the emotional level must be healed at the emotional level.**  
@@ -113,6 +115,8 @@ Not through intellectual work.
 No amount of self-help books can heal emotional wounds.  
 What can help is psychotherapy, rescripting and chair work. Meditation.  
 **Healing happens by feeling.**    
+
+Notes and intellectual work can prevent healing.
 
 ## Notes can prevent experience
 If your goal is to:
