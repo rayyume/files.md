@@ -1169,9 +1169,8 @@ async function syncCurrentEditor(switchAwayEditor = false) {
     try {
         // TODO track if no first line?
         const firstLine = currentEditor.getValue().split('\n')[0];
-        let newFilename = ucfirst(fromHeaderToFilename(firstLine));
+        let newFilename = sanitizeFilename(ucfirst(fromHeaderToFilename(firstLine)));
         // If filename is empty, generate an available "Untitled" name
-        // TODO check for forbidden filename chars
         // TODO We don't handle txt renaming here
         let hasEmptyName = newFilename.trim() === '.md';
         if (hasEmptyName) {

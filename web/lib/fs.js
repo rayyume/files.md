@@ -293,18 +293,9 @@ function generateSafeFilename(originalName) {
     return `${timestamp}-${originalName}`.replace(/[<>:"/\\|?*\s]/g, '-');
 }
 
+// Forbidden chars on Windows / PWA / Unix.
+const FORBIDDEN_FILENAME_CHARS = ['<', '>', ':', '"', '|', '\\', '?', '*', '\x00', '/'];
+
 function sanitizeFilename(filename) {
-    return Object.entries({
-        '<': '＜',
-        '>': '＞',
-        ':': '꞉',
-        '"': '″',
-        '|': '⼁',
-        '\\': '＼',
-        '?': '？',
-        '*': '﹡',
-        '\x00': '',
-        '/': '／'
-    }).reduce((result, [forbidden, safe]) =>
-        result.replaceAll(forbidden, safe), filename);
+    return FORBIDDEN_FILENAME_CHARS.reduce((result, ch) => result.replaceAll(ch, ''), filename);
 }

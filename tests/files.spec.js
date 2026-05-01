@@ -256,6 +256,58 @@ test('rename to empty name saves to untitled', async ({ page }) => {
     expect(await page.evaluate(() => document.querySelector(".CodeMirror").CodeMirror.getValue())).toBe('# Untitled\nHello world');
 });
 
+test('rename strips forbidden filename chars', async ({ page }) => {
+    await setup(page);
+
+    await page.click(`#tree .tree-item:has-text('README')`);
+    await page.waitForTimeout(200);
+
+    await page.evaluate(() => {
+        const cm = document.querySelector('.CodeMirror').CodeMirror;
+        cm.setCursor(0, cm.getLine(0).length);
+    });
+    await page.keyboard.press('Meta+a');
+    await page.keyboard.type('# Foo<>:"|\\?*/Bar');
+    await page.waitForTimeout(1000);
+
+    await page.click(`#tree .tree-item:has-text('Notes')`);
+    await page.waitForTimeout(200);
+    expect(await page.evaluate(() => document.querySelector(".CodeMirror").CodeMirror.getValue())).toBe('# Notes\nSome text');
+
+    await page.click(`#tree .tree-item:has-text('FooBar')`);
+    await page.waitForTimeout(200);
+    expect(await page.evaluate(() => document.querySelector(".CodeMirror").CodeMirror.getValue())).toBe('# FooBar\nFoo<>:"|\\?*/Bar\nHello world');
+
+    // Sidebar must not show any forbidden chars in tree-item names.
+    const treeNames = await page.$$eval('#tree .tree-item', items => items.map(el => el.textContent));
+    for (const name of treeNames) {
+        expect(name).not.toMatch(/[<>:"|\\?*/\x00]/);
+    }
+});
+
+test('rename to only-forbidden chars saves to untitled', async ({ page }) => {
+    await setup(page);
+
+    await page.click(`#tree .tree-item:has-text('README')`);
+    await page.waitForTimeout(200);
+
+    await page.evaluate(() => {
+        const cm = document.querySelector('.CodeMirror').CodeMirror;
+        cm.setCursor(0, cm.getLine(0).length);
+    });
+    await page.keyboard.press('Meta+a');
+    await page.keyboard.type('# :::???');
+    await page.waitForTimeout(1000);
+
+    await page.click(`#tree .tree-item:has-text('Notes')`);
+    await page.waitForTimeout(200);
+    expect(await page.evaluate(() => document.querySelector(".CodeMirror").CodeMirror.getValue())).toBe('# Notes\nSome text');
+
+    await page.click(`#tree .tree-item:has-text('Untitled')`);
+    await page.waitForTimeout(200);
+    expect(await page.evaluate(() => document.querySelector(".CodeMirror").CodeMirror.getValue())).toBe('# Untitled\n:::???\nHello world');
+});
+
 test('create file and move', async ({ page }) => {
     await page.evaluate(() => {
         window.getTemporaryStorageDirHandle = async function() {
