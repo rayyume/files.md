@@ -271,12 +271,21 @@
                                 ev.stopPropagation();
                                 cm.hmdReadLink(cm.hmdResolveURL(url));
                             } else if (typeof read_link_1 === 'undefined') {
-                                url = "[" + text.match(/\(([^)]+)\)/)[1] + "]"; // PATCHED for non-wiki links
-                                url = url.replace(/\.md]$/, "]");
-                                // PATCHED, we don't want cursor to be placed if we clicked on a link
-                                ev.preventDefault();
-                                ev.stopPropagation();
-                                cm.hmdReadLink(cm.hmdResolveURL(url));
+                                var rawUrl = text.match(/\(([^)]+)\)/)[1];
+                                // PATCHED, http takes precedence over .md — github.com/foo.md is a URL,
+                                // not an internal file. Open externally.
+                                if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
+                                    ev.preventDefault();
+                                    ev.stopPropagation();
+                                    window.open(rawUrl, '_blank');
+                                } else {
+                                    url = "[" + rawUrl + "]"; // PATCHED for non-wiki links
+                                    url = url.replace(/\.md]$/, "]");
+                                    // PATCHED, we don't want cursor to be placed if we clicked on a link
+                                    ev.preventDefault();
+                                    ev.stopPropagation();
+                                    cm.hmdReadLink(cm.hmdResolveURL(url));
+                                }
                             } else {
                                 // remove title part (if exists)
                                 url = read_link_1.splitLink(text.slice(tmp + 2, -1)).url;
