@@ -41,6 +41,19 @@ function renderSidebar(focusDir = '', modifiedPaths) {
     });
     root.addChild(inbox)
 
+    // Later sits right under the inbox (today) at the top of the sidebar.
+    if (files[toFilename(LATER_PATH)] !== undefined) {
+        let laterNode = new TreeNode('later', {expanded: false, dir: false});
+        laterNode.path = LATER_PATH;
+        laterNode.on('click', async function (n, node) {
+            await openFile(LATER_PATH);
+        });
+        root.addChild(laterNode);
+        if (modifiedPaths !== undefined && modifiedPaths.includes(LATER_PATH)) {
+            laterNode.shouldBlink = true;
+        }
+    }
+
     let dirNodes = {'/': root};
 
     // First pass: create all directories
@@ -99,6 +112,11 @@ function renderSidebar(focusDir = '', modifiedPaths) {
             return;
         }
 
+        // Later.md is rendered at the top under the inbox, skip it here.
+        if (path === LATER_PATH) {
+            return;
+        }
+
         let filename = toFilename(path);
         if (filename.endsWith('.txt')) {
             filename = trimPostfix(filename, '.txt');
@@ -119,47 +137,6 @@ function renderSidebar(focusDir = '', modifiedPaths) {
     });
     if (lastListNode !== null) {
         lastListNode.isGroupEnd = true;
-    }
-
-    // Step 1: Tasks group
-    if (dirNodes['/today']) {
-        const todayNode = dirNodes['/today'];
-        if (todayNode && todayNode.parent === root) {
-            root.removeChild(todayNode);
-            root.addChild(todayNode);
-        }
-    }
-
-    if (dirNodes['/later']) {
-        const laterNode = dirNodes['/later'];
-        if (laterNode && laterNode.parent === root) {
-            root.removeChild(laterNode);
-            root.addChild(laterNode);
-        }
-    }
-
-    if (files[toFilename(TODAY_PATH)] !== undefined) {
-        let node = new TreeNode('today', {expanded: false, dir: false});
-        node.path = TODAY_PATH;
-        node.on('click', async function (n, node) {
-            await openFile(TODAY_PATH);
-        });
-        root.addChild(node);
-        if (modifiedPaths !== undefined && modifiedPaths.includes(TODAY_PATH)) {
-            node.shouldBlink = true;
-        }
-    }
-    if (files[toFilename(LATER_PATH)] !== undefined) {
-        let node = new TreeNode('later', {expanded: false, dir: false});
-        node.path = LATER_PATH;
-        node.on('click', async function (n, node) {
-            await openFile(LATER_PATH);
-        });
-        node.isGroupEnd = true;
-        root.addChild(node);
-        if (modifiedPaths !== undefined && modifiedPaths.includes(LATER_PATH)) {
-            node.shouldBlink = true;
-        }
     }
 
     // Step 2: Personal group
