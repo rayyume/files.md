@@ -292,9 +292,8 @@ function toHeader(filename) {
     let header = filename;
     if (filename.endsWith('.md')) {
         header = trimPostfix(filename, '.md');
-    } else if (filename.endsWith('.txt')) {
-        header = trimPostfix(filename, '.txt');
     }
+
     return `# ${header}`;
 }
 

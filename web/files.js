@@ -52,7 +52,7 @@ let files = {}; // In-memory representation of local files
 let server = {files: {}, media: {}, timestamps: {}, mediaTimestamp: 0}; // In-memory representation of server
 
 const SERVER_STORAGE_KEY = 'server'; // If scheme is migrated, I believe it's better to introduce a new key, because for now old keys aren't removed.
-const SUPPORTED_EXTENSIONS = ['md', 'txt', 'png', 'jpg', 'jpeg', 'webp', 'gif',];
+const SUPPORTED_EXTENSIONS = ['md', 'png', 'jpg', 'jpeg', 'webp', 'gif',];
 const SYSTEM_DIRS = ['media', 'archive', 'today', 'later', 'journal', 'habits', 'triggers', 'insights'];
 const CONFIG_PATH = '/config.json';
 
