@@ -344,9 +344,11 @@ class SearchModal {
             messagesToRemove = [message];
         }
 
+        const destinations = [];
         for (const msg of msgs) {
             const [header, body] = extractHeaderAndBody(msg, MAX_TITLE_LENGTH);
             const path = joinPath('/', toDir, sanitizeFilename(header)) + '.md';
+            destinations.push(path);
             await moveFromInbox(msg, async () => {
                 await write(path, body);
                 addMemFile(path, {
@@ -368,7 +370,7 @@ class SearchModal {
             setTimeout(() => message.remove(), 300);
         });
         chatInput.focus();
-        renderSidebar();
+        renderSidebar('', destinations);
         this.close();
     }
 
@@ -402,7 +404,7 @@ class SearchModal {
                 }, 300);
             });
             chatInput.focus();
-            renderSidebar();
+            renderSidebar('', [path]);
             this.close();
         } else {
             await openFile(path);

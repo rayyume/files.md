@@ -622,7 +622,7 @@ function attachEventListeners() {
                 }, 300);
             });
             chatInput.focus();
-            renderSidebar();
+            renderSidebar('', [`/journal/${todayJournalFilename()}`]);
         });
     });
 
@@ -659,7 +659,7 @@ function attachEventListeners() {
                 renderMessages();
             }, 500);
             chatInput.focus();
-            renderSidebar();
+            renderSidebar('', [btn.dataset.checklist]);
         });
     });
 
@@ -677,10 +677,12 @@ function attachEventListeners() {
                 messagesToRemove = [btn.closest('.message')];
             }
 
+            const destinations = [];
             (async () => {
                 for (const msg of msgs) {
                     const [header, body] = extractHeaderAndBody(msg, MAX_TITLE_LENGTH);
                     const path = joinPath('/', btn.dataset.dir, sanitizeFilename(header)) + '.md';
+                    destinations.push(path);
                     for (const msg of msgs) {
                         console.log(path, body);
                         await moveFromInbox(msg, async () => {
@@ -689,6 +691,7 @@ function attachEventListeners() {
                     }
                 }
                 await renderMessages();
+                renderSidebar('', destinations);
             })();
 
             messagesToRemove.forEach(message => {
@@ -698,7 +701,6 @@ function attachEventListeners() {
                 }, 300);
             });
             chatInput.focus();
-            renderSidebar();
         });
     });
 
@@ -733,7 +735,9 @@ function attachEventListeners() {
             });
 
             chatInput.focus();
-            renderSidebar();
+            // dataset.filename is just "Foo.md"; the sidebar walker produces
+            // "/Foo.md" — normalize so modifiedPaths.includes(path) matches.
+            renderSidebar('', [joinPath('/', path)]);
         });
     });
 
