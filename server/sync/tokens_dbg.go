@@ -16,19 +16,9 @@ import (
 // Debug instrumentation: append every auth failure (invalid one-time token
 // swap, invalid permanent token, IP-blocked refusals) to /tmp/auth so we can
 // diagnose the "invalid token after server runs a while" report.
-var (
-	authDbgFile *os.File
-	authDbgMu   sync.Mutex
-)
+const authDbgPath = "/tmp/auth"
 
-func init() {
-	f, err := os.OpenFile("/tmp/auth", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		slog.Error("auth debug: cannot open /tmp/auth", "error", err)
-		return
-	}
-	authDbgFile = f
-}
+var authDbgMu sync.Mutex
 
 func tokenFingerprint(t string) string {
 	if t == "" {
@@ -47,10 +37,6 @@ func tokenFingerprint(t string) string {
 }
 
 func logAuthFailure(reason string, r *http.Request, extras map[string]any) {
-	if authDbgFile == nil {
-		return
-	}
-
 	cookieVal := ""
 	cookiePresent := false
 	if c, err := r.Cookie(AuthCookieName); err == nil {
@@ -101,5 +87,11 @@ func logAuthFailure(reason string, r *http.Request, extras map[string]any) {
 	line := strings.Join(parts, " ") + "\n"
 	authDbgMu.Lock()
 	defer authDbgMu.Unlock()
-	authDbgFile.WriteString(line)
+	f, err := os.OpenFile(authDbgPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		slog.Error("auth debug: cannot open log", "path", authDbgPath, "error", err)
+		return
+	}
+	defer f.Close()
+	f.WriteString(line)
 }
