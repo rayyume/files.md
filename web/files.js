@@ -972,7 +972,7 @@ async function openFile(path, saveToHistory = true, el = 'editor-textarea') {
     } else if (el === 'editor2-textarea') {
         currentEditor = editor2;
     }
-    let thereIsPreviousEditorToSync = currentEditor.path !== undefined && currentEditor.path !== path;
+    let thereIsPreviousEditorToSync = currentEditor.path !== undefined;
     if (thereIsPreviousEditorToSync) {
         log('Began syncing previous file');
         await syncCurrentText(true);

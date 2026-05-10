@@ -1,10 +1,39 @@
 const {test, expect} = require('@playwright/test');
 
-test.beforeEach(async ({page}) => {
+test.beforeEach(async ({page}, testInfo) => {
+    // Capture browser console output and pageerrors for the whole test, so
+    // when something flakes we can read what the app was actually doing.
+    // The afterEach below attaches the buffer to the Playwright report;
+    // failures end up with a `page-console.log` artifact next to the
+    // screenshot/video.
+    const logs = [];
+    page.on('console', (msg) => {
+        logs.push(`[${msg.type()}] ${msg.text()}`);
+    });
+    page.on('pageerror', (err) => {
+        logs.push(`[pageerror] ${err.message}`);
+    });
+    testInfo.__pageLogs = logs;
+
     await page.goto('/index.html');
 
     // await page.waitForSelector('.CodeMirror', {timeout: 10000});
     await page.waitForSelector('#tree', {timeout: 1000});
+});
+
+test.afterEach(async ({}, testInfo) => {
+    const logs = testInfo.__pageLogs;
+    if (!logs || logs.length === 0) return;
+    if (testInfo.status !== testInfo.expectedStatus) {
+        // Print to stdout so failures show the browser console inline -
+        // attachments end up hashed under playwright-report/data/ and are
+        // a pain to find in CI.
+        console.log(`\n--- browser console for "${testInfo.title}" ---\n${logs.join('\n')}\n--- end ---`);
+    }
+    await testInfo.attach('page-console.log', {
+        body: logs.join('\n'),
+        contentType: 'text/plain',
+    });
 });
 
 test('should load files', async ({ page }) => {
@@ -573,16 +602,28 @@ test('create new lower case', async ({ page }) => {
         init(document.getElementById("editor"));
     });
 
+    // Drive the editor to a known file first. Without this, init()'s own
+    // openFile() may still be in the middle of its multi-await window when
+    // we click #new-file, so newFile() reads `currentEditor.path` while
+    // it's still undefined and throws inside toDirPath.
+    await page.click('#sidebar >> text=README');
+    await expect(page.locator('.CodeMirror').first()).toContainText('# README');
+
     await page.click('#new-file');
-    await page.waitForTimeout(100);
+    // Then wait for newFile()'s async chain to actually produce the
+    // sidebar entry so the keystrokes that follow land in the new file.
+    await page.waitForSelector('#sidebar >> text=New file', { timeout: 5000 });
     await page.keyboard.press('ArrowUp');
     await page.keyboard.press('Meta+a');
     await page.keyboard.type('another file');
-    await page.waitForTimeout(100);
     await page.keyboard.press('Enter');
     await page.keyboard.type('content');
-    await page.waitForTimeout(700);
 
+    // Poll for the actual outcome. Rename watcher runs at
+    // CURRENT_FILE_SYNC_INTERVAL (1000ms), and the rename itself does
+    // several awaits (remove, getFileHandle, write, renderSidebar), so
+    // give it a generous budget rather than guessing a fixed delay.
+    await page.waitForSelector('#sidebar >> text=another file', { timeout: 8000 });
     await page.click('#sidebar >> text=another file');
     await page.waitForTimeout(100);
     const codeMirrorContent = await page.evaluate(() => {
@@ -756,29 +797,24 @@ test('move file using keyboard navigation', async ({ page }) => {
     await page.click('#sidebar >> text=Meeting Notes');
     await page.waitForTimeout(200);
 
-    // Open move modal
+    // Open move modal and drive it from the keyboard. Filter by typing
+    // instead of counting ArrowDown presses - other tests in this worker
+    // (and any logError() call writing to /archive/Log.txt) leave system
+    // directories in OPFS, which then push every positional index off by
+    // one and the file lands in the wrong folder.
     await page.keyboard.press('Meta+m');
-    await page.waitForTimeout(100);
-
-    // Use arrow keys to navigate
-    await page.keyboard.press('ArrowDown');
-    await page.waitForTimeout(100);
-    await page.keyboard.press('ArrowDown');
-    await page.waitForTimeout(100); // move to 'work'
-
-    // Press Enter to select
+    await expect(page.locator('#move-input')).toBeFocused();
+    await page.keyboard.type('work');
+    await expect(page.locator('#move-results li.focused')).toHaveText('work');
     await page.keyboard.press('Enter');
-    await page.waitForTimeout(200);
 
-    // Verify file moved to work directory
+    // Verify file moved to work directory. Use auto-retrying assertion -
+    // the move + sidebar re-render races with the click below, and a
+    // single .count() snapshot can fire before the dir has expanded its
+    // children.
     await page.click('#sidebar >> text=work');
-    await page.waitForTimeout(100);
-
-    await page.pause();
-
-    const workFiles = await page.locator('#sidebar >> text=work').locator('..').locator('text=Meeting Notes');
-    expect(await workFiles.count()).toBe(1);
-
+    const workFiles = page.locator('#sidebar >> text=work').locator('..').locator('text=Meeting Notes');
+    await expect(workFiles).toHaveCount(1);
 });
 
 test('create file in selected folder', async ({ page }) => {
@@ -830,7 +866,6 @@ test('create file in selected folder', async ({ page }) => {
     // close projects dir
     await page.click('#sidebar >> text=projects');
     await page.waitForTimeout(200);
-
 
     await page.click('#sidebar >> text=files');
     await page.waitForTimeout(100);

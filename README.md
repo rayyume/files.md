@@ -279,6 +279,7 @@ go run /abs/path/to/files.md/cmd/shifttime/shifttime.go
 - **The less code we have, the more flexible we are**
 - Code should be self-sufficient, so `vendor` and `web/lib` folders are included in the repository
 - **Do we really need this feature? Will it help us to do the real job, or does it just give dopamine?**
+- Avoid flaky e2e tests. First we get negative emotions, then we stop running all the tests. 
 
 Refer to [this guide](https://github.com/zakirullin/cognitive-load) for more comprehensive rules.
 
