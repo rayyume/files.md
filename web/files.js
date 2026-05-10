@@ -307,10 +307,18 @@ async function syncTextsWithServer() {
 }
 
 async function syncLocalFileWithServer(path) {
+    // We should have at least one 200 response from service.
+    // The first 200 response we get from /token, meaning that
+    // our application is linked to the server for sync.
+    if (!hasLastServerOk()) {
+        return
+    }
+
     if (isSyncingFileWithServer[path]) {
         needsResyncWithServer[path] = true;
         return;
     }
+
     isSyncingFileWithServer[path] = true;
     try {
         let file = await (await getFileHandle(path)).getFile();
@@ -1368,12 +1376,6 @@ async function syncCurrentText(switchAwayEditor = false) {
 
     isMessingWithCurrentEditor = false;
 
-    // We should have at least one 200 response from service.
-    // The first 200 response we get from /token, meaning that
-    // our application is linked to the server for sync.
-    if (!hasLastServerOk()) {
-        return;
-    }
     if (!switchAwayEditor) {
         try {
             await syncLocalFileWithServer(path);

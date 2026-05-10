@@ -52,13 +52,13 @@ type syncResponse struct {
 	Renames    map[string]string `json:"renames"`    // What files to rename on client
 }
 
-// SyncTexts sync texts between client and server.
+// SyncFilenames sync texts between client and server.
 // The following steps are executed:
 // 1) Save client-modified files to the server
 // 2) In case of conflict (server has a newer modification), merge the files and include them in the response
 // 3) Based on known client dirs timestamps, send newly updated or created files
 // 4) Respond with last modification timestamps for every dir
-func SyncTexts(w http.ResponseWriter, r *http.Request) {
+func SyncFilenames(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -244,7 +244,7 @@ func SyncTexts(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func SyncText(w http.ResponseWriter, r *http.Request) {
+func SyncFile(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return

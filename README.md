@@ -14,7 +14,7 @@ You can store whole your life:
 All in plain `.md` files, local-first. LLM-friendly.  
 Chatbot for access from anywhere.  
 
-Try it out: [app.files.md](https://app.files.md).
+Try it out: [app.files.md](https://app.files.md)  
 Telegram bot: [@FilesMDBot](https://t.me/FilesMDBot) 
 
 ## Saving things is simple 
@@ -68,7 +68,7 @@ Open the chat and send a message:
 
 Move it anywhere later:  
 <div align="center">
-    <img src="https://github.com/zakirullin/files.md/raw/main/web/img/actions.png" alt="Telegram Bot" title="Telegram Bot" width="450"/>
+    <img src="https://github.com/zakirullin/files.md/raw/main/web/img/actions.png" alt="Telegram Bot" title="Telegram Bot" width="400"/>
 </div>
 
 With this flow you can save anything.  

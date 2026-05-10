@@ -115,12 +115,17 @@ func router(serverLogger *log.Logger) *http.ServeMux {
 	})
 
 	// TODO CHECK that user id belongs to oneTimeToken ID, or get userID by oneTimeToken id
-	// TODO for further safety, remove * cors?
-	r.HandleFunc("/syncTexts", corsMiddleware(panicMiddleware(tokenMiddleware(gzipMiddleware(SyncTexts)))))
-	r.HandleFunc("/syncText", corsMiddleware(panicMiddleware(tokenMiddleware(gzipMiddleware(SyncText)))))
-	r.HandleFunc("/syncMedias", corsMiddleware(panicMiddleware(tokenMiddleware(gzipMiddleware(SyncMedias)))))
+	r.HandleFunc("/syncFilenames", corsMiddleware(panicMiddleware(tokenMiddleware(gzipMiddleware(SyncFilenames)))))
+	r.HandleFunc("/syncFile", corsMiddleware(panicMiddleware(tokenMiddleware(gzipMiddleware(SyncFile)))))
+	r.HandleFunc("/syncMediaFilenames", corsMiddleware(panicMiddleware(tokenMiddleware(gzipMiddleware(SyncMediaFilenames)))))
 	r.HandleFunc("/syncMedia", corsMiddleware(panicMiddleware(tokenMiddleware(gzipMiddleware(SyncMedia)))))
 	r.HandleFunc("/token", corsMiddleware(panicMiddleware(IssueToken)))
+
+	// Old urls for backward compatibility.
+	r.HandleFunc("/syncTexts", corsMiddleware(panicMiddleware(tokenMiddleware(gzipMiddleware(SyncFilenames)))))
+	r.HandleFunc("/syncText", corsMiddleware(panicMiddleware(tokenMiddleware(gzipMiddleware(SyncFile)))))
+	r.HandleFunc("/syncMedias", corsMiddleware(panicMiddleware(tokenMiddleware(gzipMiddleware(SyncMediaFilenames)))))
+	r.HandleFunc("/syncMedia", corsMiddleware(panicMiddleware(tokenMiddleware(gzipMiddleware(SyncMedia)))))
 
 	// For now it is possible to see other user's habits, but is it a big deal?
 	// TODO use X-Telegram-Init-Data header to verify requests

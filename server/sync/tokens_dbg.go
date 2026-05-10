@@ -20,20 +20,15 @@ const authDbgPath = "/tmp/auth"
 
 var authDbgMu sync.Mutex
 
+// Never log any portion of the raw token: even an 8-char prefix is enough
+// to drastically narrow brute-force, and the value here may be a still-live
+// secret. Hash-only fingerprint is enough to correlate occurrences.
 func tokenFingerprint(t string) string {
 	if t == "" {
 		return "<empty>"
 	}
-	prefix := t
-	if len(prefix) > 8 {
-		prefix = prefix[:8]
-	}
-	suffix := ""
-	if len(t) > 12 {
-		suffix = t[len(t)-4:]
-	}
 	h := sha256.Sum256([]byte(t))
-	return fmt.Sprintf("len=%d prefix=%s suffix=%s sha256_8=%s", len(t), prefix, suffix, hex.EncodeToString(h[:])[:8])
+	return fmt.Sprintf("len=%d sha256_8=%s", len(t), hex.EncodeToString(h[:])[:8])
 }
 
 func logAuthFailure(reason string, r *http.Request, extras map[string]any) {

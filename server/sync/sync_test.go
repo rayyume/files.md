@@ -51,7 +51,7 @@ func TestSyncText_CreateNewFileOnServer(t *testing.T) {
 	req = req.WithContext(context.WithValue(req.Context(), "userID", int64(-1)))
 	w := httptest.NewRecorder()
 
-	SyncText(w, req)
+	SyncFile(w, req)
 	r.Equal(http.StatusOK, w.Code)
 
 	var response file
@@ -91,7 +91,7 @@ func TestSyncText_UpdateExistingFile_NoConflict(t *testing.T) {
 	req = req.WithContext(context.WithValue(req.Context(), "userID", int64(-1)))
 	w := httptest.NewRecorder()
 
-	SyncText(w, req)
+	SyncFile(w, req)
 
 	r.Equal(http.StatusOK, w.Code)
 
@@ -136,7 +136,7 @@ func TestSyncText_NotModified(t *testing.T) {
 	req = req.WithContext(context.WithValue(req.Context(), "userID", int64(-1)))
 	w := httptest.NewRecorder()
 
-	SyncText(w, req)
+	SyncFile(w, req)
 
 	r.Equal(http.StatusOK, w.Code)
 
@@ -181,7 +181,7 @@ func TestSyncText_UpdateExistingFile_Conflict(t *testing.T) {
 	req = req.WithContext(context.WithValue(req.Context(), "userID", int64(-1)))
 	w := httptest.NewRecorder()
 
-	SyncText(w, req)
+	SyncFile(w, req)
 
 	r.Equal(http.StatusOK, w.Code)
 
@@ -226,7 +226,7 @@ func TestSyncText_UpdateExistingFile_JournalConflict(t *testing.T) {
 	req = req.WithContext(context.WithValue(req.Context(), "userID", int64(-1)))
 	w := httptest.NewRecorder()
 
-	SyncText(w, req)
+	SyncFile(w, req)
 
 	r.Equal(http.StatusOK, w.Code)
 
@@ -273,7 +273,7 @@ func TestSyncAllTexts_EmptyRequest(t *testing.T) {
 	req = req.WithContext(context.WithValue(req.Context(), "userID", int64(-1)))
 	w := httptest.NewRecorder()
 
-	SyncTexts(w, req)
+	SyncFilenames(w, req)
 
 	r.Equal(http.StatusOK, w.Code)
 
@@ -328,7 +328,7 @@ func TestSyncAllTexts_CreateNewFilesOnServer(t *testing.T) {
 	req = req.WithContext(context.WithValue(req.Context(), "userID", int64(-1)))
 	w := httptest.NewRecorder()
 
-	SyncTexts(w, req)
+	SyncFilenames(w, req)
 
 	r.Equal(http.StatusOK, w.Code)
 
@@ -388,7 +388,7 @@ func TestSyncAllTexts_UpdateExistingFilesOnServer(t *testing.T) {
 	req = req.WithContext(context.WithValue(req.Context(), "userID", int64(-1)))
 	w := httptest.NewRecorder()
 
-	SyncTexts(w, req)
+	SyncFilenames(w, req)
 
 	r.Equal(http.StatusOK, w.Code)
 
@@ -443,7 +443,7 @@ func TestSyncAllTexts_SendUpdatedFilesToClient(t *testing.T) {
 	req = req.WithContext(context.WithValue(req.Context(), "userID", int64(-1)))
 	w := httptest.NewRecorder()
 
-	SyncTexts(w, req)
+	SyncFilenames(w, req)
 
 	r.Equal(http.StatusOK, w.Code)
 
