@@ -17,7 +17,7 @@ format:
 
 e2e: # make e2e test="create and move"
 	killall server || true
-	go run ./cmd/server & \
+	go run ./cmd/server > /tmp/server_err 2>&1 & \
 	cd tests && npm run test $(if $(test),-g "$(test)")
 
 e2eh: # headed e2e tests

@@ -797,14 +797,23 @@ test('move file using keyboard navigation', async ({ page }) => {
     await page.click('#sidebar >> text=Meeting Notes');
     await page.waitForTimeout(200);
 
-    // Open move modal and drive it from the keyboard. Filter by typing
-    // instead of counting ArrowDown presses - other tests in this worker
-    // (and any logError() call writing to /archive/Log.txt) leave system
-    // directories in OPFS, which then push every positional index off by
-    // one and the file lands in the wrong folder.
+    // Open move modal and drive it from the keyboard. Compute how many
+    // ArrowDown presses we need rather than hard-coding the count - other
+    // tests (and logError() writing to /archive/Log.txt) leave system
+    // directories in OPFS, so the list of destinations isn't stable
+    // across runs.
     await page.keyboard.press('Meta+m');
     await expect(page.locator('#move-input')).toBeFocused();
-    await page.keyboard.type('work');
+    await expect(page.locator('#move-results li')).not.toHaveCount(0);
+
+    const workIndex = await page.locator('#move-results li').evaluateAll(
+        (items) => items.findIndex(li => li.textContent === 'work')
+    );
+    expect(workIndex).toBeGreaterThan(-1);
+
+    for (let i = 0; i < workIndex; i++) {
+        await page.keyboard.press('ArrowDown');
+    }
     await expect(page.locator('#move-results li.focused')).toHaveText('work');
     await page.keyboard.press('Enter');
 
