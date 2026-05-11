@@ -18,7 +18,9 @@ $ make deploy_systemd host=<YOUR_SSH_HOST>
 3) Add `BOT_API_TOKEN=<YOUR_TELEGRAM_API_TOKEN>` line to `.env` file
 4) Redeploy/relaunch the server
 
-Bot's artifacts can be seen in `/app/storage/<USER_ID>` folder
+Bot's artifacts can be seen in `./storage/<USER_ID>` folder.  
+You can create symlink to your existing knowledge base for convenience:  
+`ln -s <YOUR_EXISTING_DIR_WITH_MD_FILES> storage/<USER_ID>`
 
 ### Additional bot's settings
 1) For search functionality, enable `Inline Mode` for your bot in [@BotFather](https://t.me/BotFather)
