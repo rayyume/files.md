@@ -220,6 +220,7 @@ const WELCOME_FILES = {
         "content":
             "[Open or create folder](cmd:openDir) to save changes.\n\n" +
             "[Use chat](cmd:openChat) to dump whatever is on your mind.\n\n" +
+            "Press `Cmd+K` or `Ctrl+K` to quick switch between notes.\n\n" +
             "[Markdown Guide](/Markdown%20Guide.md)\n[Hotkeys](/Hotkeys.md)\n[Links](/Links.md)",
         isFile: true,
     },
