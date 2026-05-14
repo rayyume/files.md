@@ -39,15 +39,15 @@ Maybe. But this time:
 - Occasionally hit force-refresh (`Cmd+Shift+R`) to get new updates.  
 
 ## Dump your thoughts
-   
+
+Open the chat and send a message:
 <div align="center">
-    Open the chat and send a message:
     <img src="https://github.com/zakirullin/files.md/raw/main/web/img/note1.png"  width="350"/>
 </div>
 
 
+Select where to save:
 <div align="center">
-    Select where to save:
     <img src="https://github.com/zakirullin/files.md/raw/main/web/img/actions.png" width="350"/>
 </div>
 
