@@ -38,52 +38,20 @@ Maybe. But this time:
 - Open a local folder to persist changes  
 - Occasionally hit force-refresh (`Cmd+Shift+R`) to get new updates.  
 
-## Notes
-Open the chat and send a message:    
+## Dump your thoughts
+   
 <div align="center">
     <img src="https://github.com/zakirullin/files.md/raw/main/web/img/note1.png"  width="350"/>
+    <sub>Open the chat and send a message</sub>
 </div>
 
-Move it anywhere later:  
+
 <div align="center">
     <img src="https://github.com/zakirullin/files.md/raw/main/web/img/actions.png" width="350"/>
+    <sub>Select where to save</sub>
 </div>
 
-With this flow you can save anything.  
-
-## Journal 💚
-Are you feeling good about something? Send a message.  
-
-<div align="center">
-    <img src="https://github.com/zakirullin/files.md/raw/main/web/img/journal.png" title="Journaling" width="350"/>
-</div>
-
-Then click "To Journal".  
-Or just add ` jj` or ` жж` at the end of your message.  
-
-Your record is gonna be saved nicely in the `journal/YYYY.MM Month.md` file.
-
-## Tasks ✅
-You're in the flow.  
-A colleague asks you to send a report.  
-Holding that in your head drains energy.  
-Drop a message and stay in flow.  
-
-<div align="center">
-    <img src="https://github.com/zakirullin/files.md/raw/main/web/img/task.png" title="Adding a task" width="350"/>
-</div>
-
-Add only small, actionable items.  
-Not things like "Plan a vacation".  
-Add the first tiny step of what should be done anyway.     
-**Not what you wish to be done, but don't have motivation just yet.**    
-Your task list should not create a feeling of guilt.  
-
-## Checklists 🛒
-A friend recommends a book.  
-You're out of butter and cheese.  
-Small things like these drain mental energy.  
-Drop them in chat, then sort into matching checklists.
+You can save to notes, journal and checklists.
 
 ## Grow a knowledge base 🌱
 Connect ideas. Let them compound. Think through.  
