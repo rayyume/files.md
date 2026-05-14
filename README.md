@@ -38,15 +38,15 @@ Maybe. But this time:
 - Open a local folder to persist changes  
 - Occasionally hit force-refresh (`Cmd+Shift+R`) to get new updates.  
 
-## Taking notes
+## Notes
 Open the chat and send a message:    
 <div align="center">
-    <img src="https://github.com/zakirullin/files.md/raw/main/web/img/note1.png" alt="Telegram Bot" title="Telegram Bot" width="350"/>
+    <img src="https://github.com/zakirullin/files.md/raw/main/web/img/note1.png"  width="350"/>
 </div>
 
 Move it anywhere later:  
 <div align="center">
-    <img src="https://github.com/zakirullin/files.md/raw/main/web/img/actions.png" alt="Telegram Bot" title="Telegram Bot" width="350"/>
+    <img src="https://github.com/zakirullin/files.md/raw/main/web/img/actions.png" width="350"/>
 </div>
 
 With this flow you can save anything.  
@@ -85,8 +85,14 @@ You're out of butter and cheese.
 Small things like these drain mental energy.  
 Drop them in chat, then sort into matching checklists.
 
-## How to take notes
-1) I used [files.md](https://files.md) to grow my knowledge about brain and software development
+## How to grow a knowledge base 🌱
+Connect ideas. Let them compound. Think through.  
+
+<div align="center">
+    <img src="https://github.com/zakirullin/files.md/raw/main/web/img/base.png"/>
+</div>
+
+1) I used [app.files.md](https://app.files.md) to grow my knowledge about brain and software development
 2) I added new notes to either `brain` or `dev` folders. One idea per note
 3) I made connections between the relevant notes in the web app (typed `[` and selected a relevant note)
 4) Everything is connected, just as in our brain
