@@ -53,7 +53,7 @@ Select where to save:
 
 You can save to notes, journal and checklists.
 
-## Grow a knowledge base 🌱
+## Grow your knowledge base 🌱
 Connect ideas. Let them compound. Think through.  
 
 <div align="center">
@@ -86,6 +86,21 @@ To achieve all that, **you'll have to use your brain**, not advanced templates o
 - **Revisit your notes and think through**
 
 My friends and I have been using this simple setup for five years, and it works well.
+
+## Taking notes in chatbot
+Open the chat and send a message:
+<div align="center">
+    <img src="https://github.com/zakirullin/files.md/raw/main/web/img/note1.png" alt="Telegram Bot" title="Telegram Bot" width="350"/>
+</div>
+
+Move it anywhere later:
+<div align="center">
+    <img src="https://github.com/zakirullin/files.md/raw/main/web/img/actions.png" alt="Telegram Bot" title="Telegram Bot" width="350"/>
+</div>
+
+With this flow you can save anything.
+
+**Other messengers will follow**
 
 ## Second Brain?
 I'll quote [I Deleted My Second Brain](https://www.joanwestenberg.com/i-deleted-my-second-brain-692aa40d59d5f06dd5131e43/):
