@@ -118,10 +118,14 @@ async function init() {
 // Logic for click-handling is in click.js => isWikiLink
 function createAutocompleteDict() {
     const entries = [];
+    const currentPath = currentEditor && currentEditor.path;
 
     // Collect all files with their metadata
     walkFilesExcludingSystemDirs((path) => {
         if (path === CONFIG_PATH || path === CHAT_PATH || path === LATER_PATH || path === READ_PATH || path === WATCH_PATH || path === SHOP_PATH) {
+            return;
+        }
+        if (path === currentPath) {
             return;
         }
 
