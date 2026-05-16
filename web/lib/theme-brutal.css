@@ -59,8 +59,7 @@
 
     #toolbar button:hover svg {
         border-radius: 0;
-        stroke: var(--col-accent) !important;
-        background: var(--col-bg-active);
+        stroke: var(--color-neo-orange) !important;
     }
 
     #close-chat, #fullscreen-chat {
