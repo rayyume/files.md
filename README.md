@@ -13,7 +13,7 @@ You can store whole your life:
 
 All in plain `.md` files, local-first. LLM-friendly.  
 
-Try it out: [app.files.md](https://app.files.md)  
+Try it out: [app.files.md](https://app.files.md)  (Beta)  
 
 ## Another note taking app? 
 Maybe. But this time:

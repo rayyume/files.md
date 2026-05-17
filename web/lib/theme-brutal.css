@@ -506,6 +506,16 @@
     border-radius: 0 !important;
 }
 
+/* Chat modal + input keep softened corners (not full brutal-sharp) - half
+   the chat.css defaults so they read as friendlier surfaces than the
+   rest of the app's hard rectangles. */
+#chat-container.modal {
+    border-radius: 7px !important;
+}
+#chat-input {
+    border-radius: 6px !important;
+}
+
 /* Selection inside the link-insert dropdown and sidebar context menu uses
    the same neo-orange as every other "thing under the pointer" surface. */
 .CodeMirror-hint-active {
