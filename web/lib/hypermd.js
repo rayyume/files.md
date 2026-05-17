@@ -253,9 +253,15 @@ var __assign = (this && this.__assign) || Object.assign || function(t) {
                         stream.string.charAt(stream.pos + 2) === ' ' &&
                         (stream.pos === 0 || /\s/.test(stream.string.charAt(stream.pos - 1)))) {
                         stream.skipToEnd();
+                        // Only inherit header/quote classes when we're mid-line.
+                        // At stream.start === 0 the markdown mode hasn't yet had
+                        // a chance to reset its per-line state (header/quote),
+                        // so values there are stale from the previous line.
                         var extra = '';
-                        if (state.header) extra += ' header header-' + state.header;
-                        if (state.quote) extra += ' quote quote-' + state.quote;
+                        if (stream.start > 0) {
+                            if (state.header) extra += ' header header-' + state.header;
+                            if (state.quote) extra += ' quote quote-' + state.quote;
+                        }
                         return ('hmd-comment' + extra).trim();
                     }
                 }
