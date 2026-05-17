@@ -490,9 +490,6 @@
    link-insert autocomplete dropdown, and the sidebar's right-click menu. */
 #search, #move,
 #search-input, #move-input,
-#chat,
-#chat-container.modal,
-#chat-input,
 #nav-buttons,
 .message,
 .message:first-child,
