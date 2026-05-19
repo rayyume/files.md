@@ -1478,7 +1478,7 @@ function buildFolderMenu(item, dirPath) {
 }
 
 function isSystemChecklist(path) {
-    return /^\/?(Read|Watch|Shop)\.md$/i.test(path);
+    return /^\/?(Read|Watch|Shop|Later)\.md$/i.test(path);
 }
 
 function buildFileMenu(item, filePath) {
