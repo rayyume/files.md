@@ -20,7 +20,7 @@ All in plain `.md` files, local-first. LLM-friendly. **Private - no data is sent
  
 Try it out: [app.files.md](https://app.files.md) (Beta). Main site: [files.md](https://files.md).
 
-**I have been building this project for 5 years**. Consider **[sponsoring it on GitHub 💚](https://github.com/sponsors/zakirullin)**.
+**I have been building this project for 5 years**. Consider **[supporting on GitHub 💚](https://github.com/sponsors/zakirullin)**.
 
 [Dump your thoughts](#dump-your-thoughts) · [How to think deeply](#how-to-think-deeply) · [Second Brain?](#second-brain) 
 
@@ -82,9 +82,7 @@ Open the chat, write something and press `Enter`:
 
 That's it.
 
-[Telegram Bot](https://t.me/FilesMDBot)
-
-**Other messengers will follow**.
+[Telegram Bot](https://t.me/FilesMDBot). **Other messengers will follow**.
 
 ## How to think deeply 
 **Connect ideas. Let them compound. Think through.**

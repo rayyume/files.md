@@ -276,7 +276,7 @@ async function openDir() {
         // the picker (TypeError). Either way, leave the CTA visible so
         // the user can try again.
         if (error instanceof TypeError) {
-            alert('Only works in Chrome!');
+            alert('For now only Chrome browser supports local folders :(');
         }
         return;
     }
