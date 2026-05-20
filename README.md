@@ -15,7 +15,7 @@ All in plain `.md` files, local-first. LLM-friendly. **Private - no data is sent
 
 > Own your data as plain local files.  
 > Own the software that opens those files.  
-> Grow your knowledge with your brain.  
+> Grow your knowledge with files and your brain.  
 > Grow the software around it with an LLM.  
 > **Files and owned software can last through the ages**.  
  
