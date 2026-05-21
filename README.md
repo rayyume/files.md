@@ -28,6 +28,7 @@ Try it out: [app.files.md](https://app.files.md) (Beta). Main site: [files.md](h
 ## Another note taking app? 
 Maybe. But this time:
 - Only necessary features, **restrictions foster creativity**
+- **Chat-like flow for lazy thought capture**
 - No need to install anything, all you need is a browser
 - Works offline
 - **Local-first, files don't leave your device**
@@ -141,7 +142,7 @@ Before adding a new note, try to answer these questions:
 
 The worst thing is that **we don’t let new experiences emerge because we already have knowledge**. It's a knowledge barrier. Life gives us opportunities to live through new experiences, but we refuse, because "we already know".
 
-## Self-help through reading and taking notes? 🧘‍
+## Self-help through reading and taking notes?
 **Harm caused at the emotional level must be healed at the emotional level.**
 
 Not through intellectual work and taking notes.  
