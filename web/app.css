@@ -96,26 +96,28 @@ body {
    Toggled to display:flex from app.js when isMemFS is true. */
 #open-folder {
     align-items: center;
+    justify-content: center;
     gap: 8px;
-    /* left margin compensates for #sidebar's 5px padding-left so all four
-       gaps look equal (top/right/bottom = 8px, left = 3 + 5 = 8). */
-    margin: 8px 8px 8px 3px;
-    padding: 10px 12px;
-    background: var(--col-bg);
-    border: 1px solid var(--col-border);
-    border-radius: 6px;
+    margin: 8px 8px 12px 8px;
+    padding: 6px 8px;
+    background: transparent;
+    border: none;
     cursor: pointer;
     font-size: calc(1.4rem);
-    color: var(--col-tx);
+    color: var(--color-neo-orange);
 }
 
 #open-folder:hover {
-    background: var(--col-bg-active);
+    color: var(--color-neo-blue);
+}
+
+#open-folder:hover svg {
+    stroke: var(--color-neo-blue);
 }
 
 #open-folder svg {
     flex-shrink: 0;
-    stroke: var(--col-tx-alt);
+    stroke: var(--color-neo-orange);
 }
 
 #content {
@@ -498,6 +500,79 @@ button svg circle {
 #toolbar button:hover svg {
     border-radius: 4px;
     stroke:  var(--col-tx) !important;
+}
+
+/* Fast custom tooltip below toolbar buttons + close-sidebar. The native
+   `title=` delay is ~1.5 s in Chrome, way too slow for high-frequency
+   icons. We pull the label out via attr(title) and reveal at 250 ms. */
+#toolbar button,
+#close-sidebar,
+#go-backward,
+#go-forward,
+#close-editor2 {
+    position: relative;
+}
+#toolbar button::after,
+#close-sidebar::after,
+#go-backward::after,
+#go-forward::after,
+#close-editor2::after {
+    /* Pull label from data-tooltip (not title) so the native browser tooltip
+       doesn't ALSO appear after its ~1.5 s delay. aria-label on each button
+       preserves screen-reader access. */
+    content: attr(data-tooltip);
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 6px;
+    padding: 5px 11px;
+    background: var(--col-accent);
+    border: none;
+    border-radius: 4px;
+    color: var(--col-bg);
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s;
+    z-index: 100;
+}
+/* Small upward triangle pointing back at the button — matches the tooltip
+   background so the arrow reads as part of the same shape. */
+#toolbar button::before,
+#close-sidebar::before,
+#go-backward::before,
+#go-forward::before,
+#close-editor2::before {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 2px;
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-bottom: 4px solid var(--col-accent);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s;
+    z-index: 100;
+}
+#toolbar button:hover::after,
+#close-sidebar:hover::after,
+#go-backward:hover::after,
+#go-forward:hover::after,
+#close-editor2:hover::after,
+#toolbar button:hover::before,
+#close-sidebar:hover::before,
+#go-backward:hover::before,
+#go-forward:hover::before,
+#close-editor2:hover::before {
+    opacity: 1;
+    transition-delay: 0.25s;
 }
 
 #toolbar {

@@ -44,6 +44,9 @@ function initEditor(el) {
         hmdFoldMath: {
             renderer: KatexRenderer,
         },
+        // Enable fold-code so ```mermaid blocks get rendered via the
+        // hypermd-mermaid renderer (registered as suggested:true on load).
+        hmdFoldCode: { mermaid: true },
         configureMouse: () => ({addNew: false}) // disable multicursor
     });
     newEditor.setSize(null, '100%');

@@ -309,22 +309,36 @@
     left: 50%;
     transform: translateX(-50%);
     margin-bottom: 6px;
-    padding: 4px 8px;
-    background: var(--col-bg);
-    border: 1px solid var(--col-border);
+    padding: 5px 11px;
+    background: var(--col-accent);
+    border: none;
     border-radius: 4px;
-    color: var(--col-tx);
-    font-size: 11px;
+    color: var(--col-bg);
+    font-size: 12px;
     white-space: nowrap;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.15s;
     z-index: 10;
 }
+/* Small downward triangle pointing at the button — matches the label
+   background so it reads as part of the same shape. */
+.btn-label::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 4px solid var(--col-accent);
+}
 
 .btn-wrapper:hover .btn-label {
     opacity: 1;
-    transition-delay: 0.5s;
+    transition-delay: 0.25s;
 }
 
 
