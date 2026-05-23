@@ -1008,10 +1008,6 @@ function TreeView(root, container, options) {
             if (node_cur.isEnabled()) {
                 if (e.ctrlKey == false) {
                     if (!node_cur.isLeaf()) {
-                        // Folder click: only toggle expand/collapse and
-                        // re-render; do NOT touch the file selection
-                        // below so the currently open file stays
-                        // highlighted across folder open/close.
                         node_cur.toggleExpanded();
                         self.reload();
                         node_cur.on("click")(e, node_cur);

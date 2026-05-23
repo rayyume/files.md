@@ -179,24 +179,13 @@ function createAutocompleteDict() {
 
 async function newFile(parentDir) {
     log('New file clicked');
-    let dirPath;
-    if (parentDir !== undefined) {
-        // Explicit parent (e.g. from sidebar right-click → New file).
-        dirPath = parentDir === '/' ? '/' : parentDir.replace(/\/$/, '');
-    } else {
-        dirPath = toDirPath(currentEditor.path);
-        let selectedDirs = tree.getSelectedNodes();
-        if (selectedDirs.length > 0 &&
-            selectedDirs[0].getOptions &&
-            typeof selectedDirs[0].getOptions === 'function' &&
-            selectedDirs[0].getOptions()['dir'] === true) {
-            dirPath = '/' + selectedDirs[0].toString();
-        }
-    }
-    // TODO don't create on disk?
-    let filename = 'New file.md';
+    // New files always land at the root. The `parentDir` parameter is still
+    // honored (sidebar right-click → New file inside a specific folder).
+    const dirPath = parentDir !== undefined
+        ? (parentDir === '/' ? '/' : parentDir.replace(/\/$/, ''))
+        : '/';
 
-    // TODO check tests
+    let filename = 'New file.md';
     let num = 1;
     while (getMemFile(joinPath(dirPath, filename)) !== null) {
         log('file exists', joinPath(dirPath, filename));
@@ -221,18 +210,6 @@ async function newFile(parentDir) {
     log('CURRENT path after new', currentEditor.path);
     editor.setCursor({ line: 1, ch: 0 });
     editor.focus();
-
-    // Skip toast when parent was explicit (right-click → New file): the user
-    // already knows where they clicked. Also skip at root (path is obvious).
-    if (parentDir === undefined && dirPath !== '/') {
-        const toastMsg = document.createElement('span');
-        const folder = dirPath.replace(/^\//, '').replace(/\/$/, '');
-        toastMsg.append('Created at ');
-        const bold = document.createElement('b');
-        bold.textContent = folder;
-        toastMsg.appendChild(bold);
-        showToast(toastMsg);
-    }
 
     await renderSidebar();
 }

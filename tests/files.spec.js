@@ -67,7 +67,7 @@ test('should load files', async ({ page }) => {
     });
 });
 
-test('create new in subfolder', async ({ page }) => {
+test('new file lands in root regardless of current location', async ({ page }) => {
     await page.evaluate(() => {
         window.getTemporaryStorageDirHandle = async function() {
             const root = await navigator.storage.getDirectory();
@@ -888,27 +888,11 @@ test('move file using keyboard navigation', async ({ page }) => {
     await expect(workFiles).toHaveCount(1);
 });
 
-test('create file in selected folder', async ({ page }) => {
+test('new file lands at root even when a folder is open', async ({ page }) => {
     await page.evaluate(() => {
         window.getTemporaryStorageDirHandle = async function() {
             const root = await navigator.storage.getDirectory();
-            const testDir = await root.getDirectoryHandle('files', { create: true });
             await root.getDirectoryHandle('projects', { create: true });
-            const rootFiles = [
-                { name: 'README.md', content: 'Hello world' }
-            ];
-
-            for (const fileData of rootFiles) {
-                try {
-                    await root.getFileHandle(fileData.name);
-                } catch (error) {
-                    const fileHandle = await testDir.getFileHandle(fileData.name, { create: true });
-                    const writable = await fileHandle.createWritable();
-                    await writable.write(fileData.content);
-                    await writable.close();
-                }
-            }
-
             return root;
         };
     });
@@ -919,6 +903,7 @@ test('create file in selected folder', async ({ page }) => {
 
     await page.waitForTimeout(500);
 
+    // Expand the `projects` folder so it's the user's current "context".
     await page.click('#sidebar >> text=projects');
     await page.waitForTimeout(100);
 
@@ -927,37 +912,19 @@ test('create file in selected folder', async ({ page }) => {
 
     await page.keyboard.press('ArrowUp');
     await page.keyboard.press('Meta+a');
-
     await page.keyboard.type('Project file');
     await page.waitForTimeout(100);
     await page.keyboard.press('ArrowDown');
-    await page.keyboard.type('File created in projects folder');
+    await page.keyboard.type('File body');
     await page.waitForTimeout(200);
 
-    // close projects dir
-    await page.click('#sidebar >> text=projects');
-    await page.waitForTimeout(200);
+    // The new file MUST land at root, never inside `projects/` -
+    // newFile() ignores the open/selected folder for the toolbar button.
+    const newFileNode = page.locator('#tree > ul > li > span.tree-item:has-text("Project file")');
+    await expect(newFileNode).toHaveCount(1);
 
-    await page.click('#sidebar >> text=files');
-    await page.waitForTimeout(100);
-
-    const projectFileAtRoot = page.locator('#sidebar >> text=Project file');
-    expect(await projectFileAtRoot.count()).toBe(0);
-
-    await page.click('#sidebar >> text=projects');
-    await page.waitForTimeout(200);
-
-    await page.click('#sidebar >> text=Project file');
-    await page.waitForTimeout(500);
-
-    const codeMirrorContent = await page.evaluate(() => {
-        const cm = document.querySelector('.CodeMirror').CodeMirror;
-        return cm.getValue();
-    });
-    expect(codeMirrorContent).toBe("# Project file\nFile created in projects folder");
-
-    const projectFiles = await page.locator('#sidebar >> text=projects').locator('..').locator('text=Project file');
-    expect(await projectFiles.count()).toBe(1);
+    const insideProjects = page.locator('#tree li:has(> span.tree-item:text-is("projects")) ul span.tree-item:has-text("Project file")');
+    await expect(insideProjects).toHaveCount(0);
 });
 
 // Regression test for a destructive file-duplication cascade.
