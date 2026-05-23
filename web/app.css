@@ -630,6 +630,14 @@ pre.HyperMD-codeblock-begin {
     overflow: visible !important;
 }
 
+/* Firefox collapses the begin/end pres to 0 height once the ``` tokens are
+   display:none, so the rounded panel shrinks to just the body line. Force a
+   minimum line height so the opening/closing bars remain visible. */
+pre.HyperMD-codeblock-begin,
+pre.HyperMD-codeblock-end {
+    min-height: 1.3em;
+}
+
 .code-copy-btn {
     position: absolute;
     right: 8px;
