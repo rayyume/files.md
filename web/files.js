@@ -1057,7 +1057,8 @@ async function openFile(path, saveToHistory = true, el = 'editor-textarea') {
     } else if (el === 'editor2-textarea') {
         currentEditor = editor2;
     }
-    let thereIsPreviousEditorToSync = currentEditor.path !== undefined;
+    // Only sync the switch-away editor when it has unsaved changes.
+    let thereIsPreviousEditorToSync =  !currentEditor.isClean() &&currentEditor.path !== undefined;
     if (thereIsPreviousEditorToSync) {
         const syncStart = performance.now();
         log('Began syncing previous file');
@@ -1349,7 +1350,6 @@ async function syncCurrentFile(switchAwayEditor = false) {
     const content = getCurrentContent();
     let contentWasModifiedLocally = false;
     try {
-        // const path = `${dir}/${filename}`;
         contentWasModifiedLocally = !await isContentEqual(path, content);
     } catch (error) {
         logError('Error checking content equality:', error);
