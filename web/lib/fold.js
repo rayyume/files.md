@@ -115,6 +115,9 @@ var __extends = (this && this.__extends) || (function () {
             _this.startFold = core_1.debounce(_this.startFoldImmediately.bind(_this), 100);
             /** stores every affected lineNo */
             _this._quickFoldHint = [];
+            // PATCHED: schedule a full-doc fold whenever the viewport changes
+            // (initial render, scroll, resize, viewportMargin change).
+            cm.on("viewportChange", function () { _this.startFold(); });
             cm.on("changes", function (cm, changes) {
                 var changedMarkers = [];
                 for (var _i = 0, changes_1 = changes; _i < changes_1.length; _i++) {
