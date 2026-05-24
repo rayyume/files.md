@@ -526,7 +526,7 @@ function hideEditor2() {
     // editor2's wrapper).
     editor2.path = undefined;
     currentEditor = editor;
-    renderSidebar();
+    selectSidebarItem(editor.path);
 
     setTimeout(() => {
         editor2Container.style.display = 'none';

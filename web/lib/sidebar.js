@@ -1,5 +1,26 @@
 let tree;
 
+function selectSidebarItem(path) {
+    if (!tree) return;
+    function clear(node) {
+        if (node.setSelected) node.setSelected(false);
+        if (node.getChildren) node.getChildren().forEach(clear);
+    }
+    function find(node) {
+        if (node.path === path) return node;
+        if (!node.getChildren) return null;
+        for (const child of node.getChildren()) {
+            const hit = find(child);
+            if (hit) return hit;
+        }
+        return null;
+    }
+    clear(tree.getRoot());
+    const node = find(tree.getRoot());
+    if (node) node.setSelected(true);
+    tree.reload();
+}
+
 function renderSidebar(focusDir = '', modifiedPaths) {
     let expandedDirs = new Set();
     let selectedNodes = new Set();
@@ -33,7 +54,7 @@ function renderSidebar(focusDir = '', modifiedPaths) {
 
     let chat = new TreeNode('chat');
     chat.path = CHAT_PATH;
-    if ((currentEditor.path === undefined && !isMemFS) || selectedNodes.has('chat')) {
+    if (isChat || currentEditor.path === undefined) {
         chat.setSelected(true);
     }
     chat.on('click', async function (n, node) {
