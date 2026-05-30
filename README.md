@@ -280,11 +280,13 @@ go run /abs/path/to/files.md/cmd/shifttime/shifttime.go
 [End-to-end tests](docs/e2e-tests.md)  
 
 ## Repository structure
-- `web` - web app (PWA), `index.html` is an entrypoint
-- `web/lib` - frontend libs
-- `cmd/server` - entrypoint for server
+- `web` - web app (PWA)
+- `web/index.html` entrypoint for the web app
+- `web/lib` - web app libs
+- `cmd/server` - entrypoint for the server
 - `cmd/*/` - useful scripts for `.md` files
-- `server/bot.go` - bot
+- `server` - server code
+- `server/bot.go` - chatbot
 - `server/sync/` - sync API server code
 - `vendor` - backend libs
 - `tests` - E2E tests, test both the web app and the server
