@@ -107,7 +107,8 @@ class MemFile {
         this.kind = 'file';
         this.name = name;
         this.content = content;
-        this.lastModified = Date.now();
+        // We want "My project.md" to appear in chat's quick buttons, for better demo.
+        this.lastModified = Date.now() + (name === 'My project.md' ? 1 : 0);
         this.parent = null;
     }
 
@@ -232,7 +233,8 @@ const WELCOME_FILES = {
                 "Whenever you add a note, make sure to link it to already existing notes. Avoid notes that are disconnected from other notes. As Luhmann himself put it, \"each note is just an element that derives its quality from the network of links in the system. A note that is not connected to the network will be lost, will be forgotten by the Zettelkasten\".\n\n" +
                 "**Files.md** has just enough features for you to grow your **Zettelkasten**. 🌱\n\n" +
                 "[Change your environment instead of using willpower](/brain/Change%20your%20environment%20instead%20of%20using%20willpower.md)\n" +
-                "[We think that we understand, but in reality we just know](/brain/We%20think%20that%20we%20understand,%20but%20in%20reality%20we%20just%20know.md)",
+                "[We think that we understand, but in reality we just know](/brain/We%20think%20that%20we%20understand,%20but%20in%20reality%20we%20just%20know.md)\n" +
+                "[Links](/Links.md)",
             isFile: true,
         },
     },
@@ -260,7 +262,8 @@ const WELCOME_FILES = {
             "Relations among ideas are far more important than the ideas themselves.\n" +
             "Learning is making meaningful connections.\n\n" +
             "Type `[` to insert a new link.\n\n" +
-            "[Markdown Guide](/Markdown%20Guide.md)",
+            "[Markdown Guide](/Markdown%20Guide.md)\n" +
+            "[Zettelkasten](/brain/Zettelkasten.md)",
         isFile: true,
     },
     "Markdown Guide.md": {
