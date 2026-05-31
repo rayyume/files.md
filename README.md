@@ -84,7 +84,7 @@ That's it.
 
 Full bot's functionality:  
 <div align="center">
-    <img src="https://github.com/zakirullin/files.md/raw/main/web/img/bot.png" width="500"/>
+    <img src="https://github.com/zakirullin/files.md/raw/main/web/img/bot.png" width="700"/>
 </div>
 
 Don't worry, by default it is way simpler than that.  
