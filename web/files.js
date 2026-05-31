@@ -97,6 +97,10 @@ let mediaIndex = {};
 
 const SERVER_STORAGE_KEY = 'server'; // If scheme is migrated, I believe it's better to introduce a new key, because for now old keys aren't removed.
 const SUPPORTED_EXTENSIONS = ['md', 'png', 'jpg', 'jpeg', 'webp', 'gif', 'mp4', 'webm', 'mov'];
+
+function isMediaPath(path) {
+    return /\.(png|jpg|jpeg|gif|webp|mp4|webm|mov)$/i.test(path);
+}
 const SYSTEM_DIRS = ['media', 'archive', 'journal', 'habits', 'triggers', 'insights'];
 const CONFIG_PATH = '/config.json';
 
@@ -173,9 +177,7 @@ async function loadLocalFiles(rootDirHandle, slowMode = false) {
                     });
                 }
 
-                const ext = filename.split('.').pop().toLowerCase();
-                const isMedia = ['png', 'jpg', 'jpeg', 'webp', 'gif', 'mp4', 'webm', 'mov'].includes(ext);
-                if (!isMedia) {
+                if (!isMediaPath(filename)) {
                     continue
                 }
 
@@ -662,7 +664,7 @@ async function collectModifiedAndDeletedFiles() {
         // go through the text sync path - file.text() corrupts them and the
         // JSON-escaped string can balloon past MaxFilenamesSize, returning
         // 400 from syncFilenames. They sync via syncMediaFile when in /media/.
-        if (/\.(png|jpg|jpeg|gif|webp|mp4|webm|mov)$/i.test(path)) {
+        if (isMediaPath(path)) {
             return;
         }
 

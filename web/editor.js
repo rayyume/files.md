@@ -87,23 +87,19 @@ function initEditor(el) {
             return path;
         }
 
-        // Capture only the bare filename (no slashes) so the media/img
-        // lookups by filename work even when path has a folder prefix.
-        const match = path.match(/(?:^|\/)([^/]+\.(png|jpg|jpeg|gif|webp|mp4|webm|mov))$/i);
-
-        if (match && files['media/'] && files['media/'][match[1]]) {
-            return files['media/'][match[1]].imageUrl;
-        }
-
-        if (match && files['img/'] && files['img/'][match[1]]) {
-            return files['img/'][match[1]].imageUrl;
-        }
-
-        // Filename fallback - look up bare filename in the global
-        // image index built by loadLocalFiles. Resolves images stored in
-        // any folder when the markdown link's path doesn't match.
-        if (match) {
-            const bareName = match[1].split('/').pop();
+        // Look up by bare filename so media/img lookups work even when path
+        // has a folder prefix.
+        if (isMediaPath(path)) {
+            const bareName = path.split('/').pop();
+            if (files['media/'] && files['media/'][bareName]) {
+                return files['media/'][bareName].imageUrl;
+            }
+            if (files['img/'] && files['img/'][bareName]) {
+                return files['img/'][bareName].imageUrl;
+            }
+            // Fallback - look up bare filename in the global media index
+            // built by loadLocalFiles. Resolves media stored in any folder
+            // when the markdown link's path doesn't match.
             if (mediaIndex[bareName] && mediaIndex[bareName].imageUrl) {
                 return mediaIndex[bareName].imageUrl;
             }
