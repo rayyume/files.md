@@ -405,6 +405,7 @@
     align-items: center;
     justify-content: center;
     transition: background 0.15s, opacity 0.15s;
+    animation: chat-btn-pop 0.18s ease-out;
 }
 
 #send-chat:hover {
@@ -432,6 +433,13 @@
     align-items: center;
     justify-content: center;
     transition: background 0.15s, color 0.15s;
+    animation: chat-btn-pop 0.18s ease-out;
+}
+
+@keyframes chat-btn-pop {
+    0%   { transform: scale(0.3); opacity: 0; }
+    70%  { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1); }
 }
 
 #mic-chat:hover {
