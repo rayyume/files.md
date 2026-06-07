@@ -890,6 +890,35 @@ pre.HyperMD-codeblock-end {
     padding-inline-start: 24px !important;
 }
 
+/* Indent for wrapped list lines. */
+.cm-s-hypermd-light pre.CodeMirror-line.HyperMD-list-line:not(:has(.cm-formatting-task)) {
+    text-indent: -1.2em;
+    padding-left: 1.2em;
+}
+.cm-s-hypermd-light pre.CodeMirror-line.HyperMD-list-line:has(.cm-formatting-list-ol):not(:has(.cm-formatting-task)) {
+    text-indent: -1.75em;
+    padding-left: 1.75em;
+}
+
+.cm-s-hypermd-light pre.CodeMirror-line.HyperMD-list-line-2:not(:has(.cm-formatting-task)) {
+    text-indent: -2.8em;
+    padding-left: 2.8em;
+}
+/*Ordered list*/
+.cm-s-hypermd-light pre.CodeMirror-line.HyperMD-list-line-2:has(.cm-formatting-list-ol):not(:has(.cm-formatting-task)) {
+    text-indent: -3.60em;
+    padding-left: 3.60em;
+}
+.cm-s-hypermd-light pre.CodeMirror-line.HyperMD-list-line-3:not(:has(.cm-formatting-task)) {
+    text-indent: -4.8em;
+    padding-left: 4.8em;
+}
+/*Ordered list*/
+.cm-s-hypermd-light pre.CodeMirror-line.HyperMD-list-line-3:has(.cm-formatting-list-ol):not(:has(.cm-formatting-task)) {
+    text-indent: -5.3em;
+    padding-left: 5.3em;
+}
+
 
 .cm-formatting-task.cm-property ~ .cm-list-1 {
     text-decoration: line-through;
