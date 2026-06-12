@@ -321,6 +321,45 @@ test('rename file via header removal', async ({ page }) => {
     expect(await page.evaluate(() => document.querySelector(".CodeMirror").CodeMirror.getValue())).toBe('# Newname\nHello world');
 });
 
+test('rename via header does not overwrite an existing file', async ({ page }) => {
+    await setup(page);
+
+    // Rename Notes.md by typing a title that passes through "README" -
+    // the name of an existing file - on its way to the final name.
+    await page.click(`#tree .tree-item:has-text('Notes')`);
+    await page.waitForTimeout(200);
+
+    await page.evaluate(() => {
+        const cm = document.querySelector('.CodeMirror').CodeMirror;
+        cm.setCursor(0, cm.getLine(0).length);
+    });
+    await page.keyboard.press('Meta+a');
+    await page.waitForTimeout(300);
+    await page.keyboard.type('README');
+    await page.waitForTimeout(1000);
+
+    // The collision is refused and reported, the rename simply pauses
+    await expect(page.locator('body')).toContainText('already exists');
+    expect(await page.evaluate(() => getMemFile('/README.md') !== null)).toBe(true);
+
+    // Typing past the collision resumes the rename under the free name
+    await page.keyboard.type(' incidents');
+    await page.waitForTimeout(1000);
+
+    expect(await page.evaluate(() => getMemFile('/README incidents.md') !== null)).toBe(true);
+    expect(await page.evaluate(() => getMemFile('/Notes.md'))).toBe(null);
+
+    // The pre-existing file kept its content
+    await page.evaluate(() => openFile('/README.md'));
+    await page.waitForTimeout(200);
+    expect(await page.evaluate(() => document.querySelector(".CodeMirror").CodeMirror.getValue())).toBe('# README\nHello world');
+
+    // And the renamed file kept its own
+    await page.evaluate(() => openFile('/README incidents.md'));
+    await page.waitForTimeout(200);
+    expect(await page.evaluate(() => document.querySelector(".CodeMirror").CodeMirror.getValue())).toBe('# README incidents\nSome text');
+});
+
 test('rename to empty name saves to untitled', async ({ page }) => {
     await setup(page);
 

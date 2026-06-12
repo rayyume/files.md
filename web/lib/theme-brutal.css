@@ -20,7 +20,7 @@
     --col-tx-sel: #000 !important;
     --col-msg-sel: color-mix(in srgb, #000, transparent 60%) !important;
     --col-bg-active: #E0E0D8 !important;
-    --col-border: #000 !important;
+    --col-border: #B6B3A7 !important;
     --col-marker: var(--color-neo-orange);
     --col-accent: #000;
 }

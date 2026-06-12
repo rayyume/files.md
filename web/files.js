@@ -1321,6 +1321,20 @@ async function syncCurrentFile(switchAwayEditor = false) {
             log('Filename has changed from ', filename, 'to', newFilename);
 
             const newPath = joinPath(toDirPath(path), newFilename);
+
+
+            // Do not delete existing files with same name.
+            for (const dir of toDirPath(path).split('/').filter(s => s !== '')) {
+                dirFiles = dirFiles && dirFiles[dir + '/'];
+            }
+            const nameTaken = dirFiles && Object.keys(dirFiles).some(
+                name => !name.endsWith('/') && name.toLowerCase() === newFilename.toLowerCase());
+            if (nameTaken) {
+                showToast(`File "${trimPostfix(newFilename, '.md')}" already exists`);
+                isMessingWithCurrentEditor = false;
+                return;
+            }
+
             let content = getCurrentContent();
 
             // Probe the new path before deleting the old file. Sanitization should
